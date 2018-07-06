@@ -1,5 +1,5 @@
 from pyparsing import *
-from common import Common
+from scope_parser.common import Common
 
 
 class Output(object):
@@ -11,6 +11,7 @@ class Output(object):
     USING = Keyword("USING")
     WHERE = Keyword("WHERE")
     CLUSTERED_BY = Keyword("CLUSTERED BY")
+    SORTED_BY = Keyword("SORTED BY")
 
     ident = Common.ident
     value_str = Common.value_str
@@ -20,11 +21,13 @@ class Output(object):
     partitioned_by = PARTITIONED_BY + ident
     using = USING + func
     clustered_by = Group(Optional(oneOf('HASH')) + CLUSTERED_BY + ident)
+    sorted_by = SORTED_BY + ident
 
     simple_where = Group(WHERE + ident + oneOf("== != >= <= > <") + (oneOf("true false") | value_str))
 
     output_sstream = OUTPUT + ((ident + TO) | TO) + Optional(SSTREAM) + value_str + \
                      Optional(clustered_by) + \
+                     Optional(sorted_by) + \
                      Optional(partitioned_by) + \
                      Optional(with_streamexpiry) + \
                      Optional(simple_where) + \
@@ -51,3 +54,11 @@ if __name__ == '__main__':
                        PARTITIONED BY StripePartitionId
                        WITH STREAMEXPIRY @EXPIRY
                        USING CSVFileOutputter(@METADATA_AGG_DSV, "ImpressionShareData_OrderItem", @ASCIICsvXfmArgs_ISOutputs)'''))
+
+    print(obj.parse('''
+        OUTPUT BIOrderItem
+        TO SSTREAM @BIContact
+           CLUSTERED BY OrderItemId
+               SORTED BY OrderItemId
+           WITH STREAMEXPIRY @StreamExpiryDays;
+    '''))

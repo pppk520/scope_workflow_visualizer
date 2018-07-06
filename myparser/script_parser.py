@@ -3,18 +3,44 @@ import logging
 
 from util.file_utility import FileUtility
 
+from scope_parser.declare import Declare
+from scope_parser.input import Input
+from scope_parser.output import Output
+from scope_parser.module import Module
+from scope_parser.process import Process
+from scope_parser.using import Using
+from scope_parser.select import Select
+
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
 
     def __init__(self):
         self.vars = {}
 
+        self.declare = Declare()
+        self.input = Input()
+        self.output = Output()
+        self.module = Module()
+        self.process = Process()
+        self.using = Using()
+        self.select = Select()
+
+    def remove_empty_lines(self, content):
+        return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
+
     def remove_comments(self, content):
         re_comment = re.compile(r'/\*(.*?)\*/', re.MULTILINE | re.DOTALL)
 
         # remove comments
         content = re.sub(re_comment, '', content)
-        content = re.sub(r'[^\b;](//.*)\n', '\g<1>', content)
+        content = re.sub(r'(//.*)\n', '\n', content)
+
+        return content
+
+    def remove_if(self, content):
+        re_if = re.compile(r'#IF.*?\n(.*?)#ENDIF', re.MULTILINE | re.DOTALL)
+
+        content = re.sub(re_if, '\g<1>', content)
 
         return content
 
@@ -29,65 +55,34 @@ class ScriptParser(object):
 
         return re_external_param.sub(replace_matched, content)
 
-    def resolve_declare(self, part):
-        regex = re.compile(r'#DECLARE[ \t]+(.*?)[ \t]+.*?=(.*)', re.DOTALL | re.MULTILINE)
-
-        match = regex.search(part)
-        if match:
-            var_name = match.group(1).strip()
-            var_value = match.group(2).strip()
-
-            self.vars[var_name] = var_value
-
-    def parse_select(self, part):
-        regex = re.compile(r'[ \t]+([\w\d]+)[ \t]=.*?FROM(.*?)((WHERE(.*))|;)', re.DOTALL | re.MULTILINE)
-
-        match = regex.search(part)
-        if match:
-            if match.groups()[-1] is None:
-                return match.group(1).strip(), match.group(2).strip()
-            else:
-                return match.group(1).strip(), match.group(2).strip(), match.groups()[-1].strip()
-
     def parse_file(self, filepath, external_params={}):
         content = FileUtility.get_file_content(filepath)
+#        content = self.remove_empty_lines(content)
+        content = self.remove_comments(content)
+        content = self.remove_if(content)
+        content = self.resolve_external_params(content, external_params)
+
         parts = content.split(';')
+
+        declare_map = {}
 
         for part in parts:
             print('-' * 20)
             print(part)
 
+            if '#DECLARE' in part:
+                key, value = self.declare.parse(part)
+                declare_map[key] = value
+
+                print('declare [{}] as [{}]'.format(key, value))
+            elif 'SELECT' in part:
+                d = self.select.parse(part)
+                print(d)
+
+        print(declare_map)
 
 if __name__ == '__main__':
-    s_declare = '''
-    #DECLARE foo string = "test";
-    '''
-
-    s_select = '''
-        EligibleRGuids = 
-        SELECT RGUID,   
-            ListingId AS OrderItemId,
-            MatchTypeId,
-            RelationshipId,
-            DistributionChannelId,
-            MediumId,
-            DeviceTypeId,
-            FraudQualityBand,
-            NetworkId,
-            DateKey,
-            HourNum
-        FROM (SSTREAM @EligibleRGuids);
-     '''
-
-    s = '''
-    #DECLARE foo string = "test";
-    
-    #DECLARE abc string = "@@external@@/abc/def"; 
-    #DECLARE pp string = "prefix/@@external@@/"; 
-    
-    '''
-
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''')
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
-    print(ScriptParser().resolve_select(s_select))
 #    ScriptParser().parse_file('../tests/files/SOV3_StripeOutput.script')

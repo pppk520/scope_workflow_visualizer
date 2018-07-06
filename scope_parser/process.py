@@ -1,5 +1,5 @@
 from pyparsing import *
-from common import Common
+from scope_parser.common import Common
 
 
 class Process(object):

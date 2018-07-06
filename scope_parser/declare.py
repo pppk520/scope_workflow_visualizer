@@ -1,5 +1,5 @@
 from pyparsing import *
-from common import Common
+from scope_parser.common import Common
 
 class Declare(object):
     DECLARE = Keyword("#DECLARE")
@@ -8,19 +8,13 @@ class Declare(object):
     comment = Common.comment
     ident = Common.ident
 
-    value_str = Combine(Group(Optional('@') + (quotedString | ident)))
-    conversion_prefix = oneOf("int.Parse string.Format DateTime.Parse")
-
-    conversion_stmt = Forward()
-
-    value = conversion_stmt | value_str | Word(nums)
-    conversion_stmt << conversion_prefix + '(' + delimitedList(value) + ')'
-
-    declare = DECLARE + ident + DATA_TYPE + '=' + Group(value | conversion_stmt)
+    declare = DECLARE + Combine(ident)('key') + DATA_TYPE + '=' + restOfLine('value')
     declare.ignore(comment)
 
     def parse(self, s):
-        return self.declare.parseString(s)
+        data = self.declare.parseString(s)
+
+        return data['key'], data['value'].strip()
 
     def debug(self):
         s = 'string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate))'
