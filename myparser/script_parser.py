@@ -1,5 +1,6 @@
 import re
 import logging
+import json
 
 from util.file_utility import FileUtility
 
@@ -10,6 +11,10 @@ from scope_parser.module import Module
 from scope_parser.process import Process
 from scope_parser.using import Using
 from scope_parser.select import Select
+
+from graph.node import Node
+from graph.edge import Edge
+from graph.graph_utility import GraphUtility
 
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
@@ -55,7 +60,16 @@ class ScriptParser(object):
 
         return re_external_param.sub(replace_matched, content)
 
-    def parse_file(self, filepath, external_params={}):
+    def find_latest_node(self, target_name, nodes):
+        for node in nodes[::-1]:
+            if node.name == target_name:
+                return node
+
+        self.logger.warning('cannot find node [{}]! Probably source node.'.format(target_name))
+
+        return Node(target_name)
+
+    def parse_file(self, filepath, external_params={}, dest_filepath=None):
         content = FileUtility.get_file_content(filepath)
 #        content = self.remove_empty_lines(content)
         content = self.remove_comments(content)
@@ -66,23 +80,63 @@ class ScriptParser(object):
 
         declare_map = {}
 
+        nodes = []
+        edges = []
+        all_nodes = [] # add node to networkx ourself, missing nodes in edges will be added automatically
+                       # and the id of auto-added nodes are not controllable
+
         for part in parts:
-            print('-' * 20)
-            print(part)
+            self.logger.debug('-' * 20)
+            self.logger.debug(part)
 
             if '#DECLARE' in part:
                 key, value = self.declare.parse(part)
                 declare_map[key] = value
 
-                print('declare [{}] as [{}]'.format(key, value))
+                self.logger.info('declare [{}] as [{}]'.format(key, value))
             elif 'SELECT' in part:
                 d = self.select.parse(part)
-                print(d)
+                self.logger.debug(d)
+                self.logger.info('[{}] = select from sources [{}]'.format(d['assign_var'], d['sources']))
 
-        print(declare_map)
+                if d['assign_var']:
+                    nodes.append(Node(d['assign_var']))
+                    all_nodes.append(nodes[-1])
+
+                to_node = nodes[-1]
+
+                if len(d['sources']) == 0:
+                    from_node = nodes[-2]
+                    edges.append(Edge(from_node, to_node))
+                else:
+                    for source in d['sources']:
+                        from_node = self.find_latest_node(source, nodes)
+                        all_nodes.append(from_node)
+                        edges.append(Edge(from_node, to_node))
+
+            elif 'OUTPUT' in part:
+                d = self.output.parse(part)
+                self.logger.debug(d)
+
+                if not d['ident']:
+                    d['ident'] = nodes[-1].name
+
+                from_node = self.find_latest_node(d['ident'], nodes)
+                to_node = Node(d['path'], attr={'type': 'output'})
+                all_nodes.append(to_node)
+
+                edges.append(Edge(from_node, to_node))
+
+        self.logger.info(declare_map)
+
+        if dest_filepath:
+            self.logger.info('output GEXF to [{}]'.format(dest_filepath))
+            GraphUtility().to_gexf_file(all_nodes, edges, dest_filepath)
 
 if __name__ == '__main__':
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''')
+    logging.basicConfig(level=logging.DEBUG)
+
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
 #    ScriptParser().parse_file('../tests/files/SOV3_StripeOutput.script')

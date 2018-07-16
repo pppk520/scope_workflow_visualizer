@@ -1,3 +1,4 @@
+import json
 from pyparsing import *
 from scope_parser.common import Common
 
@@ -25,10 +26,10 @@ class Output(object):
 
     simple_where = Group(WHERE + ident + oneOf("== != >= <= > <") + (oneOf("true false") | value_str))
 
-    output_sstream = OUTPUT + ((ident + TO) | TO) + Optional(SSTREAM) + value_str + \
+    output_sstream = OUTPUT + ((ident('ident') + TO) | TO) + Optional(SSTREAM)('sstream') + value_str('path') + \
                      Optional(clustered_by) + \
                      Optional(sorted_by) + \
-                     Optional(partitioned_by) + \
+                     Optional(partitioned_by)('partition') + \
                      Optional(with_streamexpiry) + \
                      Optional(simple_where) + \
                      Optional(using)
@@ -36,7 +37,32 @@ class Output(object):
     output = output_sstream
 
     def parse(self, s):
-        return self.output.parseString(s)
+        # specific output for our purpose
+        ret = {
+            'ident': None,
+            'path': None,
+            'stream_type': None,
+            'attributes': set()
+        }
+
+        data = self.output.parseString(s)
+
+#        print('-' *20)
+#        print(json.dumps(data.asDict(), indent=4))
+#        print('-' *20)
+
+        if 'ident' in data:
+            ret['ident'] = data['ident'][0]
+
+        ret['path'] = data['path']
+
+        if 'sstream' in data:
+            ret['stream_type'] = 'SSTREAM'
+
+        if 'partition' in data:
+            ret['attributes'].add('PARTITION')
+
+        return ret
 
 if __name__ == '__main__':
     obj = Output()

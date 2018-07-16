@@ -159,6 +159,7 @@ class Select(object):
 
 
     def parse(self, s):
+        # specific output for our purpose
         ret = {
             'assign_var': None,
             'sources': set()
@@ -422,6 +423,20 @@ if __name__ == '__main__':
     '''))
 
 
-
+    print(obj.parse('''
+        YouPerfMerge =
+            SELECT DateKey,
+                   GeoLocationId,
+                   SUM(AuctionCnt) AS AuctionCnt,
+                   SUM(TopCnt) AS TopCnt
+            FROM
+            (
+            SELECT *
+            FROM YouPerfAuction
+            UNION ALL
+            SELECT *
+            FROM YouPerfMonetization
+            )
+    '''))
 
 
