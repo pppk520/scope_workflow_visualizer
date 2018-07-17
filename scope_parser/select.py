@@ -51,9 +51,10 @@ class Select(object):
     column_name = (delimitedList(ident | '*', ".", combine=True))
     cast_ident = Group(Optional(cast) + column_name).setName('cast_identifier')
     aggr_ident = Combine(aggr + '(' + (ident | Empty()) + ')')
+    operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Group((aggr_ident | ternary | null_coal | if_stmt | func_chain_not | cast_ident)('column_name') + Optional(as_something) | '*').setName('one_column')
+    one_column = Group((aggr_ident | ternary | null_coal | if_stmt | func_chain_not | operator_ident | cast_ident)('column_name') + Optional(as_something) | '*').setName('one_column')
     column_name_list = Group(delimitedList(one_column))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
@@ -105,7 +106,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.from_sstream.parseString("(SSTREAM @test)"))
+        print(self.operator_ident.parseString("QualityFactor*QualityFactorScale * SuggBid"))
 
     def parse_ternary(self, s):
         return self.ternary.parseString(s)
@@ -185,8 +186,8 @@ class Select(object):
 
 if __name__ == '__main__':
     obj = Select()
-#    obj.debug()
+    obj.debug()
 
-    print(obj.parse_one_column('''string.IsNullOrEmpty(CountryIdList) AND string.IsNullOrEmpty(StateIdList) AS LocatinonTargetingFlag'''))
+#    print(obj.parse_one_column('''QualityFactor * QualityFactorScale * SuggBid'''))
 
 

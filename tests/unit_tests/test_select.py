@@ -255,3 +255,23 @@ class TestSelect(TestCase):
         self.assertCountEqual(result['sources'], ['KWCandidatesWithAuctionPassNegKW', 'CampaignTargetInfo'])
 
 
+    def test_parse_column_if(self):
+        s = '''
+            KeywordAuctionQualityFactor =
+                SELECT A.*,
+                       IF(B.QualityFactorScale == NULL, 1.0, B.QualityFactorScale) AS QualityFactorScale,
+                       IF(B.PClickScale == NULL, 1.0, B.PClickScale) AS PClickScale,
+                       QualityFactor * QualityFactorScale * SuggBid AS NewRS,
+                       PClick * PClickScale AS NewPClick
+                FROM KeywordAuctionQualityFactor AS A
+                     LEFT OUTER JOIN
+                         QualityFactorScale AS B
+                     ON A.OrderId == B.AdGroupId;
+            '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'KeywordAuctionQualityFactor')
+        self.assertCountEqual(result['sources'], ['KeywordAuctionQualityFactor', 'QualityFactorScale'])
+
+
