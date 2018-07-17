@@ -152,3 +152,5 @@ if __name__ == '__main__':
                 PATTERN @"/%Year/%Month/%Day/YouPerformanceFinal%Hour.ss?%Minute%Second"
                 RANGE __datetime = [@StartTimeStr,@EndTimeStr]("01:00:00")    
     '''))
+
+    print(i.parse_sstream('''SSTREAM @Input_Suggestions'''))

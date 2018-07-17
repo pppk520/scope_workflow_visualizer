@@ -23,6 +23,8 @@ class Select(object):
     value_str = Common.value_str
     func = Common.func
     func_chain = Common.func_chain
+    func_chain_logical = func_chain + oneOf("AND OR") + func_chain
+    func_chain_not = Optional('!(') + (func_chain_logical | func_chain) + Optional(')')
 
     E = CaselessLiteral("E")
     binop = oneOf("== = != < > >= <=")
@@ -40,13 +42,18 @@ class Select(object):
     # IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt
     if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
 
+
+    and_ = Keyword("AND")
+    or_ = Keyword("OR")
+    in_ = Keyword("IN")
+
     select_stmt = Forward()
     column_name = (delimitedList(ident | '*', ".", combine=True))
     cast_ident = Group(Optional(cast) + column_name).setName('cast_identifier')
     aggr_ident = Combine(aggr + '(' + (ident | Empty()) + ')')
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Group((aggr_ident | ternary | null_coal | if_stmt | func_chain | cast_ident)('column_name') + Optional(as_something) | '*').setName('one_column')
+    one_column = Group((aggr_ident | ternary | null_coal | if_stmt | func_chain_not | cast_ident)('column_name') + Optional(as_something) | '*').setName('one_column')
     column_name_list = Group(delimitedList(one_column))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
@@ -54,9 +61,6 @@ class Select(object):
     union = Group(UNION + Optional('ALL'))
 
     where_expression = Forward()
-    and_ = Keyword("AND")
-    or_ = Keyword("OR")
-    in_ = Keyword("IN")
 
     real_num = Combine(Optional(arith_sign) + (Word(nums) + "." + Optional(Word(nums)) |
                                                ("." + Word(nums))) +
@@ -74,7 +78,7 @@ class Select(object):
     )
     where_expression << where_condition + ZeroOrMore((and_ | or_ | '&&' | '|') + where_expression)
 
-    join = Group(Optional(oneOf('LEFT RIGHT OUTER INNER')) + JOIN)
+    join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER'))) + JOIN)
     join_stmt = join + table_name("join_table_name") + Optional(AS + ident) + ON + where_expression
 
     # define the grammar
@@ -181,262 +185,8 @@ class Select(object):
 
 if __name__ == '__main__':
     obj = Select()
-    obj.debug()
+#    obj.debug()
 
-    print(obj.parse_aggr('''SUM(CoImpressionCnt)'''))
-    print(obj.parse_one_column('''SUM(CoImpressionCnt) AS CoImpressionCnt'''))
-    print(obj.parse_one_column('''L.*'''))
-    print(obj.parse_ternary('''YouOrderItemId == CompOrderItemId?"You" : Domain'''))
-    print(obj.parse_ternary('''PagePosition.StartsWith("ML")?1:0 AS TopCnt,'''))
-    print(obj.parse_null_coal('''AdId??0UL AS AdId'''))
-    print(obj.parse_cast('''(byte?)MatchTypeId AS MatchTypeId'''))
-    print(obj.parse_if('''IF(L.PositionNum < R.PositionNum, 0, 1)'''))
-
-    print(obj.parse_select('''
-        SELECT *
-        FROM Step1
-        UNION ALL
-        SELECT *
-        FROM ImpressionShare
-    '''))
-
-    print(obj.parse_select('''
-        SELECT DateKey,
-               HourNum,
-               AccountId,
-               SUM(ImpressionCntInAuction) AS ImpressionCntInAuction,
-               SUM(TopCnt) AS TopCnt
-        FROM Table1, Table2
-    '''))
-
-    print(obj.parse_select('''
-        SELECT DateKey,
-               DistributionChannelId,
-               MediumId,
-               DeviceTypeId,
-    
-               Domain,
-               SUM(ImpressionCntInAuction) AS ImpressionCntInAuction,
-               //SUM(CoImpression_AuctionLog) AS CoImpression_AuctionLog,    
-               SUM(CoImpressionCnt) AS CoImpressionCnt
-        FROM
-        (
-        SELECT *
-        FROM Step1
-        UNION ALL
-        SELECT *
-        FROM ImpressionShare
-        )
-        HAVING ImpressionCntInAuction + CoImpressionCnt + PositionNum + AboveCnt + TopCnt > 0;
-    '''))
-
-    print(obj.parse_select('''
-            SELECT DateKey,
-                   ListingId AS YouOrderItemId,
-                   MBTimeBucket,
-                   COUNT() AS AuctionCnt,
-                   SUM(ImpressionCnt) AS ImpressionCnt
-            FROM AuctionRaw;
-    '''))
-
-    print(obj.parse_select('''
-            SELECT DateKey,
-                   HourNum,
-                   Domain,
-                   //SUM(AuctionCnt) AS AuctionCnt,
-                   SUM(ImpressionCnt) AS ImpressionCnt
-            //SUM(CoImpressionCnt) AS CoImpressionCnt 
-            FROM PairAggDomain
-            HAVING ImpressionCnt > 0;
-    '''))
-
-    print(obj.parse_join('''
-             INNER JOIN
-                 AdDispayUrl AS R
-             ON L.CompOrderItemId == R.ListingId && L.CompAdId == R.AdId;
-    '''))
-
-
-    print(obj.parse_select('''
-        SELECT L.*,
-               YouOrderItemId == CompOrderItemId?"You" : Domain AS Domain
-        FROM RichPairAgg AS L
-             INNER JOIN
-                 AdDispayUrl AS R
-             ON L.CompOrderItemId == R.ListingId && L.CompAdId == R.AdId;
-    '''))
-
-    print(obj.parse_select('''
-        SELECT 
-                CampaignTZDateKey AS DateKey,
-                AdvertiserAccountId AS AccountId,
-                AdId??0UL AS AdId,
-                (byte?)MatchTypeId AS MatchTypeId,
-                GeoLocationId,
-                AbsPosition AS PositionNum,
-                PagePosition.StartsWith("ML")?1:0 AS TopCnt
-        FROM (
-            MonetizationModules.MonetizationImpression(
-                INPUT_BASE = @MonetizationCommonDataPath, 
-                START_DATETIME_UTC = @StartDateHourObj.AddHours(-2), 
-                END_DATETIME_UTC=@StartDateHourObj.AddHours(2)
-            ))
-        WHERE IsFraud == false && DupAdId == 0 && AdDisplayTypeId != 5 && MediumId IN (1,3) && LogDelta == @DateObj; 
-    '''))
-
-    print(obj.parse_select('''
-        SELECT L.DateKey,
-               L.HourNum,
-               L.RGUID,
-               R.PositionNum,
-               IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt,
-               R.TopCnt
-        FROM AdImpressionRaw AS L
-             INNER JOIN
-                 AdImpressionRaw AS R
-             ON L.RGUID == R.RGUID
-        WHERE L.OrderItemId != R.OrderItemId;
-    '''))
-
-    print(obj.parse('''
-        data = SELECT L.DateKey,
-               R.PositionNum,
-               IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt,
-               R.TopCnt
-        FROM LeftTable AS L
-             INNER JOIN
-                 RightTable AS R
-             ON L.RGUID == R.RGUID
-        WHERE L.OrderItemId != R.OrderItemId;
-    '''))
-
-    print(obj.parse('''
-        SELECT L.DateKey,
-               IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt,
-               R.TopCnt
-        FROM Table1, Table2
-    '''))
-
-    print(obj.parse('''
-        SELECT L.DateKey,
-               IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt,
-               R.TopCnt
-        FROM(
-            MonetizationModules.MonetizationImpression(
-                INPUT_BASE = @MonetizationCommonDataPath, 
-                START_DATETIME_UTC = @StartDateHourObj.AddHours(-2), 
-                END_DATETIME_UTC=@StartDateHourObj.AddHours(2)
-            )        
-        )
-    '''))
-
-    print(obj.parse('''
-        AdImpressionRaw = SELECT 
-                CampaignTZDateKey AS DateKey,
-                CampaignTZHourNum AS HourNum,
-                RGUID,
-                AdvertiserAccountId AS AccountId,
-                CampaignId,
-                OrderId,
-                OrderItemId,
-                AdId??0UL AS AdId,
-        
-                (byte?)MatchTypeId AS MatchTypeId,
-                RelationshipId,
-                DistributionChannelId,
-                MediumId,
-                DeviceTypeId,
-                GeoLocationId,
-        
-                AbsPosition AS PositionNum,
-                PagePosition.StartsWith("ML")?1:0 AS TopCnt,
-                ImpressionCnt
-        FROM (
-            MonetizationModules.MonetizationImpression(
-                INPUT_BASE = @@MonetizationCommonDataPath@@, 
-                START_DATETIME_UTC = @StartDateHourObj.AddHours(-2), 
-                END_DATETIME_UTC=@StartDateHourObj.AddHours(2)
-            ))
-        WHERE IsFraud == false && DupAdId == 0 && AdDisplayTypeId != 5 && MediumId IN (1,3) LogDelta == @DateObj
-    '''))
-
-    print(obj.parse('''
-        SELECT L.DateKey,
-               L.ImpressionCnt AS YouImpressionCnt,
-               L.PositionNum AS LPositionNum,
-               L.RGUID,
-               R.AccountId AS CompAccountId,
-                     R.OrderItemId AS CompOrderItemId,
-               R.AdId,
-               IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt,
-               R.TopCnt
-        FROM AdImpressionRaw AS L
-             INNER JOIN
-                 AdImpressionRaw AS R
-             ON L.RGUID == R.RGUID
-        WHERE L.OrderItemId != R.OrderItemId
-    '''))
-
-    print(obj.parse('''
-        RguidLevelAgg =
-            SELECT DateKey,
-                   HourNum,
-                   GeoLocationId,
-                   FIRST(YouImpressionCnt) AS YouImpressionCnt,
-                   RGUID,
-                   CompAccountId,
-                   AdId,
-                   SUM(AboveCnt) AS AboveCnt,
-                   SUM(TopCnt) AS TopCnt    
-    '''))
-
-    print(obj.parse('''
-        AdDispayUrl =
-            SELECT ulong.Parse(AdId) AS AdId,
-                   long.Parse(ListingId) AS ListingId,
-                   Domain
-            FROM
-            (
-                SSTREAM @FinalDomainPath
-            )
-    '''))
-
-    print(obj.parse('''
-        Listign2DomainAgg =
-            SELECT DateKey,
-                   Domain,
-                   SUM(CoImpressionCnt) AS CoImpressionCnt,
-                   SUM(TopCnt) AS TopCnt
-            FROM Listing2Ad
-                 INNER JOIN
-                     AdDispayUrl
-                 ON Listing2Ad.CompOrderItemId == AdDispayUrl.ListingId && Listing2Ad.AdId == AdDispayUrl.AdId
-    '''))
-
-
-    print(obj.parse('''
-        SELECT *
-        FROM Step1
-        UNION ALL
-        SELECT *
-        FROM ImpressionShare
-    '''))
-
-
-    print(obj.parse('''
-        YouPerfMerge =
-            SELECT DateKey,
-                   GeoLocationId,
-                   SUM(AuctionCnt) AS AuctionCnt,
-                   SUM(TopCnt) AS TopCnt
-            FROM
-            (
-            SELECT *
-            FROM YouPerfAuction
-            UNION ALL
-            SELECT *
-            FROM YouPerfMonetization
-            )
-    '''))
+    print(obj.parse_one_column('''string.IsNullOrEmpty(CountryIdList) AND string.IsNullOrEmpty(StateIdList) AS LocatinonTargetingFlag'''))
 
 
