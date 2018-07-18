@@ -3,7 +3,7 @@ from pyparsing import *
 
 class Common(object):
     comment = "//" + restOfLine
-    ident = Group(Word('_' + alphanums)).setName("identifier")
+    ident = Group(Word('_<>' + alphanums)).setName("identifier")
     value_str = Combine(Group(Optional(oneOf('@@ @')) + (quotedString | ident) + Optional('@@')))
 
     expr = Word(printables + ' ', excludeChars=':(),')

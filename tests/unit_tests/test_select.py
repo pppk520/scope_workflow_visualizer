@@ -274,4 +274,48 @@ class TestSelect(TestCase):
         self.assertTrue(result['assign_var'] == 'KeywordAuctionQualityFactor')
         self.assertCountEqual(result['sources'], ['KeywordAuctionQualityFactor', 'QualityFactorScale'])
 
+    def test_parse_aggr_over(self):
+        s = '''
+            KWCandidatesWithRS = SELECT *,
+                                        COUNT() OVER (PARTITION BY OrderId, SuggKW, OptType) AS Srpv
+                FROM KWCandidatesWithRS;
+            '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'KWCandidatesWithRS')
+        self.assertCountEqual(result['sources'], ['KWCandidatesWithRS'])
+
+    def test_parse_semijoin(self):
+        s = '''
+            ListingBidDemand =
+                SELECT A.*
+                FROM (SSTREAM @ListingBidDemand) AS A
+                     LEFT SEMIJOIN
+                         AuctionContextOnlyWithTA
+                     ON A.RGUID == AuctionContextOnlyWithTA.RGUID;
+            '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'ListingBidDemand')
+        self.assertCountEqual(result['sources'], ['SSTREAM_@ListingBidDemand', 'AuctionContextOnlyWithTA'])
+
+    def test_parse_cross_apply(self):
+        s = '''
+            ListingBidDemand =
+                SELECT DISTINCT RGUID,
+                       (long) ListingId AS ListingId,
+                       L.TotalPosition AS Position,
+                       L.Clicks
+                FROM ListingBidDemand AS A
+                     CROSS APPLY
+                         BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;
+            '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'ListingBidDemand')
+        self.assertCountEqual(result['sources'], ['ListingBidDemand', 'BOND_BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints'])
+
 

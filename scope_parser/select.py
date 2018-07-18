@@ -8,7 +8,8 @@ class Select(object):
     SELECT = Keyword("SELECT")
     FROM = Keyword("FROM")
     WHERE = Keyword("WHERE")
-    JOIN = Keyword("JOIN")
+    JOIN = Keyword("JOIN") | Keyword("SEMIJOIN")
+    CROSS_APPLY = Keyword("CROSS APPLY")
     AS = Keyword("AS")
     ON = Keyword("ON")
     UNION = Keyword("UNION")
@@ -16,8 +17,6 @@ class Select(object):
     HAVING = Keyword("HAVING")
     IF = Keyword("IF")
 
-    cast = Combine('(' + oneOf("long ulong short int byte") + Optional('?') + ')')
-    aggr = oneOf("SUM AVG MAX MIN COUNT FIRST")
     comment = Common.comment
     ident = Common.ident
     value_str = Common.value_str
@@ -25,6 +24,10 @@ class Select(object):
     func_chain = Common.func_chain
     func_chain_logical = func_chain + oneOf("AND OR") + func_chain
     func_chain_not = Optional('!(') + (func_chain_logical | func_chain) + Optional(')')
+
+    cast = Combine('(' + oneOf("long ulong short int byte") + Optional('?') + ')')
+    aggr = oneOf("SUM AVG MAX MIN COUNT FIRST")
+    window_over_param = 'PARTITION BY' + delimitedList(ident)
 
     E = CaselessLiteral("E")
     binop = oneOf("== = != < > >= <=")
@@ -50,14 +53,18 @@ class Select(object):
     select_stmt = Forward()
     column_name = (delimitedList(ident | '*', ".", combine=True))
     cast_ident = Group(Optional(cast) + column_name).setName('cast_identifier')
-    aggr_ident = Combine(aggr + '(' + (ident | Empty()) + ')')
+    aggr_ident_basic = Combine(aggr + '(' + (ident | Empty()) + ')')
+    aggr_ident_over = aggr_ident_basic + 'OVER' + '(' + window_over_param + ')'
+    aggr_ident = aggr_ident_over | aggr_ident_basic
     operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
+    distinct_ident = DISTINCT + ident
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Group((aggr_ident | ternary | null_coal | if_stmt | func_chain_not | operator_ident | cast_ident)('column_name') + Optional(as_something) | '*').setName('one_column')
+    one_column = Group((distinct_ident | aggr_ident | ternary | null_coal | if_stmt | func_chain_not | operator_ident | cast_ident)('column_name') + Optional(as_something) | '*').setName('one_column')
     column_name_list = Group(delimitedList(one_column))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
+    bond_expr = Combine(func + ZeroOrMore('.' + ident))
 
     union = Group(UNION + Optional('ALL'))
 
@@ -81,21 +88,23 @@ class Select(object):
 
     join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER'))) + JOIN)
     join_stmt = join + table_name("join_table_name") + Optional(AS + ident) + ON + where_expression
+    cross_apply_stmt = CROSS_APPLY + (bond_expr("bond") | table_name) + Optional(AS + ident)
 
     # define the grammar
     union_select = ZeroOrMore(Optional(union) + select_stmt)
     having = HAVING + restOfLine
 
-    from_select = Group('(' + select_stmt + ')')
-    from_module = Group('(' + Input.module + ')')
-    from_view = Group('(' + Input.view + ')')
-    from_sstream = Group('(' + Input.sstream + ')')
+    from_select = Group('(' + select_stmt + ')' + Optional(as_something).suppress())
+    from_module = Group('(' + Input.module + ')' + Optional(as_something).suppress())
+    from_view = Group('(' + Input.view + ')' + Optional(as_something).suppress())
+    from_sstream = Group('(' + Input.sstream + ')' + Optional(as_something).suppress())
     from_stmt = FROM + (from_select("select") | from_module("module") | from_view("view") | from_sstream("sstream") | table_name_list("tables"))
 
     select_stmt <<= (SELECT + (column_name_list | '*')("columns") +
                      Optional(DISTINCT) +
                      Optional(from_stmt)("from") +
                      Optional(join_stmt) +
+                     Optional(cross_apply_stmt) +
                      Optional(Group(WHERE + where_expression), "")("where") +
                      Optional(Group(union_select))('union') +
                      Optional(having))
@@ -106,7 +115,8 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.operator_ident.parseString("QualityFactor*QualityFactorScale * SuggBid"))
+        print(self.cross_apply_stmt.parseString("CROSS APPLY BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;"))
+
 
     def parse_ternary(self, s):
         return self.ternary.parseString(s)
@@ -160,6 +170,9 @@ class Select(object):
         if 'select' in parsed_result:
             self.add_source(sources, parsed_result['select'])
 
+        if 'bond' in parsed_result:
+            sources.add("BOND_{}".format(parsed_result['bond']))
+
         return sources
 
 
@@ -188,6 +201,15 @@ if __name__ == '__main__':
     obj = Select()
     obj.debug()
 
-#    print(obj.parse_one_column('''QualityFactor * QualityFactorScale * SuggBid'''))
+    print(obj.parse('''
+            ListingBidDemand =
+                SELECT DISTINCT RGUID,
+                       (long) ListingId AS ListingId,
+                       L.TotalPosition AS Position,
+                       L.Clicks
+                FROM ListingBidDemand AS A
+                     CROSS APPLY
+                         BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;
+    '''))
 
 
