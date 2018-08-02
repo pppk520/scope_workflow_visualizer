@@ -60,7 +60,7 @@ class Select(object):
     distinct_ident = DISTINCT + ident
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Group((distinct_ident | aggr_ident | ternary | null_coal | if_stmt | func_chain_not | operator_ident | cast_ident)('column_name') + Optional(as_something) | '*').setName('one_column')
+    one_column = Group((distinct_ident | aggr_ident | ternary | null_coal | if_stmt | func_chain_not | operator_ident | cast_ident | quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
     column_name_list = Group(delimitedList(one_column))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
@@ -199,17 +199,21 @@ class Select(object):
 
 if __name__ == '__main__':
     obj = Select()
-    obj.debug()
+#    obj.debug()
 
     print(obj.parse('''
-            ListingBidDemand =
-                SELECT DISTINCT RGUID,
-                       (long) ListingId AS ListingId,
-                       L.TotalPosition AS Position,
-                       L.Clicks
-                FROM ListingBidDemand AS A
-                     CROSS APPLY
-                         BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;
-    '''))
+        AllStat =
+            SELECT "OrderIdCount" AS Tag,
+                   COUNT(DISTINCT (OrderId)) AS Num
+            FROM BroadMatchOptDedup
+            UNION ALL
+            SELECT "SuggCount" AS Tag,
+                   COUNT( * ) AS Num
+            FROM BroadMatchOptDedup
+            UNION ALL
+            SELECT "AccountIdCount" AS Tag,
+                   COUNT(DISTINCT (AccountId)) AS Num
+            FROM BroadMatchOptDedup
+        '''))
 
 

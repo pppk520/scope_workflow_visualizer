@@ -12,9 +12,12 @@ class Declare(object):
     declare.ignore(comment)
 
     def parse(self, s):
-        data = self.declare.parseString(s)
+        data = self.declare.searchString(s)
 
-        return data['key'], data['value'].strip()
+        if data:
+            return data[0][1], data[0][-1]
+
+        return None, None
 
     def debug(self):
         s = 'string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate))'
@@ -25,6 +28,7 @@ if __name__ == '__main__':
     d = Declare()
     #d.debug()
 
+    print(d.parse('#DECLARE RunDate DateTime = DateTime.Parse("@@RunDate@@")'))
     print(d.parse('#DECLARE KWRawPath string = @"@@KWRawPath@@"'))
     print(d.parse('#DECLARE KWRawPath string = @"@@KWRawPath@@"; //comment'))
     print(d.parse('#DECLARE AuctionDataGetRatio int = int.Parse("@@AuctionDataGetRatio@@");'))

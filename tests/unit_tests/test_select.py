@@ -318,4 +318,23 @@ class TestSelect(TestCase):
         self.assertTrue(result['assign_var'] == 'ListingBidDemand')
         self.assertCountEqual(result['sources'], ['ListingBidDemand', 'BOND_BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints'])
 
+    def test_parse_union_all(self):
+        s = '''
+                AllStat =
+                    SELECT "OrderIdCount" AS Tag,
+                           COUNT(DISTINCT (OrderId)) AS Num
+                    FROM BroadMatchOptDedup
+                    UNION ALL
+                    SELECT "SuggCount" AS Tag,
+                           COUNT( * ) AS Num
+                    FROM BroadMatchOptDedup
+                    UNION ALL
+                    SELECT "AccountIdCount" AS Tag,
+                           COUNT(DISTINCT (AccountId)) AS Num
+                    FROM BroadMatchOptDedup
+                '''
 
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AllStat')
+        self.assertCountEqual(result['sources'], ['BroadMatchOptDedup'])

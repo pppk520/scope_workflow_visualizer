@@ -48,9 +48,9 @@ class Input(object):
     view = VIEW + Combine(value_str) + params
     module = Group(dot_name("module_dotname") + '(' + param_assign_list + ')')
 
-    assign_sstream = ident + '=' + sstream
-    assign_extract = ident + '=' + extract
-    assign_module = ident + '=' + module
+    assign_sstream = ident + '=' + sstream('sstream')
+    assign_extract = ident + '=' + extract('extract')
+    assign_module = ident + '=' + module('module')
 
     def parse_sstream(self, s):
         return self.sstream.parseString(s)
@@ -154,3 +154,9 @@ if __name__ == '__main__':
     '''))
 
     print(i.parse_sstream('''SSTREAM @Input_Suggestions'''))
+
+    print(i.parse('''LinePM = 
+    EXTRACT BadKeyword:string 
+    FROM "/shares/bingads.algo.prod.adinsights/data/prod/pipelines/Optimization/KeywordOpportunity/BlockListPM.txt" 
+    USING DefaultTextExtractor();
+'''))

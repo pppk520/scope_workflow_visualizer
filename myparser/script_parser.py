@@ -5,6 +5,7 @@ import json
 from util.file_utility import FileUtility
 
 from scope_parser.declare import Declare
+from scope_parser.set import Set
 from scope_parser.input import Input
 from scope_parser.output import Output
 from scope_parser.module import Module
@@ -23,6 +24,7 @@ class ScriptParser(object):
         self.vars = {}
 
         self.declare = Declare()
+        self.set = Set()
         self.input = Input()
         self.output = Output()
         self.module = Module()
@@ -67,7 +69,17 @@ class ScriptParser(object):
 
         self.logger.warning('cannot find node [{}]! Probably source node.'.format(target_name))
 
-        return Node(target_name)
+        attr = {}
+        if target_name.startswith('SSTREAM'):
+            attr = {'type': 'input'}
+
+        return Node(target_name, attr=attr)
+
+    def remove_loop(self, content):
+        re_loop = re.compile(r'LOOP\(.*\).*?{(.*?)}', re.MULTILINE | re.DOTALL)
+        content = re.sub(re_loop, '\g<1>', content)
+
+        return content
 
     def parse_file(self, filepath, external_params={}, dest_filepath=None):
         content = FileUtility.get_file_content(filepath)
@@ -75,6 +87,7 @@ class ScriptParser(object):
         content = self.remove_comments(content)
         content = self.remove_if(content)
         content = self.resolve_external_params(content, external_params)
+        content = self.remove_loop(content)
 
         parts = content.split(';')
 
@@ -94,6 +107,11 @@ class ScriptParser(object):
                 declare_map[key] = value
 
                 self.logger.info('declare [{}] as [{}]'.format(key, value))
+            elif '#SET' in part:
+                key, value = self.set.parse(part)
+                declare_map[key] = value
+
+                self.logger.info('set [{}] as [{}]'.format(key, value))
             elif 'SELECT' in part:
                 d = self.select.parse(part)
                 self.logger.debug(d)
@@ -113,7 +131,32 @@ class ScriptParser(object):
                         from_node = self.find_latest_node(source, nodes)
                         all_nodes.append(from_node)
                         edges.append(Edge(from_node, to_node))
+            elif 'SSTREAM' in part and not 'OUTPUT' in part:
+                d = self.input.parse(part)
+                ident = d[0][0]
+                value = 'SSTREAM_{}'.format(d[-1])
 
+                from_node = Node(value, attr={'type': 'input'})
+                to_node = Node(ident)
+
+                edges.append(Edge(from_node, to_node))
+
+                nodes.append(to_node)
+                all_nodes.append(from_node)
+                all_nodes.append(to_node)
+            elif 'EXTRACT' in part:
+                d = self.input.parse(part)
+                ident = d[0][0]
+                value = 'EXTRACT_{}'.format(d[5]) # FROM [where]
+
+                from_node = Node(value, attr={'type': 'input'})
+                to_node = Node(ident)
+
+                edges.append(Edge(from_node, to_node))
+
+                nodes.append(to_node)
+                all_nodes.append(from_node)
+                all_nodes.append(to_node)
             elif 'OUTPUT' in part:
                 d = self.output.parse(part)
                 self.logger.debug(d)
@@ -137,7 +180,9 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt.gexf')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt.gexf')
+#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/tt.gexf')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/tt.gexf')
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
 #    ScriptParser().parse_file('../tests/files/SOV3_StripeOutput.script')

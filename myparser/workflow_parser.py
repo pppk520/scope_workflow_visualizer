@@ -5,6 +5,10 @@ import os
 import codecs
 from util.file_utility import FileUtility
 
+from graph.node import Node
+from graph.edge import Edge
+from graph.graph_utility import GraphUtility
+
 class WorkflowObj(object):
     def __init__(self):
         self.masters = {}  # config_filename -> master config dict
@@ -44,8 +48,10 @@ class WorkflowParser(object):
         ret = {'master': False}
 
         process_name = root.find('Process').text
+        class_name = root.find('ClassName').text
 
         ret['process_name'] = process_name
+        ret['class_name'] = class_name
 
         for param in root.find('Parameters'):
             name = param.find('Name').text
@@ -72,7 +78,7 @@ class WorkflowParser(object):
         except Exception as ex:
             self.logger.debug('{}: {}'.format(filepath, ex))
 
-    def parse_folder(self, folder_root):
+    def parse_folder(self, folder_root, exclude_keys=[]):
         files = FileUtility.list_files_recursive(folder_root, target_suffix='.config')
 
         masters = {}            # config_filename -> master config dict
@@ -85,9 +91,20 @@ class WorkflowParser(object):
         process_group_map = {}  # process_name -> group name
         group_master_map = {}   # group name -> master config name
 
+        exclude_keys.append('/objd/')
+
         for filepath in files:
+            for key in exclude_keys:
+                if key in filepath:
+                    self.logger.info('skip exclude file [{}]'.format(filepath))
+                    continue
+
             self.logger.debug('parse_folder: filepath = {}'.format(filepath))
-            d = self.parse_file(filepath)
+            try:
+                d = self.parse_file(filepath)
+            except Exception as e:
+                self.logger.warning('skip wrongly parsed file [{}]: {}'.format(filepath, e))
+                continue
 
             if d is None:
                 continue
@@ -113,12 +130,19 @@ class WorkflowParser(object):
                     process_master_map[process_name] = key
             else:
                 process_name = d['process_name']
-                script_name = os.path.basename(d['ScriptFile']).replace('.script', '')
+                class_nam = d['class_name']
 
-                if script_name != process_name:
-                    self.logger.warning('process_name != script_name, use script_name as process_name')
-                    process_name = script_name
-                    d['process_name'] = script_name
+                if not 'ScopeJobRunner' in class_nam:
+                    self.logger.info('skip non-ScopeJobRunner config.')
+                    continue
+
+                script_name = os.path.basename(d['ScriptFile']).replace('.script', '')
+                config_name = os.path.basename(filepath).replace('.config', '')
+
+                if config_name != process_name:
+                    self.logger.warning('config_name != script_name, use config_name as process_name')
+                    process_name = config_name
+                    d['process_name'] = config_name
 
                 self.logger.debug('process_name = {}'.format(process_name))
                 workflows[process_name] = d
@@ -187,19 +211,89 @@ class WorkflowParser(object):
             else:
                 print(item)
 
+    def normalize_event_name(self, event_name: str):
+        try:
+            return event_name[:event_name.index('/')]
+        except:
+            return event_name
+
+    def to_workflow_dep_graph(self, workflow_obj, dest_filepath=None):
+        obj = workflow_obj
+
+        event_deps = obj.process_event_deps
+        workflows = obj.workflows
+
+        nodes = {}
+        edges = []
+
+        for process_name in workflows:
+            script_name = os.path.basename(workflows[process_name]['ScriptFile'])
+
+            script_attr = {
+                'id': script_name,
+                'label': script_name,
+                'type': 'SCRIPT'
+            }
+
+            if not script_name in nodes:
+                script_node = Node(script_name, attr=script_attr)
+                nodes[script_name] = script_node
+
+            script_node = nodes.get(script_name)
+
+            # the output event of this process
+            output_event_name = workflows[process_name]['EventName']
+
+            if not output_event_name in nodes:
+                script_out_event_node = Node(output_event_name, attr={'id': output_event_name,
+                                                        'label': output_event_name,
+                                                        'type': 'EVENT'})
+                nodes[output_event_name] = script_out_event_node
+
+            script_out_event_node = nodes.get(output_event_name)
+            edges.append(Edge(script_node, script_out_event_node))
+
+            # input events
+            dep_events = event_deps[process_name]
+
+            for event_name in dep_events:
+                # to make the graph less complex
+                normalized_event_name = self.normalize_event_name(event_name)
+
+                if not normalized_event_name in nodes:
+                    event_attr = {
+                        'id': normalized_event_name,
+                        'label': normalized_event_name,
+                        'type': 'EVENT'
+                    }
+
+                    script_in_event_node = Node(normalized_event_name, attr=event_attr)
+                    nodes[normalized_event_name] = script_in_event_node
+
+                script_in_event_node = nodes.get(normalized_event_name)
+
+                edges.append(Edge(script_in_event_node, script_node))
+
+        if dest_filepath:
+            self.logger.info('output GEXF to [{}]'.format(dest_filepath))
+            GraphUtility().to_gexf_file(nodes.values(), edges, dest_filepath)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     import json
 
+    proj_name = 'Opportunities'
+    exclude_keys = []
+
+#    proj_name = 'BTE'
+#    exclude_keys = ['NKW/', 'NKW2/']
+
     wfp = WorkflowParser()
 #    obj = wfp.parse_file(r'D:\workspace\AdInsights\private\Backend\SOV\Workflows\MasterConfig\Workflows_master.config')
 #    obj = wfp.parse_file(r'D:\workspace\AdInsights\private\Backend\SOV\Workflows\WF_Groups\ADC.SOV.Scope\Config\SOV1_RawData.config')
 
-    obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\SOV')
-#    obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Common')
+    obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\{}'.format(proj_name), exclude_keys=exclude_keys)
 
-#    wfp.print_params(obj, 'SOV3_StripeOutput', resolve=False)
-#    wfp.print_params(obj, 'SOV_BSC_LostToCampaignBudget_Raw', resolve=True)
-    wfp.print_params(obj, 'AucIns_Final', resolve=True)
+    wfp.print_params(obj, 'Opp_KWSuggV2_MPIProcessing2', resolve=True)
+#    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}.gexf'.format(proj_name))

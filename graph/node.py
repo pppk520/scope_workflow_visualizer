@@ -6,8 +6,11 @@ class Node(object):
         self.name = name
         self.attr = attr.copy()
 
-        self.attr['id'] = uuid.uuid4()
-        self.attr['label'] = name
+        if not 'id' in attr:
+            self.attr['id'] = uuid.uuid4()
+
+        if not 'label' in attr:
+            self.attr['label'] = name
 
     def __str__(self):
         return self.name
