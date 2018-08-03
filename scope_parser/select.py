@@ -202,18 +202,11 @@ if __name__ == '__main__':
 #    obj.debug()
 
     print(obj.parse('''
-        AllStat =
-            SELECT "OrderIdCount" AS Tag,
-                   COUNT(DISTINCT (OrderId)) AS Num
-            FROM BroadMatchOptDedup
-            UNION ALL
-            SELECT "SuggCount" AS Tag,
-                   COUNT( * ) AS Num
-            FROM BroadMatchOptDedup
-            UNION ALL
-            SELECT "AccountIdCount" AS Tag,
-                   COUNT(DISTINCT (AccountId)) AS Num
-            FROM BroadMatchOptDedup
+
+OrderMPISpend =   SELECT OrderMPISpend.*,
+                         IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
+    FROM OrderMPISpend LEFT OUTER JOIN CampaignBudget ON
+                                                            OrderMPISpend.CampaignId == CampaignBudget.CampaignId;
         '''))
 
 

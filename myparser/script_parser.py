@@ -81,6 +81,99 @@ class ScriptParser(object):
 
         return content
 
+    def process_output(self, part, nodes, all_nodes, edges):
+        d = self.output.parse(part)
+        self.logger.debug(d)
+
+        if not d['ident']:
+            d['ident'] = nodes[-1].name
+
+        from_node = self.find_latest_node(d['ident'], nodes)
+        to_node = Node(d['path'], attr={'type': 'output'})
+        all_nodes.append(to_node)
+
+        edges.append(Edge(from_node, to_node))
+
+    def process_extract(self, part, nodes, all_nodes, edges):
+        d = self.input.parse(part)
+        ident = d[0][0]
+        value = 'EXTRACT_{}'.format(d[5])  # FROM [where]
+
+        from_node = Node(value, attr={'type': 'input'})
+        to_node = Node(ident)
+
+        edges.append(Edge(from_node, to_node))
+
+        nodes.append(to_node)
+        all_nodes.append(from_node)
+        all_nodes.append(to_node)
+
+    def process_input_sstream(self, part, nodes, all_nodes, edges):
+        d = self.input.parse(part)
+        ident = d[0][0]
+        value = 'SSTREAM_{}'.format(d[-1])
+
+        from_node = Node(value, attr={'type': 'input'})
+        to_node = Node(ident)
+
+        edges.append(Edge(from_node, to_node))
+
+        nodes.append(to_node)
+        all_nodes.append(from_node)
+        all_nodes.append(to_node)
+
+    def process_process(self, part, nodes, all_nodes, edges):
+        d = self.process.parse(part)
+
+        if d['assign_var']:
+            nodes.append(Node(d['assign_var']))
+            all_nodes.append(nodes[-1])
+
+        # the assigned variable
+        to_node = nodes[-1]
+
+        if len(d['sources']) == 0:
+            # from previous output
+            from_node = nodes[-2]
+            edges.append(Edge(from_node, to_node))
+        else:
+            for source in d['sources']:
+                from_node = self.find_latest_node(source, nodes)
+                all_nodes.append(from_node)
+                edges.append(Edge(from_node, to_node))
+
+    def process_select(self, part, nodes, all_nodes, edges):
+        d = self.select.parse(part)
+        self.logger.debug(d)
+        self.logger.info('[{}] = select from sources [{}]'.format(d['assign_var'], d['sources']))
+
+        if d['assign_var']:
+            nodes.append(Node(d['assign_var']))
+            all_nodes.append(nodes[-1])
+
+        to_node = nodes[-1]
+
+        if len(d['sources']) == 0:
+            from_node = nodes[-2]
+            edges.append(Edge(from_node, to_node))
+        else:
+            for source in d['sources']:
+                from_node = self.find_latest_node(source, nodes)
+                all_nodes.append(from_node)
+                edges.append(Edge(from_node, to_node))
+
+    def process_declare(self, part, declare_map):
+        key, value = self.set.parse(part)
+        declare_map[key] = value
+
+        self.logger.info('set [{}] as [{}]'.format(key, value))
+
+    def process_set(self, part, declare_map):
+        key, value = self.set.parse(part)
+        declare_map[key] = value
+
+        self.logger.info('set [{}] as [{}]'.format(key, value))
+
     def parse_file(self, filepath, external_params={}, dest_filepath=None):
         content = FileUtility.get_file_content(filepath)
 #        content = self.remove_empty_lines(content)
@@ -102,73 +195,24 @@ class ScriptParser(object):
             self.logger.debug('-' * 20)
             self.logger.debug(part)
 
+            # ignore data after C# block
+            if '#CS' in part:
+                break
+
             if '#DECLARE' in part:
-                key, value = self.declare.parse(part)
-                declare_map[key] = value
-
-                self.logger.info('declare [{}] as [{}]'.format(key, value))
+                self.process_declare(part, declare_map)
             elif '#SET' in part:
-                key, value = self.set.parse(part)
-                declare_map[key] = value
-
-                self.logger.info('set [{}] as [{}]'.format(key, value))
+                self.process_set(part, declare_map)
             elif 'SELECT' in part:
-                d = self.select.parse(part)
-                self.logger.debug(d)
-                self.logger.info('[{}] = select from sources [{}]'.format(d['assign_var'], d['sources']))
-
-                if d['assign_var']:
-                    nodes.append(Node(d['assign_var']))
-                    all_nodes.append(nodes[-1])
-
-                to_node = nodes[-1]
-
-                if len(d['sources']) == 0:
-                    from_node = nodes[-2]
-                    edges.append(Edge(from_node, to_node))
-                else:
-                    for source in d['sources']:
-                        from_node = self.find_latest_node(source, nodes)
-                        all_nodes.append(from_node)
-                        edges.append(Edge(from_node, to_node))
+                self.process_select(part, nodes, all_nodes, edges)
             elif 'SSTREAM' in part and not 'OUTPUT' in part:
-                d = self.input.parse(part)
-                ident = d[0][0]
-                value = 'SSTREAM_{}'.format(d[-1])
-
-                from_node = Node(value, attr={'type': 'input'})
-                to_node = Node(ident)
-
-                edges.append(Edge(from_node, to_node))
-
-                nodes.append(to_node)
-                all_nodes.append(from_node)
-                all_nodes.append(to_node)
+                self.process_input_sstream(part, nodes, all_nodes, edges)
             elif 'EXTRACT' in part:
-                d = self.input.parse(part)
-                ident = d[0][0]
-                value = 'EXTRACT_{}'.format(d[5]) # FROM [where]
-
-                from_node = Node(value, attr={'type': 'input'})
-                to_node = Node(ident)
-
-                edges.append(Edge(from_node, to_node))
-
-                nodes.append(to_node)
-                all_nodes.append(from_node)
-                all_nodes.append(to_node)
+                self.process_extract(part, nodes, all_nodes, edges)
+            elif 'PROCESS' in part:
+                self.process_process(part, nodes, all_nodes, edges)
             elif 'OUTPUT' in part:
-                d = self.output.parse(part)
-                self.logger.debug(d)
-
-                if not d['ident']:
-                    d['ident'] = nodes[-1].name
-
-                from_node = self.find_latest_node(d['ident'], nodes)
-                to_node = Node(d['path'], attr={'type': 'output'})
-                all_nodes.append(to_node)
-
-                edges.append(Edge(from_node, to_node))
+                self.process_output(part, nodes, all_nodes, edges)
 
         self.logger.info(declare_map)
 
@@ -180,9 +224,9 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt.gexf')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt.gexf')
 #    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/tt.gexf')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/tt.gexf')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/tt.gexf')
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
 #    ScriptParser().parse_file('../tests/files/SOV3_StripeOutput.script')
