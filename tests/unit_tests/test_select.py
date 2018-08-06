@@ -338,3 +338,51 @@ class TestSelect(TestCase):
 
         self.assertTrue(result['assign_var'] == 'AllStat')
         self.assertCountEqual(result['sources'], ['BroadMatchOptDedup'])
+
+    def test_parse_complex_and(self):
+        s = '''
+KWCandidatesWithLocationTarget =
+    SELECT KWCandidatesWithAuctionPassNegKW.AccountId,
+           CampaignTargetInfo.IsLocationBidAdjustmentEnabled,
+           !(string.IsNullOrEmpty(CountryIdList) AND string.IsNullOrEmpty(StateIdList) AND string.IsNullOrEmpty(MetroAreaIdList) AND string.IsNullOrEmpty(CityIdList)) AS LocatinonTargetingFlag
+    FROM KWCandidatesWithAuctionPassNegKW
+         LEFT OUTER JOIN
+             CampaignTargetInfo
+         ON KWCandidatesWithAuctionPassNegKW.CampaignId == CampaignTargetInfo.CampaignId;
+
+                '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'KWCandidatesWithLocationTarget')
+        self.assertCountEqual(result['sources'], ['KWCandidatesWithAuctionPassNegKW', 'CampaignTargetInfo'])
+
+
+    def test_column_ternary(self):
+        s = '''
+AuctionCostCompare =
+    SELECT OrderId,
+           B.Cost AS OldCost,
+           (NewCost == - 1? B.Cost : NewCost) AS NewCost
+    FROM AuctionNewCost AS A
+         INNER JOIN
+             AuctionContextOnlyWithTA AS B
+         ON A.RGUID == B.RGUID;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AuctionCostCompare')
+        self.assertCountEqual(result['sources'], ['AuctionNewCost', 'AuctionContextOnlyWithTA'])
+
+    def test_column_new_obj(self):
+        s = '''
+        KWCandidatesWithNewPos = SELECT RGUID, new KeywordOptNode(AccountId, CampaignId, OrderId, OptType, SuggKW, KeyTerm, SuggBid, NewRS, NewPos, NewPClick) AS KWONode
+        FROM KWCandidatesWithNewPos;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'KWCandidatesWithNewPos')
+        self.assertCountEqual(result['sources'], ['KWCandidatesWithNewPos'])
+

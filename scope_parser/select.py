@@ -22,7 +22,7 @@ class Select(object):
     value_str = Common.value_str
     func = Common.func
     func_chain = Common.func_chain
-    func_chain_logical = func_chain + oneOf("AND OR") + func_chain
+    func_chain_logical = delimitedList(func_chain, delim=oneOf("AND OR"))
     func_chain_not = Optional('!(') + (func_chain_logical | func_chain) + Optional(')')
 
     cast = Combine('(' + oneOf("long ulong short int byte") + Optional('?') + ')')
@@ -37,13 +37,16 @@ class Select(object):
     extend_ident = delimitedList(ident, delim='.', combine=True)
     ternary_condition_binop = Group(extend_ident + binop + (extend_ident | value_str))
     ternary_condition_func = func_chain
-    ternary = (ternary_condition_binop | ternary_condition_func) + '?' + value_str + ':' + value_str
+    ternary_val = extend_ident | value_str
+    ternary = Optional('(') + (ternary_condition_binop | ternary_condition_func) + '?' + ternary_val + ':' + ternary_val + Optional(')')
 
     # AdId??0UL AS AdId
     null_coal = ident + '??' + value_str
 
     # IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt
-    if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
+    # IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
+    #if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
+    if_stmt = Group(IF + Regex('\(.*\)'))
 
 
     and_ = Keyword("AND")
@@ -58,9 +61,10 @@ class Select(object):
     aggr_ident = aggr_ident_over | aggr_ident_basic
     operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
     distinct_ident = DISTINCT + ident
+    new_something = 'new' + func_chain;
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Group((distinct_ident | aggr_ident | ternary | null_coal | if_stmt | func_chain_not | operator_ident | cast_ident | quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
+    one_column = Group((distinct_ident | aggr_ident | ternary | null_coal | if_stmt | new_something | func_chain_not | operator_ident | cast_ident | quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
     column_name_list = Group(delimitedList(one_column))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
@@ -115,7 +119,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.cross_apply_stmt.parseString("CROSS APPLY BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;"))
+        print(self.ternary.parseString("NewCost == - 1? B.Cost : NewCost"))
 
 
     def parse_ternary(self, s):
@@ -199,14 +203,10 @@ class Select(object):
 
 if __name__ == '__main__':
     obj = Select()
-#    obj.debug()
+    obj.debug()
 
     print(obj.parse('''
-
-OrderMPISpend =   SELECT OrderMPISpend.*,
-                         IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
-    FROM OrderMPISpend LEFT OUTER JOIN CampaignBudget ON
-                                                            OrderMPISpend.CampaignId == CampaignBudget.CampaignId;
+ListingBidDemand = SELECT RGUID, new ListingBidDemandNode(ListingId, Position, Clicks) AS LBDNode FROM ListingBidDemand;
         '''))
 
 

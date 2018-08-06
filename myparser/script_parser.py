@@ -75,26 +75,34 @@ class ScriptParser(object):
 
         return Node(target_name, attr=attr)
 
+    def upsert_node(self, node_map, node_name):
+        if node_name not in node_map:
+            self.logger.info('cannot find node [{}]! Probably source node.'.format(node_name))
+
+            attr = {}
+            if node_name.startswith('SSTREAM') or node_name.startswith('EXTRACT'):
+                attr = {'type': 'input'}
+
+            node_map[node_name] = Node(node_name, attr=attr)
+
     def remove_loop(self, content):
         re_loop = re.compile(r'LOOP\(.*\).*?{(.*?)}', re.MULTILINE | re.DOTALL)
         content = re.sub(re_loop, '\g<1>', content)
 
         return content
 
-    def process_output(self, part, nodes, all_nodes, edges):
+    def process_output(self, part, node_map, all_nodes, edges):
         d = self.output.parse(part)
         self.logger.debug(d)
 
-        if not d['ident']:
-            d['ident'] = nodes[-1].name
-
-        from_node = self.find_latest_node(d['ident'], nodes)
+        source_name = d['ident']
+        from_node = node_map.get(source_name, node_map['last_node'])
         to_node = Node(d['path'], attr={'type': 'output'})
-        all_nodes.append(to_node)
 
         edges.append(Edge(from_node, to_node))
+        all_nodes.append(to_node)
 
-    def process_extract(self, part, nodes, all_nodes, edges):
+    def process_extract(self, part, node_map, all_nodes, edges):
         d = self.input.parse(part)
         ident = d[0][0]
         value = 'EXTRACT_{}'.format(d[5])  # FROM [where]
@@ -104,11 +112,13 @@ class ScriptParser(object):
 
         edges.append(Edge(from_node, to_node))
 
-        nodes.append(to_node)
+        node_map[ident] = to_node
+        node_map['last_node'] = to_node
+
         all_nodes.append(from_node)
         all_nodes.append(to_node)
 
-    def process_input_sstream(self, part, nodes, all_nodes, edges):
+    def process_input_sstream(self, part, node_map, all_nodes, edges):
         d = self.input.parse(part)
         ident = d[0][0]
         value = 'SSTREAM_{}'.format(d[-1])
@@ -118,55 +128,75 @@ class ScriptParser(object):
 
         edges.append(Edge(from_node, to_node))
 
-        nodes.append(to_node)
+        node_map[ident] = to_node
+        node_map['last_node'] = to_node
+
         all_nodes.append(from_node)
         all_nodes.append(to_node)
 
-    def process_process(self, part, nodes, all_nodes, edges):
+    def process_process(self, part, node_map, all_nodes, edges):
         d = self.process.parse(part)
 
+        from_nodes = []
+        to_node = None
+
+        for source in d['sources']:
+            self.upsert_node(node_map, source)  # first, check and upsert if not in node_map
+            from_nodes.append(node_map[source])
+
+        if len(from_nodes) == 0:
+            from_nodes.append(node_map['last_node'])
+
         if d['assign_var']:
-            nodes.append(Node(d['assign_var']))
-            all_nodes.append(nodes[-1])
-
-        # the assigned variable
-        to_node = nodes[-1]
-
-        if len(d['sources']) == 0:
-            # from previous output
-            from_node = nodes[-2]
-            edges.append(Edge(from_node, to_node))
+            node_name = d['assign_var']
+            new_node = Node(node_name)
+            node_map[node_name] = new_node  # update
+            to_node = new_node
         else:
-            for source in d['sources']:
-                from_node = self.find_latest_node(source, nodes)
-                all_nodes.append(from_node)
-                edges.append(Edge(from_node, to_node))
+            to_node = node_map['last_node']
 
-    def process_select(self, part, nodes, all_nodes, edges):
+        for from_node in from_nodes:
+            edges.append(Edge(from_node, to_node))
+            all_nodes.append(from_node)
+
+        all_nodes.append(to_node)
+        node_map['last_node'] = to_node
+
+    def process_select(self, part, node_map, all_nodes, edges):
         d = self.select.parse(part)
         self.logger.debug(d)
         self.logger.info('[{}] = select from sources [{}]'.format(d['assign_var'], d['sources']))
 
+        from_nodes = []
+        to_node = None
+
+        for source in d['sources']:
+            self.upsert_node(node_map, source) # first, check and upsert if not in node_map
+            from_nodes.append(node_map[source])
+
+        if len(from_nodes) == 0:
+            from_nodes.append(node_map['last_node'])
+
         if d['assign_var']:
-            nodes.append(Node(d['assign_var']))
-            all_nodes.append(nodes[-1])
-
-        to_node = nodes[-1]
-
-        if len(d['sources']) == 0:
-            from_node = nodes[-2]
-            edges.append(Edge(from_node, to_node))
+            node_name = d['assign_var']
+            new_node = Node(node_name)
+            node_map[node_name] = new_node # update
+            to_node = new_node
         else:
-            for source in d['sources']:
-                from_node = self.find_latest_node(source, nodes)
-                all_nodes.append(from_node)
-                edges.append(Edge(from_node, to_node))
+            to_node = node_map['last_node']
+
+        for from_node in from_nodes:
+            edges.append(Edge(from_node, to_node))
+            all_nodes.append(from_node)
+
+        all_nodes.append(to_node)
+        node_map['last_node'] = to_node
 
     def process_declare(self, part, declare_map):
-        key, value = self.set.parse(part)
+        key, value = self.declare.parse(part)
         declare_map[key] = value
 
-        self.logger.info('set [{}] as [{}]'.format(key, value))
+        self.logger.info('declare [{}] as [{}]'.format(key, value))
 
     def process_set(self, part, declare_map):
         key, value = self.set.parse(part)
@@ -186,7 +216,7 @@ class ScriptParser(object):
 
         declare_map = {}
 
-        nodes = []
+        node_map = {'last_node': None}
         edges = []
         all_nodes = [] # add node to networkx ourself, missing nodes in edges will be added automatically
                        # and the id of auto-added nodes are not controllable
@@ -197,6 +227,7 @@ class ScriptParser(object):
 
             # ignore data after C# block
             if '#CS' in part:
+                self.logger.info('meet CS block, break parsing.')
                 break
 
             if '#DECLARE' in part:
@@ -204,15 +235,15 @@ class ScriptParser(object):
             elif '#SET' in part:
                 self.process_set(part, declare_map)
             elif 'SELECT' in part:
-                self.process_select(part, nodes, all_nodes, edges)
+                self.process_select(part, node_map, all_nodes, edges)
             elif 'SSTREAM' in part and not 'OUTPUT' in part:
-                self.process_input_sstream(part, nodes, all_nodes, edges)
+                self.process_input_sstream(part, node_map, all_nodes, edges)
             elif 'EXTRACT' in part:
-                self.process_extract(part, nodes, all_nodes, edges)
+                self.process_extract(part, node_map, all_nodes, edges)
             elif 'PROCESS' in part:
-                self.process_process(part, nodes, all_nodes, edges)
+                self.process_process(part, node_map, all_nodes, edges)
             elif 'OUTPUT' in part:
-                self.process_output(part, nodes, all_nodes, edges)
+                self.process_output(part, node_map, all_nodes, edges)
 
         self.logger.info(declare_map)
 
@@ -221,7 +252,7 @@ class ScriptParser(object):
             GraphUtility().to_gexf_file(all_nodes, edges, dest_filepath)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt.gexf')

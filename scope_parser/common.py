@@ -4,7 +4,9 @@ from pyparsing import *
 class Common(object):
     comment = "//" + restOfLine
     ident = Group(Word('_<>' + alphanums)).setName("identifier")
-    value_str = Combine(Group(Optional(oneOf('@@ @')) + (quotedString | ident) + Optional('@@')))
+    ident_float_suffix = '.' + Word(nums) + Optional('F')
+    ident_val = Combine(Word('- ' + nums) + Optional(ident_float_suffix | 'UL'))
+    value_str = Combine(Group(Optional(oneOf('@@ @')) + (ident_val | quotedString | ident) + Optional('@@')))
 
     expr = Word(printables + ' ', excludeChars=':(),')
     func = Forward()
@@ -19,3 +21,10 @@ if __name__ == '__main__':
     print(obj.expr.parseString("SuggBid * 100"))
     print(obj.func.parseString("Convert.ToUInt32(SuggBid * 100)"))
     print(obj.func.parseString("COUNT(DISTINCT (OrderId))"))
+    print(obj.ident.parseString("100"))
+    print(obj.value_str.parseString("1.0"))
+    print(obj.value_str.parseString("1.0F"))
+    print(obj.ident_val.parseString("1.0F"))
+    print(obj.value_str.parseString("-1"))
+    print(obj.value_str.parseString("- 1"))
+    print(obj.value_str.parseString("0UL"))
