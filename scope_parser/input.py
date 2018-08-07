@@ -43,14 +43,15 @@ class Input(object):
 
     streamset = STREAMSET + value_str + PATTERN + value_pattern + RANGE + streamset_range
     sstream_value_streamset = SSTREAM + streamset
-    sstream = SSTREAM + value_str
-    extract = EXTRACT + delimitedList(extract_column) + FROM + value_str + Optional(USING + func)
-    view = VIEW + Combine(value_str) + params
+    sstream = SSTREAM + value_str('from_source')
+    extract = EXTRACT + delimitedList(extract_column) + FROM + value_str('from_source') + Optional(USING + func)
+    view = VIEW + Combine(value_str)('from_source') + params
     module = Group(dot_name("module_dotname") + '(' + param_assign_list + ')')
 
-    assign_sstream = ident + '=' + sstream('sstream')
-    assign_extract = ident + '=' + extract('extract')
-    assign_module = ident + '=' + module('module')
+    assign_sstream = Combine(ident)('assign_var') + '=' + sstream('sstream')
+    assign_extract = Combine(ident)('assign_var') + '=' + extract('extract')
+    assign_module = Combine(ident)('assign_var') + '=' + module('module')
+    assign_view = Combine(ident)('assign_var') + '=' + view('view')
 
     def parse_sstream(self, s):
         return self.sstream.parseString(s)
@@ -77,6 +78,8 @@ class Input(object):
             return self.assign_sstream.parseString(s)
         elif 'module' in s.lower():
             return self.assign_module.parseString(s)
+        elif 'VIEW' in s:
+            return self.assign_view.parseString(s)
 
         raise NotImplementedError('unsupported input type?')
 
@@ -159,4 +162,17 @@ if __name__ == '__main__':
     EXTRACT BadKeyword:string 
     FROM "/shares/bingads.algo.prod.adinsights/data/prod/pipelines/Optimization/KeywordOpportunity/BlockListPM.txt" 
     USING DefaultTextExtractor();
-'''))
+    '''))
+
+    d = i.parse(
+    '''
+TMAllData = 
+    VIEW @TMView
+    PARAMS(
+        START_DATE = @TM_START_DATE,
+        END_DATE = @TM_END_DATE
+    );
+        ''')
+    print(d['assign_var'])
+    print(d['from_source'])
+

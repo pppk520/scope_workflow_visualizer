@@ -9,6 +9,7 @@ class Select(object):
     FROM = Keyword("FROM")
     WHERE = Keyword("WHERE")
     JOIN = Keyword("JOIN") | Keyword("SEMIJOIN")
+    CROSS_JOIN = Keyword("CROSS JOIN")
     CROSS_APPLY = Keyword("CROSS APPLY")
     AS = Keyword("AS")
     ON = Keyword("ON")
@@ -25,7 +26,7 @@ class Select(object):
     func_chain_logical = delimitedList(func_chain, delim=oneOf("AND OR"))
     func_chain_not = Optional('!(') + (func_chain_logical | func_chain) + Optional(')')
 
-    cast = Combine('(' + oneOf("long ulong short int byte") + Optional('?') + ')')
+    cast = Combine('(' + oneOf("long ulong short int byte double") + Optional('?') + ')')
     aggr = oneOf("SUM AVG MAX MIN COUNT FIRST")
     window_over_param = 'PARTITION BY' + delimitedList(ident)
 
@@ -54,12 +55,13 @@ class Select(object):
     in_ = Keyword("IN")
 
     select_stmt = Forward()
-    column_name = (delimitedList(ident | '*', ".", combine=True))
+    column_name = Group(delimitedList(ident | '*', "."))
     cast_ident = Group(Optional(cast) + column_name).setName('cast_identifier')
-    aggr_ident_basic = Combine(aggr + '(' + (ident | Empty()) + ')')
-    aggr_ident_over = aggr_ident_basic + 'OVER' + '(' + window_over_param + ')'
-    aggr_ident = aggr_ident_over | aggr_ident_basic
     operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
+    aggr_ident_basic = Group(aggr + '(' + (operator_ident | ident | Empty()) + ')')
+    aggr_ident_operator = aggr_ident_basic + ZeroOrMore(oneOf('+ - * /') + (aggr_ident_basic | ident))
+    aggr_ident_over = aggr_ident_basic + 'OVER' + '(' + window_over_param + ')'
+    aggr_ident = Optional(cast) + (aggr_ident_over | aggr_ident_operator)
     distinct_ident = DISTINCT + ident
     new_something = 'new' + func_chain;
     as_something = (AS + ident).setName('as_something')
@@ -92,6 +94,7 @@ class Select(object):
 
     join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER'))) + JOIN)
     join_stmt = join + table_name("join_table_name") + Optional(AS + ident) + ON + where_expression
+    cross_join_stmt = CROSS_JOIN + table_name("join_table_name")
     cross_apply_stmt = CROSS_APPLY + (bond_expr("bond") | table_name) + Optional(AS + ident)
 
     # define the grammar
@@ -107,7 +110,7 @@ class Select(object):
     select_stmt <<= (SELECT + (column_name_list | '*')("columns") +
                      Optional(DISTINCT) +
                      Optional(from_stmt)("from") +
-                     Optional(join_stmt) +
+                     Optional(join_stmt | cross_join_stmt) +
                      Optional(cross_apply_stmt) +
                      Optional(Group(WHERE + where_expression), "")("where") +
                      Optional(Group(union_select))('union') +
@@ -119,7 +122,8 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.ternary.parseString("NewCost == - 1? B.Cost : NewCost"))
+        print(self.operator_ident.parseString('Impressions * CompetitiveIndex'))
+        print(self.aggr_ident_basic.parseString("SUM(Impressions * CompetitiveIndex) / SUM(Impressions)"))
 
 
     def parse_ternary(self, s):
@@ -206,7 +210,15 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-ListingBidDemand = SELECT RGUID, new ListingBidDemandNode(ListingId, Position, Clicks) AS LBDNode FROM ListingBidDemand;
+Suggestions =
+    SELECT Suggestions. *,
+           IF(TMAllData.CompetitiveIndex != null, CompetitiveIndex, "0.01") AS dummy9
+    FROM Suggestions
+         LEFT OUTER JOIN
+             TMAllData
+         ON Suggestions.SuggKW == TMAllData.Keyword AND Suggestions.SuggMatchTypeId == TMAllData.MatchTypeId;
+
+
         '''))
 
 

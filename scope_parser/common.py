@@ -10,8 +10,12 @@ class Common(object):
 
     expr = Word(printables + ' ', excludeChars=':(),')
     func = Forward()
+    func_ptr = Forward()
     func_params = delimitedList(expr | ident | Word('-' + nums) | quotedString)
+
     func <<= Group(delimitedList(ident, delim='.', combine=True) + Combine('(' + Optional(func | func_params) + ')'))
+    func_ptr <<= Group(delimitedList(ident, delim='.', combine=True))
+
     func_chain = delimitedList(func, delim='.', combine=True)
 
 if __name__ == '__main__':

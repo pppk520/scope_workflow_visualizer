@@ -360,14 +360,14 @@ KWCandidatesWithLocationTarget =
 
     def test_column_ternary(self):
         s = '''
-AuctionCostCompare =
-    SELECT OrderId,
-           B.Cost AS OldCost,
-           (NewCost == - 1? B.Cost : NewCost) AS NewCost
-    FROM AuctionNewCost AS A
-         INNER JOIN
-             AuctionContextOnlyWithTA AS B
-         ON A.RGUID == B.RGUID;
+        AuctionCostCompare =
+            SELECT OrderId,
+                   B.Cost AS OldCost,
+                   (NewCost == - 1? B.Cost : NewCost) AS NewCost
+            FROM AuctionNewCost AS A
+                 INNER JOIN
+                     AuctionContextOnlyWithTA AS B
+                 ON A.RGUID == B.RGUID;
         '''
 
         result = Select().parse(s)
@@ -385,4 +385,33 @@ AuctionCostCompare =
 
         self.assertTrue(result['assign_var'] == 'KWCandidatesWithNewPos')
         self.assertCountEqual(result['sources'], ['KWCandidatesWithNewPos'])
+
+    def test_cross_join(self):
+        s = '''
+        BadDump = 
+            SELECT BMMOptAfterCapping.*,
+                   BadKeywordsPM
+            FROM BMMOptAfterCapping
+            CROSS JOIN LinePM;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'BadDump')
+        self.assertCountEqual(result['sources'], ['BMMOptAfterCapping', 'LinePM'])
+
+    def test_cast_stmt(self):
+        s = '''
+        TMAllData =
+            SELECT Keyword,
+                    MatchTypeId,
+                    (double) SUM(Impressions * CompetitiveIndex) / SUM(Impressions) AS CompetitiveIndex
+            FROM TMAllData;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'TMAllData')
+        self.assertCountEqual(result['sources'], ['TMAllData'])
+
 

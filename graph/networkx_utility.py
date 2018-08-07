@@ -32,12 +32,15 @@ class NetworkXUtility(object):
 
         nx.write_gexf(self.g, dest_path)
 
+        return dest_path
+
     def to_dot(self, dest_path):
         if not dest_path.endswith('.dot'):
             dest_path += '.dot'
 
         write_dot(self.g, dest_path)
 
+        return dest_path
 
 if __name__ == '__main__':
     nu = NetworkXUtility()

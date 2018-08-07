@@ -10,6 +10,7 @@ from scope_parser.input import Input
 from scope_parser.output import Output
 from scope_parser.module import Module
 from scope_parser.process import Process
+from scope_parser.reduce import Reduce
 from scope_parser.using import Using
 from scope_parser.select import Select
 
@@ -29,6 +30,7 @@ class ScriptParser(object):
         self.output = Output()
         self.module = Module()
         self.process = Process()
+        self.reduce = Reduce()
         self.using = Using()
         self.select = Select()
 
@@ -83,6 +85,12 @@ class ScriptParser(object):
 
         return content
 
+    def remove_data_hint(self, content):
+        re_dh = re.compile(r'^\[.*?\]', re.MULTILINE | re.DOTALL)
+        content = re.sub(re_dh, '', content)
+
+        return content
+
     def change_node_color(self, nodes):
         for node in nodes:
             if '_' not in node.name:
@@ -126,8 +134,24 @@ class ScriptParser(object):
 
     def process_extract(self, part, node_map, all_nodes, edges):
         d = self.input.parse(part)
-        ident = d[0][0]
-        value = 'EXTRACT_{}'.format(d[5])  # FROM [where]
+        ident = d['assign_var']
+        value = 'EXTRACT_{}'.format(d['from_source'])
+
+        from_node = Node(value)
+        to_node = Node(ident)
+
+        edges.append(Edge(from_node, to_node))
+
+        node_map[ident] = to_node
+        node_map['last_node'] = to_node
+
+        all_nodes.append(from_node)
+        all_nodes.append(to_node)
+
+    def process_view(self, part, node_map, all_nodes, edges):
+        d = self.input.parse(part)
+        ident = d['assign_var']
+        value = 'VIEW_{}'.format(d['from_source'])
 
         from_node = Node(value)
         to_node = Node(ident)
@@ -142,8 +166,8 @@ class ScriptParser(object):
 
     def process_input_sstream(self, part, node_map, all_nodes, edges):
         d = self.input.parse(part)
-        ident = d[0][0]
-        value = 'SSTREAM_{}'.format(d[-1])
+        ident = d['assign_var']
+        value = 'SSTREAM_{}'.format(d['from_source'])
 
         from_node = Node(value)
         to_node = Node(ident)
@@ -158,6 +182,34 @@ class ScriptParser(object):
 
     def process_process(self, part, node_map, all_nodes, edges):
         d = self.process.parse(part)
+
+        from_nodes = []
+        to_node = None
+
+        for source in d['sources']:
+            self.upsert_node(node_map, source)  # first, check and upsert if not in node_map
+            from_nodes.append(node_map[source])
+
+        if len(from_nodes) == 0:
+            from_nodes.append(node_map['last_node'])
+
+        if d['assign_var']:
+            node_name = d['assign_var']
+            new_node = Node(node_name)
+            node_map[node_name] = new_node  # update
+            to_node = new_node
+        else:
+            to_node = node_map['last_node']
+
+        for from_node in from_nodes:
+            edges.append(Edge(from_node, to_node))
+            all_nodes.append(from_node)
+
+        all_nodes.append(to_node)
+        node_map['last_node'] = to_node
+
+    def process_reduce(self, part, node_map, all_nodes, edges):
+        d = self.reduce.parse(part)
 
         from_nodes = []
         to_node = None
@@ -233,6 +285,7 @@ class ScriptParser(object):
         content = self.remove_if(content)
         content = self.resolve_external_params(content, external_params)
         content = self.remove_loop(content)
+        content = self.remove_data_hint(content)
 
         parts = content.split(';')
 
@@ -262,29 +315,42 @@ class ScriptParser(object):
                 self.process_input_sstream(part, node_map, all_nodes, edges)
             elif 'EXTRACT' in part:
                 self.process_extract(part, node_map, all_nodes, edges)
+            elif 'VIEW' in part:
+                self.process_view(part, node_map, all_nodes, edges)
             elif 'PROCESS' in part:
                 self.process_process(part, node_map, all_nodes, edges)
+            elif 'REDUCE' in part:
+                self.process_reduce(part, node_map, all_nodes, edges)
             elif 'OUTPUT' in part:
                 self.process_output(part, node_map, all_nodes, edges)
 
         self.logger.info(declare_map)
 
-        self.change_node_color(all_nodes)
-
         if dest_filepath:
-            self.logger.info('output GEXF to [{}]'.format(dest_filepath))
+            self.logger.info('change node color for output')
+            self.change_node_color(all_nodes)
+
             gu = GraphUtility(all_nodes, edges)
 
-            gu.to_gexf_file(dest_filepath)
-            gu.to_dot_file(dest_filepath)
+            gexf_output_file = gu.to_gexf_file(dest_filepath)
+            self.logger.info('output .gexf file to [{}]'.format(gexf_output_file))
+
+            dot_output_file = gu.to_dot_file(dest_filepath)
+            self.logger.info('output .dot file to [{}]'.format(dot_output_file))
+
+            self.logger.info('render graphviz file')
+            gu.dot_to_graphviz(dot_output_file)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt')
-#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/tt.gexf')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/tt.gexf')
+#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
 #    ScriptParser().parse_file('../tests/files/SOV3_StripeOutput.script')

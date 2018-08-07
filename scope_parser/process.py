@@ -11,8 +11,9 @@ class Process(object):
     ident = Common.ident
     produce_schema = delimitedList(ident)
     func = Common.func
+    func_ptr = Common.func_ptr
 
-    process_stmt = Combine(ident)('assign_var') + '=' + PROCESS + Combine(ident)('source') + Optional(PRODUCE + produce_schema) + USING + func
+    process_stmt = Combine(ident)('assign_var') + '=' + PROCESS + Combine(ident)('source') + Optional(PRODUCE + produce_schema) + USING + (func | func_ptr)
 
 
     def parse(self, s):
@@ -33,8 +34,8 @@ if __name__ == '__main__':
 
     print(obj.parse('IS_ORDER_BSC = PROCESS IS_ORDER_BSC USING StripePartitionLookupProcessor("PipelineConfiguration.xml")'))
     print(obj.parse('''
-        a = PROCESS KWCandidatesPrepared PRODUCE AccountId, CampaignId, OrderId, OptType, SuggKW, KeyTerm, RGUID, ListingId, CPC, PClick
-            USING BTEAdjustmentProcessor()
-            HAVING RGUID != ""
+    BMMOpt =
+        PROCESS BMMOpt
+        USING ProcessExistingPlus
         '''))
 
