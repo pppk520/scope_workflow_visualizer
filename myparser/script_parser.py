@@ -69,21 +69,13 @@ class ScriptParser(object):
 
         self.logger.warning('cannot find node [{}]! Probably source node.'.format(target_name))
 
-        attr = {}
-        if target_name.startswith('SSTREAM'):
-            attr = {'type': 'input'}
-
-        return Node(target_name, attr=attr)
+        return Node(target_name)
 
     def upsert_node(self, node_map, node_name):
         if node_name not in node_map:
             self.logger.info('cannot find node [{}]! Probably source node.'.format(node_name))
 
-            attr = {}
-            if node_name.startswith('SSTREAM') or node_name.startswith('EXTRACT'):
-                attr = {'type': 'input'}
-
-            node_map[node_name] = Node(node_name, attr=attr)
+            node_map[node_name] = Node(node_name)
 
     def remove_loop(self, content):
         re_loop = re.compile(r'LOOP\(.*\).*?{(.*?)}', re.MULTILINE | re.DOTALL)
@@ -91,13 +83,43 @@ class ScriptParser(object):
 
         return content
 
+    def change_node_color(self, nodes):
+        for node in nodes:
+            if '_' not in node.name:
+                continue
+
+            input_type = node.name.split('_')[0]
+
+            if input_type not in ['SSTREAM', 'EXTRACT', 'MODULE', 'VIEW', 'BOND']:
+                continue
+
+            attr = {}
+            attr.update({'type': 'input',
+                         'style': 'filled'})
+
+            # color scheme: https://www.graphviz.org/doc/info/colors.html#brewer
+            if input_type == 'SSTREAM':
+                attr['fillcolor'] = 'greenyellow'
+            elif input_type == 'EXTRACT':
+                attr['fillcolor'] = 'honeydew'
+            elif input_type == 'MODULE':
+                attr['fillcolor'] = 'sandybrown'
+            elif input_type == 'VIEW':
+                attr['fillcolor'] = 'lightpink'
+            elif input_type == 'BOND':
+                attr['fillcolor'] = 'lightblue'
+
+            node.attr.update(attr)
+
     def process_output(self, part, node_map, all_nodes, edges):
         d = self.output.parse(part)
         self.logger.debug(d)
 
         source_name = d['ident']
         from_node = node_map.get(source_name, node_map['last_node'])
-        to_node = Node(d['path'], attr={'type': 'output'})
+        to_node = Node(d['path'], attr={'type': 'output',
+                                        'style': 'filled',
+                                        'fillcolor': 'tomato'})
 
         edges.append(Edge(from_node, to_node))
         all_nodes.append(to_node)
@@ -107,7 +129,7 @@ class ScriptParser(object):
         ident = d[0][0]
         value = 'EXTRACT_{}'.format(d[5])  # FROM [where]
 
-        from_node = Node(value, attr={'type': 'input'})
+        from_node = Node(value)
         to_node = Node(ident)
 
         edges.append(Edge(from_node, to_node))
@@ -123,7 +145,7 @@ class ScriptParser(object):
         ident = d[0][0]
         value = 'SSTREAM_{}'.format(d[-1])
 
-        from_node = Node(value, attr={'type': 'input'})
+        from_node = Node(value)
         to_node = Node(ident)
 
         edges.append(Edge(from_node, to_node))
@@ -247,15 +269,20 @@ class ScriptParser(object):
 
         self.logger.info(declare_map)
 
+        self.change_node_color(all_nodes)
+
         if dest_filepath:
             self.logger.info('output GEXF to [{}]'.format(dest_filepath))
-            GraphUtility().to_gexf_file(all_nodes, edges, dest_filepath)
+            gu = GraphUtility(all_nodes, edges)
+
+            gu.to_gexf_file(dest_filepath)
+            gu.to_dot_file(dest_filepath)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt.gexf')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/tt')
 #    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/tt.gexf')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/tt.gexf')
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
