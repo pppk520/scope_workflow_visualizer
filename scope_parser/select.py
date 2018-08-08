@@ -49,7 +49,7 @@ class Select(object):
     # IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
     #if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
     if_stmt = Group(IF + Regex('\(.*\)', re.DOTALL))
-    if_stmt_as = Group(IF + Regex('\(.*\) AS [^,^(FROM)]+', re.DOTALL))
+    if_stmt_as = Group(IF + Regex('\(.*\) AS ([^,^ ]+)', re.DOTALL))
 
     and_ = Keyword("AND")
     or_ = Keyword("OR")
@@ -235,14 +235,10 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-BadAccounts =
-    SELECT AccountId,
-           (int) 2 AS TrafficId
-    FROM AggregatorList WHERE bAggregator==true
-    UNION DISTINCT
-    SELECT AccountId,
-           (int) 2 AS TrafficId
-    FROM SpamAccountList;
+        OrderMPISpend =   SELECT OrderMPISpend.*,
+                                 IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
+            FROM OrderMPISpend LEFT OUTER JOIN CampaignBudget ON
+                                                                    OrderMPISpend.CampaignId == CampaignBudget.CampaignId;
                     '''))
 
 

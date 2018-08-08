@@ -495,6 +495,20 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'AccountsWithTrafficId')
         self.assertCountEqual(result['sources'], ['Accounts', 'BadAccounts', 'AccountBucket'])
 
+    def test_complex_if_2(self):
+        s = '''
+        OrderMPISpend =   SELECT OrderMPISpend.*,
+                                 IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
+            FROM OrderMPISpend LEFT OUTER JOIN CampaignBudget ON
+                                                                    OrderMPISpend.CampaignId == CampaignBudget.CampaignId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'OrderMPISpend')
+        self.assertCountEqual(result['sources'], ['OrderMPISpend', 'CampaignBudget'])
+
+
     def test_union_distinct(self):
         s = '''
         BadAccounts =
