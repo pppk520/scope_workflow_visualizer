@@ -473,6 +473,43 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'AdgroupCount')
         self.assertCountEqual(result['sources'], ['AdgroupCountSource', 'CampaignLevelAdgroupCount', 'AccountLevelAdgroupCount'])
 
+    def test_complex_if_column(self):
+        s = '''
+        AccountsWithTrafficId = 
+            SELECT A.AccountId, IF(B.TrafficId!=null,
+                                    (int)B.TrafficId,
+                                    IF(C.TrafficId!=null,
+                                        (int)C.TrafficId,
+                                        1<<((new Random(Guid.NewGuid().GetHashCode()).Next(0,4))+3)//If no bucket, random assign bucket
+                                    )
+                                   ) AS TrafficId 
+            FROM Accounts AS A
+            LEFT OUTER JOIN BadAccounts AS B 
+            ON A.AccountId==B.AccountId
+            LEFT OUTER JOIN AccountBucket AS C
+            ON A.AccountId==C.AccountId;
+        '''
 
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AccountsWithTrafficId')
+        self.assertCountEqual(result['sources'], ['Accounts', 'BadAccounts', 'AccountBucket'])
+
+    def test_union_distinct(self):
+        s = '''
+        BadAccounts =
+            SELECT AccountId,
+                   (int) 2 AS TrafficId
+            FROM AggregatorList WHERE bAggregator==true
+            UNION DISTINCT
+            SELECT AccountId,
+                   (int) 2 AS TrafficId
+            FROM SpamAccountList;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'BadAccounts')
+        self.assertCountEqual(result['sources'], ['AggregatorList', 'SpamAccountList'])
 
 

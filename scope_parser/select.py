@@ -2,6 +2,7 @@ from pyparsing import *
 from scope_parser.common import Common
 from scope_parser.input import Input
 import json
+import re
 
 
 class Select(object):
@@ -47,7 +48,8 @@ class Select(object):
     # IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt
     # IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
     #if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
-    if_stmt = Group(IF + Regex('\(.*\)'))
+    if_stmt = Group(IF + Regex('\(.*\)', re.DOTALL))
+    if_stmt_as = Group(IF + Regex('\(.*\) AS [^,^(FROM)]+', re.DOTALL))
 
     and_ = Keyword("AND")
     or_ = Keyword("OR")
@@ -80,7 +82,7 @@ class Select(object):
                         aggr_ident |
                         ternary |
                         null_coal |
-                        if_stmt |
+                        if_stmt_as |
                         new_something |
                         func_chain_not |
                         operator_ident |
@@ -93,7 +95,7 @@ class Select(object):
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
     bond_expr = Combine(func + ZeroOrMore('.' + ident))
 
-    union = Group(UNION + Optional('ALL'))
+    union = Group(UNION + Optional('ALL' | DISTINCT))
 
     where_expression = Forward()
 
@@ -137,7 +139,15 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.column_rval.parseString('- 1'))
+        print(self.if_stmt.parseString('''
+IF(B.TrafficId!=null,
+                            (int)B.TrafficId,
+                            IF(C.TrafficId!=null,
+                                (int)C.TrafficId,
+                                1<<((new Random(Guid.NewGuid().GetHashCode()).Next(0,4))+3)//If no bucket, random assign bucket
+                            )
+                           ) 
+                                   '''))
 
 
     def parse_ternary(self, s):
@@ -225,22 +235,14 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-AdgroupCount =
+BadAccounts =
     SELECT AccountId,
-           CampaignId
-    FROM AdgroupCountSource
-    UNION ALL
+           (int) 2 AS TrafficId
+    FROM AggregatorList WHERE bAggregator==true
+    UNION DISTINCT
     SELECT AccountId,
-           NumAdGroups
-    FROM CampaignLevelAdgroupCount
-	UNION ALL
-	SELECT AccountId, 
-	      (long) -1 AS CampaignId, 
-	      (long) -1 AS OrderId, 
-	      NumAdGroups 
-    FROM AccountLevelAdgroupCount;
-
-
-        '''))
+           (int) 2 AS TrafficId
+    FROM SpamAccountList;
+                    '''))
 
 

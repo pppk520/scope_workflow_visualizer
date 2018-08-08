@@ -27,7 +27,7 @@ class Input(object):
 
     value_pattern = Combine(Optional('@') + quotedString)
 
-    param_assign = ident + '=' + Combine(Optional('@') + (func_chain | value_str))
+    param_assign = ident + '=' + Combine(Optional('@') + (func_chain | value_str))('param_value*')
     param_assign_list = delimitedList(param_assign)
     params = PARAMS + '(' + param_assign_list + ')'
     dot_name = delimitedList(ident, delim='.', combine=True)
@@ -81,14 +81,23 @@ class Input(object):
         elif 'SSTREAM' in s:
             ret = self.assign_sstream.parseString(s)
             d['sources'].add('SSTREAM_' + ret['from_source'])
-        elif 'module' in s.lower():
-            ret = self.assign_module.parseString(s)
-            d['sources'].add('MODULE_' + ret['module']['module_dotname'])
         elif 'VIEW' in s:
             ret = self.assign_view.parseString(s)
             d['sources'].add('VIEW_' + ret['from_source'])
         else:
-            raise NotImplementedError('unsupported input type?')
+            # try module parsing
+            ret = self.assign_module.parseString(s)
+            if ret and 'module' in ret:
+                d['sources'].add('MODULE_' + ret['module']['module_dotname'])
+
+                if 'param_value' in ret['module']:
+                    d['params'] = set()
+
+                    for param_value in ret['module']['param_value']:
+                        d['params'].add(param_value)
+
+            else:
+                raise NotImplementedError('unsupported input type?')
 
         d['assign_var'] = ret['assign_var']
 
@@ -177,13 +186,13 @@ if __name__ == '__main__':
 
     d = i.parse(
     '''
-TMAllData = 
-    VIEW @TMView
-    PARAMS(
-        START_DATE = @TM_START_DATE,
-        END_DATE = @TM_END_DATE
+Data =
+    KWO.AssignTraffficId
+    (
+        Input = MergedSources_Final,
+        Config = AccountsWithTrafficId,
+        Mode = "config"
     );
-        ''')
-    print(d['assign_var'])
-    print(d['sources'])
+            ''')
+    print(d)
 

@@ -141,6 +141,9 @@ class ScriptParser(object):
     def process_input_sstream(self, part, node_map, all_nodes, edges):
         self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
 
+    def process_input_module(self, part, node_map, all_nodes, edges):
+        self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
+
     def process_process(self, part, node_map, all_nodes, edges):
         self.process_core(part, node_map, all_nodes, edges, self.process.parse(part))
 
@@ -150,6 +153,16 @@ class ScriptParser(object):
     def process_select(self, part, node_map, all_nodes, edges):
         self.process_core(part, node_map, all_nodes, edges, self.select.parse(part))
 
+    def connect_module_params(self, node_map, all_nodes, edges, dest_node, params):
+        for param in params:
+
+            if not param in node_map:
+                # do nothing if param not appeared before
+                continue
+
+            param_node = node_map[param]
+            edges.append(Edge(param_node, dest_node))
+
     def process_core(self, part, node_map, all_nodes, edges, d):
         from_nodes = []
         to_node = None
@@ -157,6 +170,9 @@ class ScriptParser(object):
         for source in d['sources']:
             self.upsert_node(node_map, source)  # first, check and upsert if not in node_map
             from_nodes.append(node_map[source])
+
+            if source.startswith('MODULE_'):
+                self.connect_module_params(node_map, all_nodes, edges, node_map[source], d['params'])
 
         if len(from_nodes) == 0:
             from_nodes.append(node_map['last_node'])
@@ -233,6 +249,12 @@ class ScriptParser(object):
                 self.process_reduce(part, node_map, all_nodes, edges)
             elif 'OUTPUT' in part:
                 self.process_output(part, node_map, all_nodes, edges)
+            else:
+                try:
+                    self.process_input_module(part, node_map, all_nodes, edges)
+                except Exception as ex:
+                    # do nothing if parsing module failed, probably it's not from module
+                    pass
 
         self.logger.info(declare_map)
 
@@ -256,6 +278,7 @@ if __name__ == '__main__':
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
     ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
