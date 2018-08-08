@@ -15,4 +15,5 @@ class TestSelect(TestCase):
         result = Input().parse(s)
 
         self.assertTrue(result['assign_var'] == 'TMAllData')
-        self.assertTrue(result['from_source'] == '@TMView')
+        self.assertCountEqual(result['sources'], ['VIEW_@TMView'])
+

@@ -414,4 +414,65 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'TMAllData')
         self.assertCountEqual(result['sources'], ['TMAllData'])
 
+    def test_cast_space_num(self):
+        s = '''
+        TMAllData =
+            SELECT Keyword,
+                   MatchTypeId,
+                   (long) - 1 AS CompetitiveIndex
+            FROM TMAllData;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'TMAllData')
+        self.assertCountEqual(result['sources'], ['TMAllData'])
+
+
+    def test_multiple_join(self):
+        s = '''
+        FullSuggestions =
+            SELECT A. *,
+                   B.SuggBid AS AggSuggBid,
+                   D.NumAdGroups
+            FROM FullSuggestions AS A
+                 INNER JOIN
+                     AggregatedEstimation AS B
+                 ON A.AccountId == B.AccountId AND A.CampaignId == B.CampaignId AND A.OrderId == B.OrderId
+                 LEFT OUTER JOIN
+                     AdgroupCount AS D
+                 ON A.AccountId == D.AccountId AND A.CampaignId == D.CampaignId AND A.OrderId == D.OrderId;
+
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'FullSuggestions')
+        self.assertCountEqual(result['sources'], ['FullSuggestions', 'AggregatedEstimation', 'AdgroupCount'])
+
+    def test_multiple_select_union(self):
+        s = '''
+        AdgroupCount =
+            SELECT AccountId,
+                   CampaignId
+            FROM AdgroupCountSource
+            UNION ALL
+            SELECT AccountId,
+                   NumAdGroups
+            FROM CampaignLevelAdgroupCount
+            UNION ALL
+            SELECT AccountId, 
+                  (long) -1 AS CampaignId, 
+                  (long) -1 AS OrderId, 
+                  NumAdGroups 
+            FROM AccountLevelAdgroupCount;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AdgroupCount')
+        self.assertCountEqual(result['sources'], ['AdgroupCountSource', 'CampaignLevelAdgroupCount', 'AccountLevelAdgroupCount'])
+
+
+
 

@@ -133,84 +133,24 @@ class ScriptParser(object):
         all_nodes.append(to_node)
 
     def process_extract(self, part, node_map, all_nodes, edges):
-        d = self.input.parse(part)
-        ident = d['assign_var']
-        value = 'EXTRACT_{}'.format(d['from_source'])
-
-        from_node = Node(value)
-        to_node = Node(ident)
-
-        edges.append(Edge(from_node, to_node))
-
-        node_map[ident] = to_node
-        node_map['last_node'] = to_node
-
-        all_nodes.append(from_node)
-        all_nodes.append(to_node)
+        self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
 
     def process_view(self, part, node_map, all_nodes, edges):
-        d = self.input.parse(part)
-        ident = d['assign_var']
-        value = 'VIEW_{}'.format(d['from_source'])
-
-        from_node = Node(value)
-        to_node = Node(ident)
-
-        edges.append(Edge(from_node, to_node))
-
-        node_map[ident] = to_node
-        node_map['last_node'] = to_node
-
-        all_nodes.append(from_node)
-        all_nodes.append(to_node)
+        self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
 
     def process_input_sstream(self, part, node_map, all_nodes, edges):
-        d = self.input.parse(part)
-        ident = d['assign_var']
-        value = 'SSTREAM_{}'.format(d['from_source'])
-
-        from_node = Node(value)
-        to_node = Node(ident)
-
-        edges.append(Edge(from_node, to_node))
-
-        node_map[ident] = to_node
-        node_map['last_node'] = to_node
-
-        all_nodes.append(from_node)
-        all_nodes.append(to_node)
+        self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
 
     def process_process(self, part, node_map, all_nodes, edges):
-        d = self.process.parse(part)
-
-        from_nodes = []
-        to_node = None
-
-        for source in d['sources']:
-            self.upsert_node(node_map, source)  # first, check and upsert if not in node_map
-            from_nodes.append(node_map[source])
-
-        if len(from_nodes) == 0:
-            from_nodes.append(node_map['last_node'])
-
-        if d['assign_var']:
-            node_name = d['assign_var']
-            new_node = Node(node_name)
-            node_map[node_name] = new_node  # update
-            to_node = new_node
-        else:
-            to_node = node_map['last_node']
-
-        for from_node in from_nodes:
-            edges.append(Edge(from_node, to_node))
-            all_nodes.append(from_node)
-
-        all_nodes.append(to_node)
-        node_map['last_node'] = to_node
+        self.process_core(part, node_map, all_nodes, edges, self.process.parse(part))
 
     def process_reduce(self, part, node_map, all_nodes, edges):
-        d = self.reduce.parse(part)
+        self.process_core(part, node_map, all_nodes, edges, self.reduce.parse(part))
 
+    def process_select(self, part, node_map, all_nodes, edges):
+        self.process_core(part, node_map, all_nodes, edges, self.select.parse(part))
+
+    def process_core(self, part, node_map, all_nodes, edges, d):
         from_nodes = []
         to_node = None
 
@@ -225,36 +165,6 @@ class ScriptParser(object):
             node_name = d['assign_var']
             new_node = Node(node_name)
             node_map[node_name] = new_node  # update
-            to_node = new_node
-        else:
-            to_node = node_map['last_node']
-
-        for from_node in from_nodes:
-            edges.append(Edge(from_node, to_node))
-            all_nodes.append(from_node)
-
-        all_nodes.append(to_node)
-        node_map['last_node'] = to_node
-
-    def process_select(self, part, node_map, all_nodes, edges):
-        d = self.select.parse(part)
-        self.logger.debug(d)
-        self.logger.info('[{}] = select from sources [{}]'.format(d['assign_var'], d['sources']))
-
-        from_nodes = []
-        to_node = None
-
-        for source in d['sources']:
-            self.upsert_node(node_map, source) # first, check and upsert if not in node_map
-            from_nodes.append(node_map[source])
-
-        if len(from_nodes) == 0:
-            from_nodes.append(node_map['last_node'])
-
-        if d['assign_var']:
-            node_name = d['assign_var']
-            new_node = Node(node_name)
-            node_map[node_name] = new_node # update
             to_node = new_node
         else:
             to_node = node_map['last_node']
@@ -345,10 +255,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
-#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))

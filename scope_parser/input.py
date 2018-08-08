@@ -72,16 +72,27 @@ class Input(object):
         return self.module.parseString(s)
 
     def parse(self, s):
-        if 'EXTRACT' in s:
-            return self.assign_extract.parseString(s)
-        elif 'SSTREAM' in s:
-            return self.assign_sstream.parseString(s)
-        elif 'module' in s.lower():
-            return self.assign_module.parseString(s)
-        elif 'VIEW' in s:
-            return self.assign_view.parseString(s)
+        d = {'assign_var': None,
+             'sources': set()}
 
-        raise NotImplementedError('unsupported input type?')
+        if 'EXTRACT' in s:
+            ret = self.assign_extract.parseString(s)
+            d['sources'].add('EXTRACT_' + ret['from_source'])
+        elif 'SSTREAM' in s:
+            ret = self.assign_sstream.parseString(s)
+            d['sources'].add('SSTREAM_' + ret['from_source'])
+        elif 'module' in s.lower():
+            ret = self.assign_module.parseString(s)
+            d['sources'].add('MODULE_' + ret['module']['module_dotname'])
+        elif 'VIEW' in s:
+            ret = self.assign_view.parseString(s)
+            d['sources'].add('VIEW_' + ret['from_source'])
+        else:
+            raise NotImplementedError('unsupported input type?')
+
+        d['assign_var'] = ret['assign_var']
+
+        return d
 
     def debug(self):
         pass
@@ -174,5 +185,5 @@ TMAllData =
     );
         ''')
     print(d['assign_var'])
-    print(d['from_source'])
+    print(d['sources'])
 

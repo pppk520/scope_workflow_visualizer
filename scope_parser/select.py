@@ -49,14 +49,24 @@ class Select(object):
     #if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
     if_stmt = Group(IF + Regex('\(.*\)'))
 
-
     and_ = Keyword("AND")
     or_ = Keyword("OR")
     in_ = Keyword("IN")
 
     select_stmt = Forward()
     column_name = Group(delimitedList(ident | '*', "."))
+
+    real_num = Group(Optional(arith_sign) + (Word(nums) + "." + Optional(Word(nums)) |
+                                               ("." + Word(nums))) +
+                     Optional(E + Optional(arith_sign) + Word(nums)))
+    int_num = Group(Optional(arith_sign) + Word(nums) +
+                      Optional(E + Optional("+") + Word(nums)))
+    bool_val = oneOf("true false")
+
+    column_rval = real_num | int_num | quotedString | column_name | bool_val # need to add support for alg expressions
+
     cast_ident = Group(Optional(cast) + column_name).setName('cast_identifier')
+    cast_num = Group(Optional(cast) + column_rval).setName('cast_num')
     operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
     aggr_ident_basic = Group(aggr + '(' + (operator_ident | ident | Empty()) + ')')
     aggr_ident_operator = aggr_ident_basic + ZeroOrMore(oneOf('+ - * /') + (aggr_ident_basic | ident))
@@ -66,7 +76,18 @@ class Select(object):
     new_something = 'new' + func_chain;
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Group((distinct_ident | aggr_ident | ternary | null_coal | if_stmt | new_something | func_chain_not | operator_ident | cast_ident | quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
+    one_column = Group((distinct_ident |
+                        aggr_ident |
+                        ternary |
+                        null_coal |
+                        if_stmt |
+                        new_something |
+                        func_chain_not |
+                        operator_ident |
+                        cast_ident |
+                        cast_num |
+                        quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
+
     column_name_list = Group(delimitedList(one_column))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
@@ -76,25 +97,17 @@ class Select(object):
 
     where_expression = Forward()
 
-    real_num = Combine(Optional(arith_sign) + (Word(nums) + "." + Optional(Word(nums)) |
-                                               ("." + Word(nums))) +
-                       Optional(E + Optional(arith_sign) + Word(nums)))
-    int_num = Combine(Optional(arith_sign) + Word(nums) +
-                      Optional(E + Optional("+") + Word(nums)))
-    bool_val = oneOf("true false")
-
-    column_rval = real_num | int_num | quotedString | column_name | bool_val # need to add support for alg expressions
     where_condition = Group(
-        (column_name + binop + column_rval) |
-        (column_name + in_ + Group("(" + delimitedList(column_rval) + ")")) |
+        (column_name + binop + Combine(column_rval)) |
+        (column_name + in_ + Group("(" + delimitedList(Combine(column_rval)) + ")")) |
         (column_name + in_ + Group("(" + select_stmt + ")")) |
         ("(" + where_expression + ")")
     )
     where_expression << where_condition + ZeroOrMore((and_ | or_ | '&&' | '|') + where_expression)
 
     join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER'))) + JOIN)
-    join_stmt = join + table_name("join_table_name") + Optional(AS + ident) + ON + where_expression
-    cross_join_stmt = CROSS_JOIN + table_name("join_table_name")
+    join_stmt = join + table_name("join_table_name*") + Optional(AS + ident) + ON + where_expression
+    cross_join_stmt = CROSS_JOIN + table_name("join_table_name*")
     cross_apply_stmt = CROSS_APPLY + (bond_expr("bond") | table_name) + Optional(AS + ident)
 
     # define the grammar
@@ -110,20 +123,21 @@ class Select(object):
     select_stmt <<= (SELECT + (column_name_list | '*')("columns") +
                      Optional(DISTINCT) +
                      Optional(from_stmt)("from") +
-                     Optional(join_stmt | cross_join_stmt) +
+                     ZeroOrMore(join_stmt | cross_join_stmt) +
                      Optional(cross_apply_stmt) +
                      Optional(Group(WHERE + where_expression), "")("where") +
                      Optional(Group(union_select))('union') +
                      Optional(having))
 
-    assign_select_stmt = (Combine(ident)("assign_var") + '=' + select_stmt).ignore(comment)
+    select_union = select_stmt + ZeroOrMore(union + select_stmt)
+
+    assign_select_stmt = (Combine(ident)("assign_var") + '=' + select_union).ignore(comment)
 
     def __init__(self):
         pass
 
     def debug(self):
-        print(self.operator_ident.parseString('Impressions * CompetitiveIndex'))
-        print(self.aggr_ident_basic.parseString("SUM(Impressions * CompetitiveIndex) / SUM(Impressions)"))
+        print(self.column_rval.parseString('- 1'))
 
 
     def parse_ternary(self, s):
@@ -161,7 +175,8 @@ class Select(object):
             sources.add(parsed_result['table_name'])
 
         if 'join_table_name' in parsed_result:
-            sources.add(parsed_result['join_table_name'])
+            for table_name in parsed_result['join_table_name']:
+                sources.add(table_name)
 
         if 'union' in parsed_result:
             self.add_source(sources, parsed_result['union'][0])
@@ -210,13 +225,20 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-Suggestions =
-    SELECT Suggestions. *,
-           IF(TMAllData.CompetitiveIndex != null, CompetitiveIndex, "0.01") AS dummy9
-    FROM Suggestions
-         LEFT OUTER JOIN
-             TMAllData
-         ON Suggestions.SuggKW == TMAllData.Keyword AND Suggestions.SuggMatchTypeId == TMAllData.MatchTypeId;
+AdgroupCount =
+    SELECT AccountId,
+           CampaignId
+    FROM AdgroupCountSource
+    UNION ALL
+    SELECT AccountId,
+           NumAdGroups
+    FROM CampaignLevelAdgroupCount
+	UNION ALL
+	SELECT AccountId, 
+	      (long) -1 AS CampaignId, 
+	      (long) -1 AS OrderId, 
+	      NumAdGroups 
+    FROM AccountLevelAdgroupCount;
 
 
         '''))
