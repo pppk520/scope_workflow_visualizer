@@ -1,7 +1,7 @@
 from unittest import TestCase
 from scope_parser.input import Input
 
-class TestSelect(TestCase):
+class TestInput(TestCase):
     def test_view(self):
         s = '''
         TMAllData = 

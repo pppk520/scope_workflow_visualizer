@@ -1,6 +1,8 @@
 import re
 import logging
 import json
+import os
+import configparser
 
 from util.file_utility import FileUtility
 
@@ -13,6 +15,7 @@ from scope_parser.process import Process
 from scope_parser.reduce import Reduce
 from scope_parser.using import Using
 from scope_parser.select import Select
+from myparser.scope_resolver import ScopeResolver
 
 from graph.node import Node
 from graph.edge import Edge
@@ -21,7 +24,7 @@ from graph.graph_utility import GraphUtility
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
 
-    def __init__(self):
+    def __init__(self, external_params={}, b_add_sstream_link=True):
         self.vars = {}
 
         self.declare = Declare()
@@ -33,6 +36,29 @@ class ScriptParser(object):
         self.reduce = Reduce()
         self.using = Using()
         self.select = Select()
+
+        self.scope_resolver = ScopeResolver()
+
+        self.b_add_sstream_link = b_add_sstream_link
+        self.sstream_link_prefix = ""
+        self.external_params = {}
+
+        # read config from ini file
+        config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
+        self.read_configs(config_filepath)
+
+        # overwrite external params
+        self.external_params.update(external_params)
+
+    def read_configs(self, filepath):
+        config = configparser.ConfigParser()
+        config.optionxform = str # reserve case
+        config.read(filepath)
+
+        self.sstream_link_prefix = config['ScriptParser']['sstream_link_prefix']
+
+        for key in config['ExternalParam']:
+            self.external_params[key] = config['ExternalParam'][key]
 
     def remove_empty_lines(self, content):
         return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
@@ -90,6 +116,17 @@ class ScriptParser(object):
         content = re.sub(re_dh, '', content)
 
         return content
+
+    def add_sstream_link(self, nodes, declare_map):
+        for node in nodes:
+            if not node.name.startswith('SSTREAM_'):
+                continue
+
+            param = node.name[node.name.index('_') + 1:]
+
+            print(param)
+            print(declare_map[param])
+
 
     def change_node_color(self, nodes):
         for node in nodes:
@@ -194,7 +231,7 @@ class ScriptParser(object):
 
     def process_declare(self, part, declare_map):
         key, value = self.declare.parse(part)
-        declare_map[key] = value
+        declare_map['@' + key] = value
 
         self.logger.info('declare [{}] as [{}]'.format(key, value))
 
@@ -205,11 +242,13 @@ class ScriptParser(object):
         self.logger.info('set [{}] as [{}]'.format(key, value))
 
     def parse_file(self, filepath, external_params={}, dest_filepath=None):
+        self.external_params.update(external_params)
+
         content = FileUtility.get_file_content(filepath)
 #        content = self.remove_empty_lines(content)
         content = self.remove_comments(content)
         content = self.remove_if(content)
-        content = self.resolve_external_params(content, external_params)
+        content = self.resolve_external_params(content, self.external_params)
         content = self.remove_loop(content)
         content = self.remove_data_hint(content)
 
@@ -258,9 +297,13 @@ class ScriptParser(object):
 
         self.logger.info(declare_map)
 
+        self.change_node_color(all_nodes)
+        self.scope_resolver.resolve_declare(declare_map)
+
+        self.add_sstream_link(all_nodes, declare_map)
+
         if dest_filepath:
             self.logger.info('change node color for output')
-            self.change_node_color(all_nodes)
 
             gu = GraphUtility(all_nodes, edges)
 
@@ -277,12 +320,12 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
-    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))

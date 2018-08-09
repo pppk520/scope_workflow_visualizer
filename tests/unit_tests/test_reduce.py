@@ -1,7 +1,7 @@
 from unittest import TestCase
 from scope_parser.reduce import Reduce
 
-class TestSelect(TestCase):
+class TestReduce(TestCase):
     def test_reduce_on(self):
         s = '''
         PkvBond =

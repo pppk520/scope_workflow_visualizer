@@ -5,17 +5,15 @@ class Declare(object):
     DECLARE = Keyword("#DECLARE")
     DATA_TYPE = oneOf("string DateTime int bool")('data_type')
 
-    comment = Common.comment
     ident = Common.ident
 
     declare = DECLARE + Combine(ident)('key') + DATA_TYPE + '=' + restOfLine('value')
-    declare.ignore(comment)
 
     def parse(self, s):
-        data = self.declare.searchString(s)
+        data = self.declare.parseString(s)
 
         if data:
-            return data[0][1], data[0][-1]
+            return data['key'].strip(), data['value'].strip().rstrip(';')
 
         return None, None
 
