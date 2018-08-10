@@ -108,6 +108,35 @@ class ScriptParser(object):
             node_map[node_name] = Node(node_name)
 
     def remove_loop(self, content):
+        ''' Assumption: end bracelet '}' of LOOP is isolated in single line
+        If not, should use stack to process char by char
+
+        :param content: the scope script body
+        :return: cleaned content
+        '''
+        lines = content.splitlines()
+
+        result_lines = []
+
+        loop_on = False
+        for line in lines:
+            if loop_on:
+                if line.strip() == '}':
+                    loop_on = False
+                    continue
+                elif line.strip() == '{':
+                    continue
+
+            if 'LOOP' in line:
+                loop_on = True
+                continue
+
+            result_lines.append(line)
+
+        return '\n'.join(result_lines)
+
+    '''
+    def remove_loop(self, content):
         re_loop = re.compile(r'LOOP\(.*\).*?{(.*?)}', re.MULTILINE | re.DOTALL)
         content = re.sub(re_loop, '\g<1>', content)
 
@@ -116,6 +145,7 @@ class ScriptParser(object):
         print('-' * 30)
 
         return content
+    '''
 
     def remove_data_hint(self, content):
         re_dh = re.compile(r'^\[.*?\]', re.MULTILINE | re.DOTALL)
@@ -254,7 +284,12 @@ class ScriptParser(object):
 
     def process_set(self, part, declare_map):
         key, value = self.set.parse(part)
-        declare_map[key] = value
+
+        if 'IF' in value:
+            self.logger.info('for now, we do not handle IF statement.')
+            return
+
+        declare_map['@' + key] = value
 
         self.logger.info('set [{}] as [{}]'.format(key, value))
 
@@ -338,13 +373,13 @@ class ScriptParser(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
-#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
+    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))

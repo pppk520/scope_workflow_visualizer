@@ -35,11 +35,26 @@ class ScopeResolver(object):
 
                     the_data = self.process_to_string(the_data, format_item)
                 else:
-                    the_data = format_item
+                    # change
+                    match = re.match('@"(.*)"', format_item)
+                    if match:
+                        the_data = match.group(1)
+                    else:
+                        the_data = format_item
 
             ret.append(the_data)
 
-        result = eval(''.join(ret))
+        # add quote for strings
+        for i, item in enumerate(ret):
+            try:
+                _ = int(item)
+            except:
+                # it's string
+                if not item.startswith('"') and item not in ['+', '-', '*', '/']:
+                    ret[i] = '"{}"'.format(ret[i])
+
+        to_eval = ''.join(ret)
+        result = eval(to_eval)
 
         # final checking fot %Y %m %d
         if datetime_obj:
@@ -188,6 +203,7 @@ class ScopeResolver(object):
             try:
                 result = self.resolve_basic(format_items, declare_map)
             except Exception as ex:
+                self.logger.warning('error resolving [{}]: {}'.format(declare_rvalue, ex))
                 result = format_items[0]
 
         self.logger.debug('[resolve_declare_rvalue] result = ' + str(result))
