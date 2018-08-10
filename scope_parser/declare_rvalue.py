@@ -54,5 +54,5 @@ if __name__ == '__main__':
     r.debug()
 
     print(r.parse('''
-    String.Format(@"{0}QualityCheck/QualityCheckCandidates_{1:yyyy-MM-dd}.ss", @INPUT_PATH, @ObjDate);    
+    DateTime.Parse("2018" + " " + "20" + ":00:00")    
     '''))

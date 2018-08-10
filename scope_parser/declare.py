@@ -3,7 +3,7 @@ from scope_parser.common import Common
 
 class Declare(object):
     DECLARE = Keyword("#DECLARE")
-    DATA_TYPE = oneOf("string DateTime int bool")('data_type')
+    DATA_TYPE = oneOf("string DateTime int bool double")('data_type')
 
     ident = Common.ident
 

@@ -526,4 +526,23 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'BadAccounts')
         self.assertCountEqual(result['sources'], ['AggregatorList', 'SpamAccountList'])
 
+    def test_union_distinct(self):
+        s = '''
+        ClickRows_AdvertiserClicks = 
+                SELECT
+                    RGUID,
+                    (long)IF(OrderItemId==null,0,OrderItemId) AS OrderItemId,
+                    COUNT() AS AdvertiserClicks
+                FROM
+                    Monetization_Clicks
+                WHERE 
+                    IsFraud == false
+                ; 
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'ClickRows_AdvertiserClicks')
+        self.assertCountEqual(result['sources'], ['Monetization_Clicks'])
+
 

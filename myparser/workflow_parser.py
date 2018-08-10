@@ -283,17 +283,14 @@ if __name__ == '__main__':
 
     import json
 
-    proj_name = 'Opportunities'
+    proj_name = 'SOV'
     exclude_keys = []
 
 #    proj_name = 'BTE'
 #    exclude_keys = ['NKW/', 'NKW2/']
 
     wfp = WorkflowParser()
-#    obj = wfp.parse_file(r'D:\workspace\AdInsights\private\Backend\SOV\Workflows\MasterConfig\Workflows_master.config')
-#    obj = wfp.parse_file(r'D:\workspace\AdInsights\private\Backend\SOV\Workflows\WF_Groups\ADC.SOV.Scope\Config\SOV1_RawData.config')
-
     obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\{}'.format(proj_name), exclude_keys=exclude_keys)
 
-    wfp.print_params(obj, 'Opp_KWSuggV2_MPIProcessing2', resolve=True)
+    wfp.print_params(obj, 'SOV3_StripeOutput', resolve=True)
 #    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}.gexf'.format(proj_name))

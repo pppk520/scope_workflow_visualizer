@@ -48,8 +48,10 @@ class Select(object):
     # IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt
     # IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
     #if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
-    if_stmt = Group(IF + Regex('\(.*\)', re.DOTALL))
+    if_stmt_base = Group(IF + Regex('\(.*\)', re.DOTALL))
     if_stmt_as = Group(IF + Regex('\(.*\) AS ([^,^ ]+)', re.DOTALL))
+
+    if_stmt = Optional(cast) + (if_stmt_as | if_stmt_base)
 
     and_ = Keyword("AND")
     or_ = Keyword("OR")
@@ -82,7 +84,7 @@ class Select(object):
                         aggr_ident |
                         ternary |
                         null_coal |
-                        if_stmt_as |
+                        if_stmt |
                         new_something |
                         func_chain_not |
                         operator_ident |
@@ -235,10 +237,16 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-AggBroadMatchOpt =
-    SELECT *
-    FROM TotalAggSuggestion
-    WHERE AIPartitionId == @@I@@;
+ClickRows_AdvertiserClicks = 
+		SELECT
+			RGUID,
+			(long)IF(OrderItemId==null,0,OrderItemId) AS OrderItemId,
+			COUNT() AS AdvertiserClicks
+		FROM
+			Monetization_Clicks
+		WHERE 
+			IsFraud == false
+		; 
                     '''))
 
 

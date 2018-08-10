@@ -8,12 +8,16 @@ class Common(object):
     ident_val = Combine(Word('- ' + nums) + Optional(ident_float_suffix | 'UL'))
     value_str = Combine(Group(Optional(oneOf('@@ @')) + (ident_val | quotedString | ident) + Optional('@@')))
 
+    quoted_time = Combine('"' + Word(":" + nums) + '"')
+    ext_quoted_string = quoted_time | quotedString
+    str_cat = delimitedList(ext_quoted_string, delim='+')
+
     expr = Word(printables + ' ', excludeChars=':(),')
     func = Forward()
     func_ptr = Forward()
-    func_params = delimitedList(expr | ident | Word('-' + nums) | quotedString)
+    func_params = delimitedList(str_cat | expr | ident | Word('-' + nums))
 
-    func <<= Group(delimitedList(ident, delim='.', combine=True) + Combine('(' + Optional(func | func_params) + ')'))
+    func <<= Group(delimitedList(ident, delim='.', combine=True) + Group('(' + Optional(func | func_params) + ')'))
     func_ptr <<= Group(delimitedList(ident, delim='.', combine=True))
 
     func_chain = Combine(Optional('@') + delimitedList(func, delim='.', combine=True))
@@ -21,6 +25,11 @@ class Common(object):
 if __name__ == '__main__':
     obj = Common()
 
+    print(obj.quoted_time.parseString('":00:00"'))
+    print(obj.str_cat.parseString('"2018" + " " + ":00:00" + "20"'))
+    print(obj.func_params.parseString('"2018" + " " + ":00:00" + "20"'))
+    print(obj.func.parseString('DateTime.Parse("2018" + " " + "20" + ":00:00")'))
+    '''
     print(obj.func.parseString("FIRST(YouImpressionCnt)"))
     print(obj.func.parseString('ToString("yyyy-MM-dd")'))
     print(obj.expr.parseString("SuggBid * 100"))
@@ -33,3 +42,4 @@ if __name__ == '__main__':
     print(obj.value_str.parseString("-1"))
     print(obj.value_str.parseString("- 1"))
     print(obj.value_str.parseString("0UL"))
+    '''

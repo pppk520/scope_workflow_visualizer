@@ -239,7 +239,6 @@ class ScriptParser(object):
 
     def connect_module_params(self, node_map, all_nodes, edges, dest_node, params):
         for param in params:
-
             if not param in node_map:
                 # do nothing if param not appeared before
                 continue
@@ -256,7 +255,7 @@ class ScriptParser(object):
             from_nodes.append(node_map[source])
 
             if source.startswith('MODULE_'):
-                self.connect_module_params(node_map, all_nodes, edges, node_map[source], d['params'])
+                self.connect_module_params(node_map, all_nodes, edges, node_map[source], d.get('params', []))
 
         if len(from_nodes) == 0:
             from_nodes.append(node_map['last_node'])
@@ -374,12 +373,15 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
-    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+    ScriptParser().parse_file(
+        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
+        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
+#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
