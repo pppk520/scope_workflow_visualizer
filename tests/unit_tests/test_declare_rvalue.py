@@ -48,7 +48,7 @@ class TestDeclareRvalue(TestCase):
         '''
 
         result = DeclareRvalue().parse(s)
-        self.assertTrue(result['format_str'] == '"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss"')
+        self.assertTrue(result['format_str'] == '{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss')
         self.assertCountEqual(result['format_items'], ['@KWRawPath', 'DateTime.Parse(@RunDate)'])
 
     def test_str_format_query_param(self):
@@ -57,7 +57,7 @@ class TestDeclareRvalue(TestCase):
         '''
 
         result = DeclareRvalue().parse(s)
-        self.assertTrue(result['format_str'] == '"{0}/BidEstimation/Result/%Y/%m/KeywordAuction_%Y-%m-%d.ss?date={1:yyyy-MM-dd}"')
+        self.assertTrue(result['format_str'] == '{0}/BidEstimation/Result/%Y/%m/KeywordAuction_%Y-%m-%d.ss?date={1:yyyy-MM-dd}')
         self.assertCountEqual(result['format_items'], ['@BTEPath', '@BTERunDate'])
 
     def test_str_format_item_str(self):
@@ -66,6 +66,6 @@ class TestDeclareRvalue(TestCase):
         '''
 
         result = DeclareRvalue().parse(s)
-        self.assertTrue(result['format_str'] == '"{0}/{1:yyyy/MM/dd}/Delta{2}_"')
+        self.assertTrue(result['format_str'] == '{0}/{1:yyyy/MM/dd}/Delta{2}_')
         self.assertCountEqual(result['format_items'], ['@"/local/prod/pipelines/Optimization/KeywordOpportunity/Preparations/MPIProcessing/Debug"','DateTime.Parse(@RunDate)', '@DateDelta'])
 

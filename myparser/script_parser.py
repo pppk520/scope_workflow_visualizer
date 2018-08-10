@@ -41,6 +41,7 @@ class ScriptParser(object):
 
         self.b_add_sstream_link = b_add_sstream_link
         self.sstream_link_prefix = ""
+        self.sstream_link_suffix = ""
         self.external_params = {}
 
         # read config from ini file
@@ -56,6 +57,7 @@ class ScriptParser(object):
         config.read(filepath)
 
         self.sstream_link_prefix = config['ScriptParser']['sstream_link_prefix']
+        self.sstream_link_suffix = config['ScriptParser']['sstream_link_suffix']
 
         for key in config['ExternalParam']:
             self.external_params[key] = config['ExternalParam'][key]
@@ -119,6 +121,7 @@ class ScriptParser(object):
 
     def add_sstream_link(self, nodes, declare_map):
         for node in nodes:
+            # only target SSTREAM
             if not node.name.startswith('SSTREAM_'):
                 continue
 
@@ -126,7 +129,16 @@ class ScriptParser(object):
 
             print(param)
             print(declare_map[param])
+            print('node --> ' +str(node.attr))
 
+            # change node label to html format for different font size
+            label = '<{} <BR/> <FONT POINT-SIZE="5">{}{}{}</FONT>>'.format(node.attr['label'],
+                                                                                        self.sstream_link_prefix,
+                                                                                        declare_map[param],
+                                                                                        self.sstream_link_suffix)
+
+            print('label -> ' + label)
+            node.attr['label'] = label
 
     def change_node_color(self, nodes):
         for node in nodes:
@@ -300,7 +312,8 @@ class ScriptParser(object):
         self.change_node_color(all_nodes)
         self.scope_resolver.resolve_declare(declare_map)
 
-        self.add_sstream_link(all_nodes, declare_map)
+        if self.b_add_sstream_link:
+            self.add_sstream_link(all_nodes, declare_map)
 
         if dest_filepath:
             self.logger.info('change node color for output')

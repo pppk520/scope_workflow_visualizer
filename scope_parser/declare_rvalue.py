@@ -31,7 +31,7 @@ class DeclareRvalue(object):
         }
 
         if 'format_str' in result:
-            ret['format_str'] = result['format_str']
+            ret['format_str'] = result['format_str'].lstrip('"').rstrip('"')
             ret['format_items'] = result['format_item']
             ret['type'] = 'format_str'
         elif 'str_cat' in result:
@@ -52,14 +52,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('DateTime.Parse("@@RunDate@@")'))
-    print(r.parse('@"@@KWRawPath@@"'))
-    print(r.parse('@"@@KWRawPath@@"; //comment'))
-    print(r.parse('int.Parse("@@AuctionDataGetRatio@@");'))
-    print(r.parse('66'))
-    print(r.parse('"abc" + "111"'))
-    print(r.parse('"@RunDate"'))
-    print(r.parse('@DebugFolder + "AuctionWithUpdatedPclick.ss"'))
-    print(r.parse('string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate));'))
-    print(r.parse('string.Format("{0}/BidEstimation/Result/%Y/%m/KeywordAuction_%Y-%m-%d.ss?date={1:yyyy-MM-dd}", @BTEPath, @BTERunDate);'))
-    print(r.parse('string.Format("{0}/{1:yyyy/MM/dd}/Delta{2}_", @"/local/prod/pipelines/Optimization/KeywordOpportunity/Preparations/MPIProcessing/Debug", DateTime.Parse(@RunDate), @DateDelta); '))
+    print(r.parse('@"the_ref_str" + @"/suffix"'))
