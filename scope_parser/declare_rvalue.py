@@ -7,13 +7,15 @@ class DeclareRvalue(object):
     ident = Common.ident
     func_chain = Common.func_chain
 
+    keyword_string_format = Keyword('string.Format') | Keyword('String.Format')
+
     param = Combine('@' + ident)
     param_str = Combine(Optional('@') + quotedString)
-    param_str_cat = Group((param_str | param) + ZeroOrMore(oneOf('+ - * /') + (param_str | param))) # delimitedList suppress delim, we want to keep it
+    param_str_cat = Group((param_str | param) + ZeroOrMore(oneOf('+ - * /') + (func_chain | param_str | param))) # delimitedList suppress delim, we want to keep it
     format_item = func_chain('func_chain') | param_str('param_str') | param('param') | ident('ident')
     placeholder_basic = Group('{' + Word(nums) + '}')
     placeholder_date = Group('{' + Word(nums) + ':' + delimitedList(oneOf('yyyy MM dd'), delim=oneOf('/ - _')) + '}')
-    string_format = 'string.Format(' + Optional('@') + quotedString('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
+    string_format = keyword_string_format + '(' + Optional('@') + quotedString('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
 
     rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums)('nums') | func_chain('func_chain')
 
@@ -43,7 +45,6 @@ class DeclareRvalue(object):
         elif 'func_chain' in result:
             ret['format_items'] = [result['func_chain'],]
             ret['type'] = 'func_chain'
-
 #        print(ret)
 
         return ret
@@ -52,4 +53,6 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('@"the_ref_str" + @"/suffix"'))
+    print(r.parse('''
+    String.Format(@"{0}QualityCheck/QualityCheckCandidates_{1:yyyy-MM-dd}.ss", @INPUT_PATH, @ObjDate);    
+    '''))

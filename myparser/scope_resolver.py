@@ -16,10 +16,63 @@ class ScopeResolver(object):
 
     def resolve_basic(self, format_items, declare_map):
         ret = []
-        for format_item in format_items:
-            ret.append(declare_map.get(format_item, format_item))
 
-        return eval(''.join(ret))
+        datetime_obj = None
+
+        for format_item in format_items:
+            if format_item in declare_map:
+                the_data = declare_map[format_item]
+            else:
+                if 'DateTime' in format_item:
+                    the_data = self.resolve_declare_rvalue(None, format_item, declare_map)
+                    datetime_obj = the_data
+                elif 'AddDays' in format_item:
+                    the_obj_name = format_item.split('.')[0]
+                    if the_obj_name in declare_map:
+                        the_obj = declare_map[the_obj_name]
+                        the_data = self.process_add_days(the_obj, format_item)
+                        datetime_obj = the_data
+
+                    the_data = self.process_to_string(the_data, format_item)
+                else:
+                    the_data = format_item
+
+            ret.append(the_data)
+
+        result = eval(''.join(ret))
+
+        # final checking fot %Y %m %d
+        if datetime_obj:
+            result = datetime_obj.strftime(result)
+
+        return result
+
+    def is_time_format(self, the_str):
+        if 'yyyy' in the_str: return True
+        if 'MM' in the_str: return True
+        if 'dd' in the_str: return True
+
+        return False
+
+    def to_normalized_time_format(self, the_str):
+        return the_str.replace('yyyy', '%Y').replace('MM', '%m').replace('dd', '%d')
+
+    def process_to_string(self, the_obj, func_str):
+        found = re.findall('ToString\((.*?)\)', func_str)
+        if found:
+            if self.is_time_format(found[0]):
+                return the_obj.strftime(self.to_normalized_time_format(found[0]))
+
+            return str(the_obj)
+
+        return the_obj
+
+    def process_add_days(self, datetime_obj, func_str):
+        found = re.findall('AddDays\((.*?)\)', func_str)
+        if found:
+            return datetime_obj + timedelta(int(found[0]))
+
+        return datetime_obj
 
     def resolve_func(self, func_str, declare_map={}):
         params = re.findall(r'\((.*?)\)', func_str)
@@ -44,9 +97,7 @@ class ScopeResolver(object):
 
         if 'AddDays' in func_str:
             # must be datetime already
-            found = re.findall('AddDays\((.*)\)', func_str)
-            if found:
-                result = result + timedelta(int(found[0]))
+            result = self.process_add_days(result, func_str)
 
         return result
 
@@ -114,6 +165,7 @@ class ScopeResolver(object):
 
     def resolve_declare_rvalue(self, declare_lvalue, declare_rvalue, declare_map):
         self.logger.debug('resolve_declare_rvalue: declare_lvalue [{}], declare_rvalue [{}]'.format(declare_lvalue, declare_rvalue))
+
         try:
             ret_declare_rvalue = self.dr.parse(declare_rvalue)
         except Exception as ex:
@@ -150,17 +202,23 @@ class ScopeResolver(object):
 
     def resolve_declare(self, declare_map):
         for declare_lvalue in declare_map:
-            declare_rvalue = declare_map[declare_lvalue]
+            try:
+                declare_rvalue = declare_map[declare_lvalue]
 
-            print('declare_lvalue [{}], declare_rvalue [{}]'.format(declare_lvalue, declare_rvalue))
-            resolved = self.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
-            declare_map[declare_lvalue] = resolved
+                # check if it references existing param, if yes directly use it
+                if declare_rvalue in declare_map:
+                    declare_map[declare_lvalue] = declare_map[declare_rvalue]
+                    continue
 
+                resolved = self.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
+                declare_map[declare_lvalue] = resolved
+            except Exception as ex:
+                # ignore unsupported syntax
+                pass
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     print(ScopeResolver().resolve_declare_rvalue('',
-                                                 'string.Format("{0}/BidEstimation/Result/%Y/%m/AuctionContext_%Y-%m-%d.ss?date={1:yyyy-MM-dd}", @Path, DateTime.Parse(@BTERunDate));',
-                                                 {'@Path': 'path_to',
-                                                  '@BTERunDate': '2018-08-01'}))
+                                                 '"/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/KeywordPlanner/KeywordHistoricalStatistic/Result/Daily/%Y/%m/KeywordsSearchCountDaily_%Y-%m-%d.ss?date=" + @dateObj.AddDays(-31).ToString("yyyy-MM-dd") + "..." + @dateObj.AddDays(-1).ToString("yyyy-MM-dd") + "&sparsestreamset=true"',
+                                                 {'@dateObj': datetime.now()}))

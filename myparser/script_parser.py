@@ -111,6 +111,10 @@ class ScriptParser(object):
         re_loop = re.compile(r'LOOP\(.*\).*?{(.*?)}', re.MULTILINE | re.DOTALL)
         content = re.sub(re_loop, '\g<1>', content)
 
+        print('-' * 30)
+        print(content)
+        print('-' * 30)
+
         return content
 
     def remove_data_hint(self, content):
@@ -127,17 +131,18 @@ class ScriptParser(object):
 
             param = node.name[node.name.index('_') + 1:]
 
-            print(param)
-            print(declare_map[param])
-            print('node --> ' +str(node.attr))
+            body_str = declare_map[param]
+            # remove date or streamset query
+            if isinstance(body_str, str) and '?' in body_str:
+                self.logger.info('remove query string of [{}]'.format(body_str))
+                body_str = body_str[:body_str.index('?')]
 
             # change node label to html format for different font size
-            label = '<{} <BR/> <FONT POINT-SIZE="5">{}{}{}</FONT>>'.format(node.attr['label'],
+            label = '<{} <BR/> <FONT POINT-SIZE="4">{}{}{}</FONT>>'.format(node.attr['label'],
                                                                                         self.sstream_link_prefix,
-                                                                                        declare_map[param],
+                                                                                        body_str,
                                                                                         self.sstream_link_suffix)
 
-            print('label -> ' + label)
             node.attr['label'] = label
 
     def change_node_color(self, nodes):
@@ -283,6 +288,7 @@ class ScriptParser(object):
                 break
 
             if '#DECLARE' in part:
+                # some files contain prefix unicode string
                 self.process_declare(part, declare_map)
             elif '#SET' in part:
                 self.process_set(part, declare_map)
@@ -335,9 +341,9 @@ if __name__ == '__main__':
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/tt.gexf')
 #    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))

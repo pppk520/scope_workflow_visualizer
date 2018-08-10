@@ -16,12 +16,13 @@ class Common(object):
     func <<= Group(delimitedList(ident, delim='.', combine=True) + Combine('(' + Optional(func | func_params) + ')'))
     func_ptr <<= Group(delimitedList(ident, delim='.', combine=True))
 
-    func_chain = delimitedList(func, delim='.', combine=True)
+    func_chain = Combine(Optional('@') + delimitedList(func, delim='.', combine=True))
 
 if __name__ == '__main__':
     obj = Common()
 
     print(obj.func.parseString("FIRST(YouImpressionCnt)"))
+    print(obj.func.parseString('ToString("yyyy-MM-dd")'))
     print(obj.expr.parseString("SuggBid * 100"))
     print(obj.func.parseString("Convert.ToUInt32(SuggBid * 100)"))
     print(obj.func.parseString("COUNT(DISTINCT (OrderId))"))

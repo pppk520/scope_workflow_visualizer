@@ -10,10 +10,11 @@ class Declare(object):
     declare = DECLARE + Combine(ident)('key') + DATA_TYPE + '=' + restOfLine('value')
 
     def parse(self, s):
-        data = self.declare.parseString(s)
+        data = self.declare.searchString(s)
 
         if data:
-            return data['key'].strip(), data['value'].strip().rstrip(';')
+            return data[0][1].strip(), \
+                   data[0][-1].strip().rstrip(';')
 
         return None, None
 

@@ -1,5 +1,7 @@
 from unittest import TestCase
 from myparser.scope_resolver import ScopeResolver
+from dateutil import parser
+from datetime import datetime
 
 class TestScopeResolver(TestCase):
     def setUp(self):
@@ -7,7 +9,8 @@ class TestScopeResolver(TestCase):
             '@DateDelta': 'Math.Abs(5).ToString();',
             '@BTEPath': 'the_bte_path',
             '@BTERunDate': '2018-08-01',
-            '@RunDate': '2018-01-02'
+            '@RunDate': '2018-01-02',
+            '@dateObj': parser.parse('2018-01-01')
         }
 
     def test_basic_num(self):
@@ -62,4 +65,12 @@ class TestScopeResolver(TestCase):
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
         self.assertEqual(result, "path_to/BidEstimation/Result/2018/08/AuctionContext_2018-08-03.ss?date=2018-08-03")
+
+    def test_str_cat_datetime_parse_range(self):
+        s = '''
+        "/path_to/%Y/%m/KeywordsSearchCountDaily_%Y-%m-%d.ss?date=" + @dateObj.AddDays(-31).ToString("yyyy-MM-dd") + "..." + @dateObj.AddDays(-1).ToString("yyyy-MM-dd") + "&sparsestreamset=true"
+        '''
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
+        self.assertEqual(result, "/path_to/2017/12/KeywordsSearchCountDaily_2017-12-31.ss?date=2017-12-01...2017-12-31&sparsestreamset=true")
 

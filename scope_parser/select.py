@@ -235,10 +235,10 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-        OrderMPISpend =   SELECT OrderMPISpend.*,
-                                 IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
-            FROM OrderMPISpend LEFT OUTER JOIN CampaignBudget ON
-                                                                    OrderMPISpend.CampaignId == CampaignBudget.CampaignId;
+AggBroadMatchOpt =
+    SELECT *
+    FROM TotalAggSuggestion
+    WHERE AIPartitionId == @@I@@;
                     '''))
 
 
