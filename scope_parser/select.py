@@ -21,6 +21,7 @@ class Select(object):
 
     comment = Common.comment
     ident = Common.ident
+    ident_dot = Common.ident_dot
     value_str = Common.value_str
     func = Common.func
     func_chain = Common.func_chain
@@ -43,7 +44,7 @@ class Select(object):
     ternary = Optional('(') + (ternary_condition_binop | ternary_condition_func) + '?' + ternary_val + ':' + ternary_val + Optional(')')
 
     # AdId??0UL AS AdId
-    null_coal = ident + '??' + value_str
+    null_coal = ident_dot + '??' + value_str
 
     # IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt
     # IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
@@ -102,7 +103,7 @@ class Select(object):
     where_expression = Forward()
 
     where_condition = Group(
-        (column_name + binop + Combine(column_rval)) |
+        (column_name + binop + Group(column_rval)) |
         (column_name + in_ + Group("(" + delimitedList(Combine(column_rval)) + ")")) |
         (column_name + in_ + Group("(" + select_stmt + ")")) |
         ("(" + where_expression + ")")
@@ -129,7 +130,7 @@ class Select(object):
                      Optional(from_stmt)("from") +
                      ZeroOrMore(join_stmt | cross_join_stmt) +
                      Optional(cross_apply_stmt) +
-                     Optional(Group(WHERE + where_expression), "")("where") +
+                     Optional(Group(WHERE + where_expression))("where") +
                      Optional(Group(union_select))('union') +
                      Optional(having))
 
@@ -141,15 +142,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.if_stmt.parseString('''
-IF(B.TrafficId!=null,
-                            (int)B.TrafficId,
-                            IF(C.TrafficId!=null,
-                                (int)C.TrafficId,
-                                1<<((new Random(Guid.NewGuid().GetHashCode()).Next(0,4))+3)//If no bucket, random assign bucket
-                            )
-                           ) 
-                                   '''))
+        print(self.where_expression.parseString('CustomerId != - 1'))
 
 
     def parse_ternary(self, s):
@@ -197,7 +190,7 @@ IF(B.TrafficId!=null,
             sources.add("MODULE_{}".format(parsed_result['module'][1]['module_dotname']))
 
         if 'view' in parsed_result:
-            sources.add("VIEW_{}".format(parsed_result['view']))
+            sources.add("VIEW_{}".format(parsed_result['view']['from_source']))
 
         if 'sstream' in parsed_result:
             sources.add("SSTREAM_{}".format(parsed_result['sstream'][2]))
@@ -237,16 +230,11 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-ClickRows_AdvertiserClicks = 
-		SELECT
-			RGUID,
-			(long)IF(OrderItemId==null,0,OrderItemId) AS OrderItemId,
-			COUNT() AS AdvertiserClicks
-		FROM
-			Monetization_Clicks
-		WHERE 
-			IsFraud == false
-		; 
+RejectionRule = 
+    SELECT CustomerId,
+           AccountId
+    FROM (VIEW @RejectRuleView)
+    WHERE CustomizationConditions.Contains("Deduped:Yes") AND TacticCode IN("IN1-I", "BMM-I", "SM1-I", "BMA-I", "SKW-I"); 
                     '''))
 
 

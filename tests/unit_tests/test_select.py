@@ -545,4 +545,51 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'ClickRows_AdvertiserClicks')
         self.assertCountEqual(result['sources'], ['Monetization_Clicks'])
 
+    def test_column_double_question_mark(self):
+        s = '''
+        Campaigns = 
+            SELECT A.*,
+                   B.SpendUSD??0 AS SpendUSD
+            FROM Campaigns AS A
+            LEFT OUTER JOIN CampaignSpending AS B
+            ON A.CampaignId == B.CampaignId;
+        '''
 
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'Campaigns')
+        self.assertCountEqual(result['sources'], ['Campaigns', 'CampaignSpending'])
+
+    def test_union_select(self):
+        s = '''
+        BlockRules_Customer =
+            SELECT DISTINCT CustomerId
+            FROM BlockRules
+            WHERE CustomerId != - 1
+            UNION DISTINCT
+            SELECT DISTINCT EntityId AS CustomerId
+            FROM DedupeList
+            WHERE EntityLevel == "CID"
+            UNION DISTINCT
+            SELECT DISTINCT CustomerId
+            FROM BlockRules_Account2CustomerId; 
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'BlockRules_Customer')
+        self.assertCountEqual(result['sources'], ['BlockRules', 'DedupeList', 'BlockRules_Account2CustomerId'])
+
+    def test_from_view(self):
+        s = '''
+        RejectionRule = 
+            SELECT CustomerId,
+                   AccountId
+            FROM (VIEW @RejectRuleView)
+            WHERE CustomizationConditions.Contains("Deduped:Yes") AND TacticCode IN("IN1-I", "BMM-I", "SM1-I", "BMA-I", "SKW-I"); 
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'RejectionRule')
+        self.assertCountEqual(result['sources'], ['VIEW_@RejectRuleView'])

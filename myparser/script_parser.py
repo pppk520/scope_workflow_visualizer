@@ -155,15 +155,16 @@ class ScriptParser(object):
                 self.logger.info('remove query string of [{}]'.format(body_str))
                 body_str = body_str[:body_str.index('?')]
 
-            href = '{}{}{}'.format(self.sstream_link_prefix,
-                                   body_str,
-                                   self.sstream_link_suffix)
-
             # change node label to html format for different font size
-            label = '<{} <BR/> <FONT POINT-SIZE="4">{}</FONT>>'.format(node.attr['label'], href)
+            # ignore if already inserted href
+            if not 'FONT' in node.attr['label']:
+                href = '{}{}{}'.format(self.sstream_link_prefix,
+                                       body_str,
+                                       self.sstream_link_suffix)
 
-            node.attr['label'] = label
-            node.attr['href'] = href # not work when rendered to pdf, works in jupyter
+                label = '<{} <BR/> <FONT POINT-SIZE="4">{}</FONT>>'.format(node.attr['label'], href)
+                node.attr['label'] = label
+#                node.attr['href'] = href # not work when rendered to pdf, works in jupyter
 
     def change_node_color(self, nodes):
         for node in nodes:
@@ -213,6 +214,9 @@ class ScriptParser(object):
         self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
 
     def process_input_sstream(self, part, node_map, all_nodes, edges):
+        self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
+
+    def process_import(self, part, node_map, all_nodes, edges):
         self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
 
     def process_input_module(self, part, node_map, all_nodes, edges):
@@ -316,6 +320,8 @@ class ScriptParser(object):
                 self.process_declare(part, declare_map)
             elif '#SET' in part:
                 self.process_set(part, declare_map)
+            elif 'IMPORT' in part:
+                self.logger.info('not support IMPORT for now.')
             elif 'SELECT' in part:
                 self.process_select(part, node_map, all_nodes, edges)
             elif 'SSTREAM' in part and not 'OUTPUT' in part:
@@ -362,16 +368,20 @@ class ScriptParser(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
-    ScriptParser().parse_file(
-        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
-        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
-    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
+
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
+
+#    ScriptParser().parse_file(
+#        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
+#        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
+
+#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))

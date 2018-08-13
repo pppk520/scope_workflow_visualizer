@@ -12,6 +12,7 @@ class Input(object):
     EXTRACT = Keyword("EXTRACT")
     FROM = Keyword("FROM")
     USING = Keyword("USING")
+    IMPORT = Keyword("IMPORT")
 
     extract_data_type = oneOf("string int ulong long short byte")
 
@@ -45,13 +46,14 @@ class Input(object):
     sstream_value_streamset = SSTREAM + streamset
     sstream = SSTREAM + value_str('from_source')
     extract = EXTRACT + delimitedList(extract_column) + FROM + value_str('from_source') + Optional(USING + func)
-    view = VIEW + Combine(value_str)('from_source') + params
+    view = VIEW + Combine(value_str)('from_source') + Optional(params)
     module = Group(dot_name("module_dotname") + '(' + param_assign_list + ')')
 
     assign_sstream = Combine(ident)('assign_var') + '=' + sstream('sstream')
     assign_extract = Combine(ident)('assign_var') + '=' + extract('extract')
     assign_module = Combine(ident)('assign_var') + '=' + module('module')
     assign_view = Combine(ident)('assign_var') + '=' + view('view')
+    import_as = IMPORT + quotedString('from_source') + "AS" + Combine(ident)('assign_var') + Optional(params)
 
     def parse_sstream(self, s):
         return self.sstream.parseString(s)
@@ -84,6 +86,9 @@ class Input(object):
         elif 'VIEW' in s:
             ret = self.assign_view.parseString(s)
             d['sources'].add('VIEW_' + ret['from_source'])
+        elif 'IMPORT' in s:
+            ret = self.import_as.parseString(s)
+            d['sources'].add('IMPORT_' + ret['from_source'])
         else:
             # try module parsing
             ret = self.assign_module.parseString(s)
@@ -109,90 +114,8 @@ class Input(object):
 if __name__ == '__main__':
     i = Input()
 
-    print(i.parse_func_chain('dateObj.AddDays(-31).ToString("yyyy-MM-dd")'))
-    print(i.parse_module('''
-        MonetizationModules.MonetizationClick(
-            INPUT_BASE = "a",
-            START_DATETIME_UTC = @StartDateTime_DT,
-            END_DATETIME_UTC = @EndDateTime_DT
-        )
-    '''))
-    print(i.parse_module('''
-        MonetizationModules.MonetizationImpression(
-            INPUT_BASE = @MonetizationCommonDataPath, 
-            START_DATETIME_UTC = @StartDateHourObj.AddHours(-2), 
-            END_DATETIME_UTC=@StartDateHourObj.AddHours(2)
-        )
+    print(i.view.parseString('''
+    VIEW @RejectRuleView   
     '''))
 
-    print(i.parse_sstream('SSTREAM @OrderNegativeKeyword'))
-    print(i.parse('OrderNegativeKeyword = SSTREAM @OrderNegativeKeyword'))
-    print(i.parse_view('''
-        VIEW @"/shares/adCenter.RnR.Daily_SLA/data/AdSelection/Logs/SelectionDailyView.view"
-        PARAMS
-        (
-            startDate = @dateObj.AddDays(-31).ToString("yyyy-MM-dd"),
-            endDate = @dateObj.AddDays(-2).ToString("yyyy-MM-dd"),
-            dataMode = "Standard"
-        )
-    '''))
-
-    print(i.parse_view('''
-        VIEW @OrderItemSOVView
-        PARAMS
-        (
-            RequestStartDateUTC = @StartDateTime.Date.ToString("yyyy-MM-dd"),
-            RequestEndDateUTC = @EndDateTime.Date.ToString("yyyy-MM-dd"),
-            RequestStartHourUTC = "09",
-            RequestEndHourUTC = "12",
-            Mode = "PROD"
-        )
-    '''))
-
-    print(i.parse_extract('''
-        EXTRACT BadKeyword:string 
-        FROM "/shares/bingads.algo.prod.adinsights/data/prod/pipelines/Optimization/KeywordOpportunity/BlockListPM.txt" 
-        USING DefaultTextExtractor();
-    '''))
-    print(i.parse_extract('''
-        EXTRACT BadKeyword:string 
-        FROM "/shares/bingads.algo.prod.adinsights/data/prod/pipelines/Optimization/KeywordOpportunity/BlockListPM.txt"; 
-    '''))
-
-
-    print(i.parse('''
-     Monetization_Clicks =
-        MonetizationModules.MonetizationClick(
-            INPUT_BASE = @ExtCommonDataPath,
-            START_DATETIME_UTC = @StartDateTime_DT,
-            END_DATETIME_UTC = @EndDateTime_DT
-        );   
-    '''))
-
-    print(i.parse_sstream('''SSTREAM @AuctionInsightMerge_1'''))
-    print(i.parse_sstream_streamset('''
-        SSTREAM STREAMSET @AuctionInsightPath
-                PATTERN @"/%Year/%Month/%Day/YouPerformanceFinal%Hour.ss?%Minute%Second"
-                RANGE __datetime = [@StartTimeStr,@EndTimeStr]("01:00:00")    
-    '''))
-
-    print(i.parse_sstream('''SSTREAM @Input_Suggestions'''))
-
-    print(i.parse('''LinePM = 
-    EXTRACT BadKeyword:string 
-    FROM "/shares/bingads.algo.prod.adinsights/data/prod/pipelines/Optimization/KeywordOpportunity/BlockListPM.txt" 
-    USING DefaultTextExtractor();
-    '''))
-
-    d = i.parse(
-    '''
-Data =
-    KWO.AssignTraffficId
-    (
-        Input = MergedSources_Final,
-        Config = AccountsWithTrafficId,
-        Mode = "config"
-    );
-            ''')
-    print(d)
 
