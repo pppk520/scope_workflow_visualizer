@@ -166,6 +166,15 @@ class ScriptParser(object):
                 node.attr['label'] = label
 #                node.attr['href'] = href # not work when rendered to pdf, works in jupyter
 
+        # for highlight PROCESS ... USING
+        for node in nodes:
+            if 'using' in node.attr and not 'FONT' in node.attr['label']:
+                label = '<{} <BR/> <FONT POINT-SIZE="8">-- {} --</FONT>>'.format(node.attr['label'], node.attr['using'])
+                node.attr['label'] = label
+
+                node.attr['fillcolor'] = 'yellow'
+                node.attr['style'] = 'filled'
+
     def change_node_color(self, nodes):
         for node in nodes:
             if '_' not in node.name:
@@ -176,7 +185,7 @@ class ScriptParser(object):
             if input_type not in ['SSTREAM', 'EXTRACT', 'MODULE', 'VIEW', 'BOND']:
                 continue
 
-            attr = {}
+            attr = node.attr
             attr.update({'type': 'input',
                          'style': 'filled'})
 
@@ -255,8 +264,14 @@ class ScriptParser(object):
             from_nodes.append(node_map['last_node'])
 
         if d['assign_var']:
+            attr = {}
             node_name = d['assign_var']
-            new_node = Node(node_name)
+
+            # for those like PROCESS ... USING
+            if 'using' in d:
+                attr['using'] = d['using']
+
+            new_node = Node(node_name, attr=attr)
             node_map[node_name] = new_node  # update
             to_node = new_node
         else:
