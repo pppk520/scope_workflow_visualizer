@@ -75,10 +75,11 @@ class Select(object):
     operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
     aggr_ident_basic = Group(aggr + '(' + (operator_ident | ident | Empty()) + ')')
     aggr_ident_operator = aggr_ident_basic + ZeroOrMore(oneOf('+ - * /') + (aggr_ident_basic | ident))
+    aggr_ident_aggressive = Group(aggr + Regex('\(.*\)'))
     aggr_ident_over = aggr_ident_basic + 'OVER' + '(' + window_over_param + ')'
-    aggr_ident = Optional(cast) + (aggr_ident_over | aggr_ident_operator)
+    aggr_ident = Optional(cast) + (aggr_ident_over | aggr_ident_operator | aggr_ident_aggressive)
     distinct_ident = DISTINCT + ident
-    new_something = 'new' + func_chain;
+    new_something = 'new' + func_chain
     as_something = (AS + ident).setName('as_something')
 
     one_column = Group((distinct_ident |
@@ -142,7 +143,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.where_expression.parseString('CustomerId != - 1'))
+        print(self.column_name_list.parseString('AdGroupId, FIRST(QualityFactorScale) AS QualityFactorScale, FIRST(IF(double.IsNaN(PClickScale), 1.0, PClickScale)) AS PClickScale'))
 
 
     def parse_ternary(self, s):
@@ -230,11 +231,11 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-RejectionRule = 
-    SELECT CustomerId,
-           AccountId
-    FROM (VIEW @RejectRuleView)
-    WHERE CustomizationConditions.Contains("Deduped:Yes") AND TacticCode IN("IN1-I", "BMM-I", "SM1-I", "BMA-I", "SKW-I"); 
+QualityFactorScale =
+    SELECT          AdGroupId,
+                    FIRST(QualityFactorScale) AS QualityFactorScale,
+                    FIRST(IF(double.IsNaN(PClickScale), 1.0, PClickScale)) AS PClickScale
+    FROM (SSTREAM @QualityFactorScale);
                     '''))
 
 

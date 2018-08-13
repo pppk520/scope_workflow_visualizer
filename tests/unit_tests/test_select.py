@@ -593,3 +593,18 @@ KWCandidatesWithLocationTarget =
 
         self.assertTrue(result['assign_var'] == 'RejectionRule')
         self.assertCountEqual(result['sources'], ['VIEW_@RejectRuleView'])
+
+    def test_first_if(self):
+        s = '''
+        QualityFactorScale =
+            SELECT          AdGroupId,
+                            FIRST(QualityFactorScale) AS QualityFactorScale,
+                            FIRST(IF(double.IsNaN(PClickScale), 1.0, PClickScale)) AS PClickScale
+            FROM (SSTREAM @QualityFactorScale);
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'QualityFactorScale')
+        self.assertCountEqual(result['sources'], ['SSTREAM_@QualityFactorScale'])
+
