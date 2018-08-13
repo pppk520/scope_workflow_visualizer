@@ -24,3 +24,17 @@ class TestProcess(TestCase):
         self.assertTrue(result['assign_var'] == 'BMMOpt')
         self.assertCountEqual(result['sources'], ['BMMOpt'])
 
+    def test_process_using_having(self):
+        s = '''
+        AuctionWithUpdatedPclick = PROCESS KWCandidatesPrepared PRODUCE AccountId, CampaignId, OrderId, OptType, SuggKW, KeyTerm, RGUID, ListingId, CPC, PClick
+            USING BTEAdjustmentProcessor()
+            HAVING RGUID != "";
+
+        '''
+
+        result = Process().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AuctionWithUpdatedPclick')
+        self.assertCountEqual(result['sources'], ['KWCandidatesPrepared'])
+        self.assertTrue(result['using'], 'BTEAdjustmentProcessor')
+

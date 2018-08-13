@@ -35,9 +35,9 @@ if __name__ == '__main__':
     obj = Process()
 
     print(obj.parse('''
-AuctionWithUpdatedPclick = PROCESS KWCandidatesPrepared PRODUCE AccountId, CampaignId, OrderId, OptType, SuggKW, KeyTerm, RGUID, ListingId, CPC, PClick
-    USING BTEAdjustmentProcessor()
-    HAVING RGUID != "";
+Suggestions = 
+    PROCESS Suggestions
+    USING Utils.RankingProcessor("AdvertiserIntelligenceConfig.txt","[Algo1]");
         '''))
 
 
