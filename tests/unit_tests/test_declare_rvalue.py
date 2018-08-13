@@ -24,7 +24,7 @@ class TestDeclareRvalue(TestCase):
         '''
 
         result = DeclareRvalue().parse(s)
-        self.assertCountEqual(result['format_items'], ['@"@@KWRawPath@@"'])
+        self.assertCountEqual(result['format_items'], ['DateTime.Parse("2018 20:00:00")'])
 
 
     def test_func_chain_int_parse(self):

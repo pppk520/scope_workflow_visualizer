@@ -178,12 +178,33 @@ class ScopeResolver(object):
 
         return result
 
+    def replace_declare_items(self, s, declare_map):
+        ret = s
+
+        for item in re.findall(r'(@[^ ]+)', s):
+            if item.startswith('@@'):
+                continue # ignore external params
+
+            if item in declare_map:
+                ret = ret.replace(item, '"{}"'.format(declare_map[item]))
+
+        return ret
+
+    def replace_ref_strings(self, s):
+        return re.sub(r'@(".*?")', '\g<1>', s)
+
     def resolve_declare_rvalue(self, declare_lvalue, declare_rvalue, declare_map):
         self.logger.debug('resolve_declare_rvalue: declare_lvalue [{}], declare_rvalue [{}]'.format(declare_lvalue, declare_rvalue))
 
         try:
+            # replace local reference of @"strings"
+            declare_rvalue = self.replace_ref_strings(declare_rvalue)
             ret_declare_rvalue = self.dr.parse(declare_rvalue)
+
+            # replace those declare items inside rvalue, if any remains
+            declare_rvalue = self.replace_declare_items(declare_rvalue, declare_map)
         except Exception as ex:
+            self.logger.warning('resolve_declare_rvalue: {}'.format(ex))
             return declare_rvalue
 
         format_str = ret_declare_rvalue['format_str']
@@ -235,6 +256,7 @@ class ScopeResolver(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    print(ScopeResolver().resolve_declare_rvalue('',
-                                                 '"/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/KeywordPlanner/KeywordHistoricalStatistic/Result/Daily/%Y/%m/KeywordsSearchCountDaily_%Y-%m-%d.ss?date=" + @dateObj.AddDays(-31).ToString("yyyy-MM-dd") + "..." + @dateObj.AddDays(-1).ToString("yyyy-MM-dd") + "&sparsestreamset=true"',
-                                                 {'@dateObj': datetime.now()}))
+    fmt_str = '/{0}/{1}-{2}'
+    items = ['AAA', 'BBB', 'CCC']
+
+    result = ScopeResolver().resolve_str_format(fmt_str, items, {})

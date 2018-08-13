@@ -1,5 +1,6 @@
 from pyparsing import *
 from scope_parser.common import Common
+import re
 
 class DeclareRvalue(object):
     comment = Common.comment
@@ -20,7 +21,7 @@ class DeclareRvalue(object):
     rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums)('nums') | func_chain('func_chain')
 
     def debug(self):
-        data = self.param_str_cat.parseString('"abc" + "111"')
+        data = quotedString.parseString("'aaa'")
         print(data)
 
     def parse(self, s):
@@ -43,7 +44,16 @@ class DeclareRvalue(object):
             ret['format_items'] = [result['nums'],]
             ret['type'] = 'nums'
         elif 'func_chain' in result:
-            ret['format_items'] = [result['func_chain'],]
+            # dirty trick for str_cat params
+            match = re.match('(.*)\("(.*)"\)', result['func_chain'])
+            if match:
+                func_name = match.group(1)
+                params = '"' + match.group(2).replace('"', '') + '"'
+
+                ret['format_items'] = [func_name + '(' + params + ')', ]
+            else:
+                ret['format_items'] = [result['func_chain'],]
+
             ret['type'] = 'func_chain'
 #        print(ret)
 
@@ -53,6 +63,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('''
-    DateTime.Parse("2018" + " " + "20" + ":00:00")    
-    '''))
+    print(r.parse('aaa'))
