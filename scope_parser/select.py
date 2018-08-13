@@ -70,8 +70,6 @@ class Select(object):
 
     column_rval = real_num | int_num | quotedString | column_name | bool_val # need to add support for alg expressions
 
-    cast_ident = Group(Optional(cast) + column_name).setName('cast_identifier')
-    cast_num = Group(Optional(cast) + column_rval).setName('cast_num')
     operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
     aggr_ident_basic = Group(aggr + '(' + (operator_ident | ident | Empty()) + ')')
     aggr_ident_operator = aggr_ident_basic + ZeroOrMore(oneOf('+ - * /') + (aggr_ident_basic | ident))
@@ -82,7 +80,8 @@ class Select(object):
     new_something = 'new' + func_chain
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Group((distinct_ident |
+    one_column = Optional(cast) + \
+                 Group((distinct_ident |
                         aggr_ident |
                         ternary |
                         null_coal |
@@ -90,8 +89,8 @@ class Select(object):
                         new_something |
                         func_chain_not |
                         operator_ident |
-                        cast_ident |
-                        cast_num |
+                        column_name |
+                        column_rval |
                         quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
 
     column_name_list = Group(delimitedList(one_column))('column_name_list')
@@ -143,7 +142,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.column_name_list.parseString('AdGroupId, FIRST(QualityFactorScale) AS QualityFactorScale, FIRST(IF(double.IsNaN(PClickScale), 1.0, PClickScale)) AS PClickScale'))
+        print(self.one_column.parseString('LIST((CountryCode[0]<< 8) | CountryCode[1]) AS ExchangeRate'))
 
 
     def parse_ternary(self, s):
@@ -231,11 +230,10 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-QualityFactorScale =
-    SELECT          AdGroupId,
-                    FIRST(QualityFactorScale) AS QualityFactorScale,
-                    FIRST(IF(double.IsNaN(PClickScale), 1.0, PClickScale)) AS PClickScale
-    FROM (SSTREAM @QualityFactorScale);
+PositionBoostMarkets =
+    SELECT Market,
+           LIST((CountryCode[0]<< 8) | CountryCode[1]) AS EnabledCountries
+    FROM PositionBoostConfig;
                     '''))
 
 

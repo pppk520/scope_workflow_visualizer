@@ -3,7 +3,7 @@ from pyparsing import *
 
 class Common(object):
     comment = "//" + restOfLine
-    ident = Group(Word('_<>' + alphanums)).setName("identifier")
+    ident = Group(Word('_<>[]' + alphanums)).setName("identifier")
     ident_dot = delimitedList(ident, delim='.', combine=True)
     ident_float_suffix = '.' + Word(nums) + Optional('F')
     ident_val = Combine(Word('- ' + nums) + Optional(ident_float_suffix | 'UL'))
@@ -13,7 +13,11 @@ class Common(object):
     ext_quoted_string = quoted_time | quotedString
     param_str_cat = delimitedList(ext_quoted_string, delim='+')
 
-    expr = Word(printables + ' ', excludeChars=':(),')
+    nullible = Group('(' + ident + '??' + ident + ')')
+    expr_item_general = Word(printables + ' ', excludeChars=':(),+-*/|') | nullible
+    expr_item_parentheses = '(' + expr_item_general + ')'
+    expr_item = expr_item_parentheses | expr_item_general
+    expr = expr_item + ZeroOrMore(oneOf('+ - * / |') + expr_item)
     func = Forward()
     func_ptr = Forward()
     func_params = delimitedList(param_str_cat | expr | ident | Word('-' + nums))
@@ -26,10 +30,15 @@ class Common(object):
 if __name__ == '__main__':
     obj = Common()
 
-    print(obj.ident.parseString('B.SpendUSD??0'))
-    print(obj.value_str.parseString("- 1"))
+    print(obj.expr.parseString('(CountryCode[0]<< 8) | CountryCode[1]'))
+    print(obj.func.parseString('LIST((CountryCode[0]<< 8) | CountryCode[1])'))
+
 
     '''
+    print(obj.func_params.parseString('MinBid * (ExchangeRateUSD ?? 1m) * 100 - 0.01m'))
+    print(obj.func.parseString("Math.Ceiling(MinBid * (ExchangeRateUSD ?? 1m) * 100 - 0.01m)"))
+    print(obj.ident.parseString('B.SpendUSD??0'))
+    print(obj.value_str.parseString("- 1"))
     print(obj.param_str_cat.parseString('"2018" + " " + ":00:00" + "20"'))
     print(obj.func_params.parseString('"2018" + " " + ":00:00" + "20"'))
     print(obj.func.parseString('DateTime.Parse("2018" + " " + "20" + ":00:00")'))

@@ -608,3 +608,54 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'QualityFactorScale')
         self.assertCountEqual(result['sources'], ['SSTREAM_@QualityFactorScale'])
 
+    def test_complex_expr_column(self):
+        s = '''
+        ExchangeRateMap =
+            SELECT CurrencyInfo.CurrencyId,
+                   ExchangeRateUSD,
+                   (int) Math.Ceiling(MinBid * (ExchangeRateUSD ?? 1m) * 100 - 0.01m) AS MinBid
+            FROM CurrencyInfo
+                 LEFT OUTER JOIN
+                     ExchangeRates
+                 ON ExchangeRates.CurrencyId == CurrencyInfo.CurrencyId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'ExchangeRateMap')
+        self.assertCountEqual(result['sources'], ['CurrencyInfo', 'ExchangeRates'])
+
+    def test_column_bracket(self):
+        s = '''
+        PageView =
+            SELECT PageView. *,
+                   (ExDic.ContainsKey(CurrencyId) ? ExDic[CurrencyId] : 1.0) AS ExchangeRate,
+                   MinBids,
+                   IF(EnabledMarkets.ContainsKey(TrafficType), EnabledMarkets[TrafficType], null) AS EnabledCountryIds
+            FROM PageView
+                 CROSS JOIN
+                     Configurations;
+
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'PageView')
+        self.assertCountEqual(result['sources'], ['PageView', 'Configurations'])
+
+    def test_column_parentheses(self):
+        s = '''
+        PositionBoostMarkets =
+            SELECT Market,
+                   LIST((CountryCode[0]<< 8) | CountryCode[1]) AS EnabledCountries
+            FROM PositionBoostConfig;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'PositionBoostMarkets')
+        self.assertCountEqual(result['sources'], ['PositionBoostConfig'])
+
+
+
+

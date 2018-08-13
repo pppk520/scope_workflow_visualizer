@@ -136,8 +136,13 @@ class ScriptParser(object):
         return '\n'.join(result_lines)
 
     def remove_data_hint(self, content):
-        re_dh = re.compile(r'^\[.*?\]', re.MULTILINE | re.DOTALL)
-        content = re.sub(re_dh, '', content)
+        #[ROWCOUNT=100]
+        re_dh_1 = re.compile(r'\[.*?=\d+?\]')
+        content = re.sub(re_dh_1, '', content)
+
+        #[LOWDISTINCTNESS(MatchTypeId)]
+        re_dh_2 = re.compile(r'\[LOWDISTINCTNESS\(.*\)\]')
+        content = re.sub(re_dh_2, '', content)
 
         return content
 
@@ -392,13 +397,17 @@ if __name__ == '__main__':
 #        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
 #        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
 
-#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+
+    # BTE
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
+
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))

@@ -14,7 +14,7 @@ class Input(object):
     USING = Keyword("USING")
     IMPORT = Keyword("IMPORT")
 
-    extract_data_type = oneOf("string int ulong long short byte")
+    extract_data_type = oneOf("string int ulong long short byte decimal")
 
     ##################################
     # General
@@ -33,7 +33,7 @@ class Input(object):
     params = PARAMS + '(' + param_assign_list + ')'
     dot_name = delimitedList(ident, delim='.', combine=True)
 
-    extract_column = Group(ident + ':' + extract_data_type)
+    extract_column = Group(ident + Optional(':' + extract_data_type))
 
     ##################################
     # Different Input Categories
@@ -114,8 +114,14 @@ class Input(object):
 if __name__ == '__main__':
     i = Input()
 
-    print(i.view.parseString('''
-    VIEW @RejectRuleView   
+    print(i.parse('''
+CurrencyInfo =
+    EXTRACT CurrencyName,
+            MinBid : decimal,
+            MaxBid : decimal,
+            CurrencyId : int
+    FROM @InputCurrencyInfo
+    USING DefaultTextExtractor
     '''))
 
 
