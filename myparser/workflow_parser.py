@@ -212,19 +212,100 @@ class WorkflowParser(object):
                 print(item)
 
     def normalize_event_name(self, event_name: str):
-        try:
-            return event_name[:event_name.index('/')]
-        except:
-            return event_name
+        match = re.match(r'(d\:)?([^/]*)(/.*)?', event_name)
 
-    def to_workflow_dep_graph(self, workflow_obj, dest_filepath=None):
+        if match:
+            normalized_event_name = match.group(2)
+            self.logger.debug('normalize_event_name from [{}] to [{}]'.format(event_name, normalized_event_name))
+
+            return normalized_event_name
+
+        return event_name
+
+    def change_node_color(self, nodes):
+        for node in nodes:
+            attr = node.attr
+
+            type_ = attr['type']
+
+            # color scheme: https://www.graphviz.org/doc/info/colors.html#brewer
+            if type_ == 'EVENT':
+                attr['style'] = 'filled'
+                attr['fillcolor'] = 'lightblue'
+
+    def get_target_objects(self, adj_map, rev_map, nodes_map, target_node_names=[]):
+        target_map = {}
+
+        # init
+        for node_name in target_node_names:
+            target_map[node_name] = set(['up', 'down'])
+
+            # highlight target nodes
+            nodes_map[node_name].attr['style'] = 'filled'
+            nodes_map[node_name].attr['fillcolor'] = 'yellow'
+
+        # reconstruct edges from nodes
+        nodes = set()
+        edges = set()
+
+        while len(target_map) > 0:
+            target_name, mode_list = target_map.popitem()
+
+            the_node = nodes_map[target_name]
+            nodes.add(the_node)
+
+            if 'down' in mode_list:
+                if not target_name in adj_map:
+                    continue
+
+                for to_node in adj_map[target_name]:
+                    nodes.add(to_node)
+
+                    if to_node.name not in target_map:
+                        target_map[to_node.name] = set()
+
+                    target_map[to_node.name].add('down')
+                    edges.add(Edge(the_node, to_node))
+
+            if 'up' in mode_list:
+                if not target_name in rev_map:
+                    continue
+
+                for from_node in rev_map[target_name]:
+                    nodes.add(from_node)
+
+                    if from_node.name not in target_map:
+                        target_map[from_node.name] = set()
+
+                    target_map[from_node.name].add('up')
+                    edges.add(Edge(from_node, the_node))
+
+        return nodes, edges
+
+    def update_adj_map(self, src_node, dest_node, adj_map, rev_map):
+        src_name = src_node.name
+        dest_name = dest_node.name
+
+        if not src_name in adj_map:
+            adj_map[src_name] = set()
+
+        if not dest_name in rev_map:
+            rev_map[dest_name] = set()
+
+        adj_map[src_name].add(dest_node)
+        rev_map[dest_name].add(src_node)
+
+    def to_workflow_dep_graph(self, workflow_obj, dest_filepath=None, target_node_names=[]):
         obj = workflow_obj
 
         event_deps = obj.process_event_deps
         workflows = obj.workflows
 
-        nodes = {}
+        nodes_map = {}
         edges = []
+
+        adj_map = {}
+        rev_map = {}
 
         for process_name in workflows:
             script_name = os.path.basename(workflows[process_name]['ScriptFile'])
@@ -235,23 +316,26 @@ class WorkflowParser(object):
                 'type': 'SCRIPT'
             }
 
-            if not script_name in nodes:
+            if not script_name in nodes_map:
                 script_node = Node(script_name, attr=script_attr)
-                nodes[script_name] = script_node
+                nodes_map[script_name] = script_node
 
-            script_node = nodes.get(script_name)
+            script_node = nodes_map.get(script_name)
 
             # the output event of this process
             output_event_name = workflows[process_name]['EventName']
 
-            if not output_event_name in nodes:
+            if not output_event_name in nodes_map:
                 script_out_event_node = Node(output_event_name, attr={'id': output_event_name,
                                                         'label': output_event_name,
                                                         'type': 'EVENT'})
-                nodes[output_event_name] = script_out_event_node
+                nodes_map[output_event_name] = script_out_event_node
 
-            script_out_event_node = nodes.get(output_event_name)
+            script_out_event_node = nodes_map.get(output_event_name)
+            # add edge
             edges.append(Edge(script_node, script_out_event_node))
+            # for target filtering
+            self.update_adj_map(script_node, script_out_event_node, adj_map, rev_map)
 
             # input events
             dep_events = event_deps[process_name]
@@ -260,7 +344,7 @@ class WorkflowParser(object):
                 # to make the graph less complex
                 normalized_event_name = self.normalize_event_name(event_name)
 
-                if not normalized_event_name in nodes:
+                if not normalized_event_name in nodes_map:
                     event_attr = {
                         'id': normalized_event_name,
                         'label': normalized_event_name,
@@ -268,23 +352,48 @@ class WorkflowParser(object):
                     }
 
                     script_in_event_node = Node(normalized_event_name, attr=event_attr)
-                    nodes[normalized_event_name] = script_in_event_node
+                    nodes_map[normalized_event_name] = script_in_event_node
 
-                script_in_event_node = nodes.get(normalized_event_name)
+                script_in_event_node = nodes_map.get(normalized_event_name)
 
+                # add edge
                 edges.append(Edge(script_in_event_node, script_node))
+                # for target filtering
+                self.update_adj_map(script_in_event_node, script_node, adj_map, rev_map)
+
+        self.logger.debug('node_map.keys = {}'.format(nodes_map.keys()))
+
+        if target_node_names:
+            nodes, edges = self.get_target_objects(adj_map, rev_map, nodes_map, target_node_names=target_node_names)
+        else:
+            nodes = nodes_map.values()
 
         if dest_filepath:
-            self.logger.info('output GEXF to [{}]'.format(dest_filepath))
-            GraphUtility().to_gexf_file(nodes.values(), edges, dest_filepath)
+            self.logger.info('change node color for output')
+            self.change_node_color(nodes)
+
+            gu = GraphUtility(nodes, edges)
+
+            gexf_output_file = gu.to_gexf_file(dest_filepath)
+            self.logger.info('output .gexf file to [{}]'.format(gexf_output_file))
+
+            dot_output_file = gu.to_dot_file(dest_filepath)
+            self.logger.info('output .dot file to [{}]'.format(dot_output_file))
+
+            self.logger.info('render graphviz file')
+            gu.dot_to_graphviz(dot_output_file)
+
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     import json
 
-    proj_name = 'SOV'
+    proj_name = 'Opportunities'
     exclude_keys = []
+    target_node_names = ['5.FinalCapping.script', 'MPIPrepare.script', '6.MPIProcessing0.script']
+#    target_node_names = []
 
 #    proj_name = 'BTE'
 #    exclude_keys = ['NKW/', 'NKW2/']
@@ -292,5 +401,5 @@ if __name__ == '__main__':
     wfp = WorkflowParser()
     obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\{}'.format(proj_name), exclude_keys=exclude_keys)
 
-    wfp.print_params(obj, 'SOV3_StripeOutput', resolve=True)
-#    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}.gexf'.format(proj_name))
+#    wfp.print_params(obj, 'SOV3_StripeOutput', resolve=True)
+    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}_[{}]'.format(proj_name, '-'.join(target_node_names)), target_node_names=target_node_names)

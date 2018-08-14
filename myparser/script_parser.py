@@ -367,15 +367,15 @@ class ScriptParser(object):
 
         self.logger.info(declare_map)
 
-        self.change_node_color(all_nodes)
         self.scope_resolver.resolve_declare(declare_map)
+
+        self.logger.info('change node color for output')
+        self.change_node_color(all_nodes)
 
         if self.b_add_sstream_link:
             self.add_sstream_link(all_nodes, declare_map)
 
         if dest_filepath:
-            self.logger.info('change node color for output')
-
             gu = GraphUtility(all_nodes, edges)
 
             gexf_output_file = gu.to_gexf_file(dest_filepath)
