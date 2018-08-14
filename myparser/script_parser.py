@@ -186,7 +186,7 @@ class ScriptParser(object):
 
             input_type = node.name.split('_')[0]
 
-            if input_type not in ['SSTREAM', 'EXTRACT', 'MODULE', 'VIEW', 'BOND']:
+            if input_type not in ['SSTREAM', 'EXTRACT', 'MODULE', 'VIEW', 'FUNC']:
                 continue
 
             attr = node.attr
@@ -202,7 +202,7 @@ class ScriptParser(object):
                 attr['fillcolor'] = 'sandybrown'
             elif input_type == 'VIEW':
                 attr['fillcolor'] = 'lightpink'
-            elif input_type == 'BOND':
+            elif input_type == 'FUNC':
                 attr['fillcolor'] = 'lightblue'
 
             node.attr.update(attr)

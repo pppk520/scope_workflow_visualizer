@@ -316,7 +316,7 @@ class TestSelect(TestCase):
         result = Select().parse(s)
 
         self.assertTrue(result['assign_var'] == 'ListingBidDemand')
-        self.assertCountEqual(result['sources'], ['ListingBidDemand', 'BOND_BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints'])
+        self.assertCountEqual(result['sources'], ['ListingBidDemand', 'FUNC_BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints'])
 
     def test_parse_union_all(self):
         s = '''
@@ -655,6 +655,28 @@ KWCandidatesWithLocationTarget =
 
         self.assertTrue(result['assign_var'] == 'PositionBoostMarkets')
         self.assertCountEqual(result['sources'], ['PositionBoostConfig'])
+
+    def test_column_complex(self):
+        s = '''
+        ListingMinWinPerf =
+            SELECT L.RGUID,
+                   L.ListingId,
+                   L.BiddedMatchTypeId,
+                   L.FilterReason,
+                   (L.SimulationResult) [0].Bid AS MinWinBid,
+                   (int) (R.AccountWinnerImpressions ?? 0) AS AccountWinnerImpressions,
+                   (double) (R.AccountWinnerClicks ?? 0) AS AccountWinnerClicks,
+                   (double) (R.AccountWinnerCost ?? 0) AS AccountWinnerCost
+            FROM ListingBidDemand AS L
+                 LEFT OUTER JOIN
+                     AccountWinnerPerf AS R
+                 ON L.RGUID == R.RGUID AND L.AdvertiserId == R.AccountId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'ListingMinWinPerf')
+        self.assertCountEqual(result['sources'], ['ListingBidDemand', 'AccountWinnerPerf'])
 
 
 

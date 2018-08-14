@@ -93,10 +93,12 @@ class Select(object):
                         column_rval |
                         quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
 
-    column_name_list = Group(delimitedList(one_column))('column_name_list')
+    one_column_anything = Word(printables + ' ', excludeChars=',\n')
+
+    column_name_list = Group(delimitedList(one_column | one_column_anything))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
-    bond_expr = Combine(func + ZeroOrMore('.' + ident))
+    func_expr = Combine(func + ZeroOrMore('.' + ident))
 
     union = Group(UNION + Optional('ALL' | DISTINCT))
 
@@ -113,7 +115,7 @@ class Select(object):
     join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER'))) + JOIN)
     join_stmt = join + table_name("join_table_name*") + Optional(AS + ident) + ON + where_expression
     cross_join_stmt = CROSS_JOIN + table_name("join_table_name*")
-    cross_apply_stmt = CROSS_APPLY + (bond_expr("bond") | table_name) + Optional(AS + ident)
+    cross_apply_stmt = CROSS_APPLY + (func_expr("cross_apply_func") | table_name) + Optional(AS + ident)
 
     # define the grammar
     union_select = ZeroOrMore(Optional(union) + select_stmt)
@@ -142,7 +144,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.one_column.parseString('LIST((CountryCode[0]<< 8) | CountryCode[1]) AS ExchangeRate'))
+        print(self.one_column_anything.parseString('(L.SimulationResult) [0].Bid AS MinWinBid'))
 
 
     def parse_ternary(self, s):
@@ -198,8 +200,8 @@ class Select(object):
         if 'select' in parsed_result:
             self.add_source(sources, parsed_result['select'])
 
-        if 'bond' in parsed_result:
-            sources.add("BOND_{}".format(parsed_result['bond']))
+        if 'cross_apply_func' in parsed_result:
+            sources.add("FUNC_{}".format(parsed_result['cross_apply_func']))
 
         return sources
 
@@ -230,10 +232,23 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-PositionBoostMarkets =
-    SELECT Market,
-           LIST((CountryCode[0]<< 8) | CountryCode[1]) AS EnabledCountries
-    FROM PositionBoostConfig;
+SimulationResult =
+    SELECT RGUID,
+           NormalizedQuery,
+           LocationIds,
+           GeoLocationId,
+           LCID,
+           Language,
+           Network,
+           DeviceTypeId,
+           PublisherCountry,
+           MarketplaceClassificationId,
+           ABTestId,
+           RankscoreReserve,
+           Result
+    FROM Simulators
+         CROSS APPLY AuctionSimulator.GetAllEKWResult(5000, 0) AS Result;
+
                     '''))
 
 
