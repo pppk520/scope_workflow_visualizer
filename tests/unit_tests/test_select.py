@@ -679,5 +679,22 @@ KWCandidatesWithLocationTarget =
         self.assertCountEqual(result['sources'], ['ListingBidDemand', 'AccountWinnerPerf'])
 
 
+    def test_cross_apply_func(self):
+        s = '''
+        ListingBidDemand =
+            SELECT DISTINCT RGUID,
+                   (long) ListingId AS ListingId,
+                   L.TotalPosition AS Position,
+                   L.Clicks
+            FROM ListingBidDemand AS A
+                 CROSS APPLY
+                     BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'ListingBidDemand')
+        self.assertCountEqual(result['sources'], ['ListingBidDemand', 'FUNC_BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints'])
+
 
 

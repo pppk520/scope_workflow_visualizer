@@ -170,7 +170,8 @@ class ScriptParser(object):
                 label = '<{} <BR/> <FONT POINT-SIZE="4">{}</FONT>>'.format(node.attr['label'], href)
                 node.attr['label'] = label
 #                node.attr['href'] = href # not work when rendered to pdf, works in jupyter
-# for highlight PROCESS ... USING
+
+        # for highlight PROCESS/REDUCE ... USING
         for node in nodes:
             if 'using' in node.attr and not 'FONT' in node.attr['label']:
                 label = '<{} <BR/> <FONT POINT-SIZE="8">-- {} --</FONT>>'.format(node.attr['label'], node.attr['using'])

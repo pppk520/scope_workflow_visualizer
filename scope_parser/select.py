@@ -232,23 +232,15 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-SimulationResult =
-    SELECT RGUID,
-           NormalizedQuery,
-           LocationIds,
-           GeoLocationId,
-           LCID,
-           Language,
-           Network,
-           DeviceTypeId,
-           PublisherCountry,
-           MarketplaceClassificationId,
-           ABTestId,
-           RankscoreReserve,
-           Result
-    FROM Simulators
-         CROSS APPLY AuctionSimulator.GetAllEKWResult(5000, 0) AS Result;
 
+ListingBidDemand =
+    SELECT DISTINCT RGUID,
+           (long) ListingId AS ListingId,
+           L.TotalPosition AS Position,
+           L.Clicks
+    FROM ListingBidDemand AS A
+         CROSS APPLY
+             BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;
                     '''))
 
 
