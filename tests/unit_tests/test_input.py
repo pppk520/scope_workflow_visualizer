@@ -86,3 +86,24 @@ class TestInput(TestCase):
 
         self.assertTrue(result['assign_var'] == "KeywordRevelanceData")
         self.assertCountEqual(result['sources'], ['IMPORT_"/somewhere/KeywordRelevanceFeature.script"'])
+
+    def test_extract_column_nullable(self):
+        s = '''
+        AccountInfo =
+            EXTRACT AccountId : int?,
+                    Acct_Num : string,
+                    Org : string,
+                    Service : string,
+                    Svc_Segment : string,
+                    AdCenter_Svc_Lvl : string,
+                    FinancialStatus : string
+            FROM @AllAccountInfoFile
+            USING DefaultTextExtractor(silent: true)
+        '''
+
+        result = Input().parse(s)
+
+        self.assertTrue(result['assign_var'] == "AccountInfo")
+        self.assertCountEqual(result['sources'], ['EXTRACT_@AllAccountInfoFile'])
+
+

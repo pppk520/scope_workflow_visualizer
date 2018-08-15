@@ -3,7 +3,7 @@ from scope_parser.common import Common
 
 class Declare(object):
     DECLARE = Keyword("#DECLARE")
-    DATA_TYPE = oneOf("string DateTime int bool double")('data_type')
+    DATA_TYPE = oneOf("string String DateTime int bool double")('data_type')
 
     ident = Common.ident
 
@@ -27,11 +27,4 @@ if __name__ == '__main__':
     d = Declare()
     #d.debug()
 
-    print(d.parse('#DECLARE RunDate DateTime = DateTime.Parse("@@RunDate@@")'))
-    print(d.parse('#DECLARE KWRawPath string = @"@@KWRawPath@@"'))
-    print(d.parse('#DECLARE KWRawPath string = @"@@KWRawPath@@"; //comment'))
-    print(d.parse('#DECLARE AuctionDataGetRatio int = int.Parse("@@AuctionDataGetRatio@@");'))
-    print(d.parse('#DECLARE AuctionDataGetRatio int = 66'))
-    print(d.parse('#DECLARE CampaignTargetInfo string = string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate));'))
-    print(d.parse('#DECLARE InputKeywordAuction string = string.Format("{0}/BidEstimation/Result/%Y/%m/KeywordAuction_%Y-%m-%d.ss?date={1:yyyy-MM-dd}", @BTEPath, @BTERunDate);'))
-    print(d.parse('#DECLARE DebugFolder string = string.Format("{0}/{1:yyyy/MM/dd}/Delta{2}_", @"/local/prod/pipelines/Optimization/KeywordOpportunity/Preparations/MPIProcessing/Debug", DateTime.Parse(@RunDate), @DateDelta); '))
+    print(d.parse('#DECLARE FeatureAdoptionFilePath String = String.Format(@"{0}/{1:yyyy/MM/dd}/AccountFeatureAdoption_{1:yyyy-MM-dd}.ss", @FeatureAdoptionDataRoot, @RunDate)'))

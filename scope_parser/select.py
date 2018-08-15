@@ -80,18 +80,21 @@ class Select(object):
     new_something = 'new' + func_chain
     as_something = (AS + ident).setName('as_something')
 
-    one_column = Optional(cast) + \
-                 Group((distinct_ident |
-                        aggr_ident |
-                        ternary |
-                        null_coal |
-                        if_stmt |
-                        new_something |
-                        func_chain_not |
-                        operator_ident |
-                        column_name |
-                        column_rval |
-                        quotedString)('column_name') + Optional(as_something) | '*').setName('one_column')
+    one_column_no_as = Optional(cast) + \
+                           (distinct_ident |
+                            aggr_ident |
+                            ternary |
+                            null_coal |
+                            if_stmt |
+                            new_something |
+                            func_chain_not |
+                            operator_ident |
+                            column_name |
+                            column_rval |
+                            quotedString)('column_name')
+
+    one_column_no_as_comb = delimitedList(one_column_no_as, delim='+')
+    one_column = Group(one_column_no_as_comb + Optional(as_something) | '*').setName('one_column')
 
     one_column_anything = Word(printables + ' ', excludeChars=',\n')
 
@@ -144,7 +147,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.one_column_anything.parseString('(L.SimulationResult) [0].Bid AS MinWinBid'))
+        print(self.one_column.parseString('AccountId.ToString() + "_" + OptTypeId.ToString() AS TempOpportunityId'))
 
 
     def parse_ternary(self, s):
@@ -233,14 +236,32 @@ if __name__ == '__main__':
 
     print(obj.parse('''
 
-ListingBidDemand =
-    SELECT DISTINCT RGUID,
-           (long) ListingId AS ListingId,
-           L.TotalPosition AS Position,
-           L.Clicks
-    FROM ListingBidDemand AS A
-         CROSS APPLY
-             BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints AS L;
+    AccountTacticData =
+        SELECT AccountId,
+               OptTypeId,
+               AccountId.ToString() + "_" + OptTypeId.ToString() AS TempOpportunityId,
+               AccountVerticalMapping.Primary,
+               AccountVerticalMapping.Secondary,
+               AccountInfo.ServiceSegment,
+               AccountLocationMapping.ServiceLocation,
+               AccountLocationMapping.ServiceRegion,
+               OptTacticMapping.TacticCategory,
+               OptTacticMapping.TacticCode,
+               OptTacticMapping.TacticId,
+               OptTacticMapping.OptAdInsightCategory
+        FROM AccountTacticData
+             LEFT JOIN
+                 AccountInfo
+             ON AccountTacticData.AccountId == AccountInfo.AccountId
+             LEFT JOIN
+                 AccountLocationMapping
+             ON AccountTacticData.AccountId == AccountLocationMapping.AccountId
+             LEFT JOIN
+                 AccountVerticalMapping
+             ON AccountTacticData.AccountId == AccountVerticalMapping.AccountId
+             LEFT JOIN
+                 OptTacticMapping
+             ON AccountTacticData.OptTypeId == OptTacticMapping.OptTypeId;
                     '''))
 
 

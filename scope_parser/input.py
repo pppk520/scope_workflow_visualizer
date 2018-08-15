@@ -33,7 +33,7 @@ class Input(object):
     params = PARAMS + '(' + param_assign_list + ')'
     dot_name = delimitedList(ident, delim='.', combine=True)
 
-    extract_column = Group(ident + Optional(':' + extract_data_type))
+    extract_column = Group(ident + Optional(':' + extract_data_type + Optional('?')))
 
     ##################################
     # Different Input Categories
@@ -115,13 +115,16 @@ if __name__ == '__main__':
     i = Input()
 
     print(i.parse('''
-CurrencyInfo =
-    EXTRACT CurrencyName,
-            MinBid : decimal,
-            MaxBid : decimal,
-            CurrencyId : int
-    FROM @InputCurrencyInfo
-    USING DefaultTextExtractor
+    AccountInfo =
+        EXTRACT AccountId : int?,
+                Acct_Num : string,
+                Org : string,
+                Service : string,
+                Svc_Segment : string,
+                AdCenter_Svc_Lvl : string,
+                FinancialStatus : string
+        FROM @AllAccountInfoFile
+        USING DefaultTextExtractor(silent: true)
     '''))
 
 

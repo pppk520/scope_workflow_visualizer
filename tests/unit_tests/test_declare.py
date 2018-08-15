@@ -47,3 +47,12 @@ class TestDeclare(TestCase):
         self.assertEqual(key, 'CampaignTargetInfo')
         self.assertEqual(value, 'string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate))')
 
+    def test_big_string_format(self):
+        s = '''
+        #DECLARE CampaignTargetInfo String = string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate));
+        '''
+
+        key, value = Declare().parse(s)
+        self.assertEqual(key, 'CampaignTargetInfo')
+        self.assertEqual(value, 'string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate))')
+

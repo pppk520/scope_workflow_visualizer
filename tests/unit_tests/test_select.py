@@ -696,5 +696,31 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'ListingBidDemand')
         self.assertCountEqual(result['sources'], ['ListingBidDemand', 'FUNC_BondExtension.Deserialize<BidLandscape>(A.SimulationResult).BidPoints'])
 
+    def test_column_comb(self):
+        s = '''
+        AccountTacticData =
+            SELECT AccountId,
+                   OptTypeId,
+                   AccountId.ToString() + "_" + OptTypeId.ToString() AS TempOpportunityId,
+                   OptTacticMapping.OptAdInsightCategory
+            FROM AccountTacticData
+                 LEFT JOIN
+                     AccountInfo
+                 ON AccountTacticData.AccountId == AccountInfo.AccountId
+                 LEFT JOIN
+                     AccountLocationMapping
+                 ON AccountTacticData.AccountId == AccountLocationMapping.AccountId
+                 LEFT JOIN
+                     AccountVerticalMapping
+                 ON AccountTacticData.AccountId == AccountVerticalMapping.AccountId
+                 LEFT JOIN
+                     OptTacticMapping
+                 ON AccountTacticData.OptTypeId == OptTacticMapping.OptTypeId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AccountTacticData')
+        self.assertCountEqual(result['sources'], ['AccountTacticData', 'AccountInfo', 'AccountLocationMapping', 'AccountVerticalMapping', 'OptTacticMapping'])
 
 

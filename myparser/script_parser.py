@@ -146,6 +146,15 @@ class ScriptParser(object):
 
         return content
 
+    def remove_view_template(self, content):
+        re_view = re.compile('.*CREATE VIEW.*?AS BEGIN(.*)END;', re.DOTALL | re.MULTILINE)
+        match = re.match(re_view, content)
+
+        if match:
+            return match.group(1)
+
+        return content
+
     def add_sstream_link(self, nodes, declare_map):
         for node in nodes:
             # only target SSTREAM
@@ -153,6 +162,10 @@ class ScriptParser(object):
                 continue
 
             param = node.name[node.name.index('_') + 1:]
+
+            if not param in declare_map:
+                self.logger.info('param [{}] not in declare_map, probably local reference. Ignore for now.'.format(param))
+                continue
 
             body_str = declare_map[param]
             # remove date or streamset query
@@ -310,15 +323,19 @@ class ScriptParser(object):
         self.logger.info('set [{}] as [{}]'.format(key, value))
 
     def parse_file(self, filepath, external_params={}, dest_filepath=None):
+        self.logger.info('parse_file [{}]'.format(filepath))
+
         self.external_params.update(external_params)
 
         content = FileUtility.get_file_content(filepath)
-#        content = self.remove_empty_lines(content)
         content = self.remove_comments(content)
         content = self.remove_if(content)
         content = self.resolve_external_params(content, self.external_params)
         content = self.remove_loop(content)
         content = self.remove_data_hint(content)
+
+        if filepath.endswith('.view'):
+            content = self.remove_view_template(content)
 
         parts = content.split(';')
 
@@ -392,7 +409,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
 
 #    ScriptParser().parse_file(
 #        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
@@ -408,6 +425,9 @@ if __name__ == '__main__':
 
     # BTE
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
+
+    # VIEW
+    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
 
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
