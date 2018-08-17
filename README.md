@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/pppk520/BackendProjectParser.svg?style=svg)](https://circleci.com/gh/pppk520/BackendProjectParser)
+[![CircleCI](https://circleci.com/gh/pppk520/scope_workflow_visualizer.svg?style=svg)](https://circleci.com/gh/pppk520/scope_workflow_visualizer)
 
 # SCOPE & DWC Workflow Visualizer 
 This project works on a simplified Microsoft [SCOPE](http://www.vldb.org/pvldb/1/1454166.pdf) language parser to automatically generate logic graph from scripts. 
