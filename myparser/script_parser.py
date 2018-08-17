@@ -411,9 +411,9 @@ if __name__ == '__main__':
 
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
 
-    ScriptParser().parse_file(
-        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
-        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
+#    ScriptParser().parse_file(
+#        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
+#        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
 
 #    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
@@ -432,4 +432,4 @@ if __name__ == '__main__':
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
-#    ScriptParser().parse_file('../tests/files/SOV3_StripeOutput.script')
+    ScriptParser(b_add_sstream_link=False).parse_file('../tests/files/test_scope.script', dest_filepath='d:/tmp/test_scope.script')

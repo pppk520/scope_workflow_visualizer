@@ -1,0 +1,27 @@
+﻿#DECLARE MyFile1	string = "/path/to/myfile1.ss";
+#DECLARE MyFile2	string = "/path/to/myfile2.ss";
+
+#DECLARE MyOutputFile	string = "/path/to/output.ss";
+#DECLARE MyOutputFile1	string = "/path/to/output1.ss";
+
+Data1 =
+SELECT RGUID,
+    ListingId AS OrderItemId,
+	HourNum
+FROM (SSTREAM @MyFile1);
+
+Data2 =
+SELECT RGUID,
+    ListingId AS OrderItemId,
+	HourNum
+FROM (SSTREAM @MyFile2);
+
+Data = SELECT
+            RGUID,
+            OrderItemId
+       FROM Data1
+       JOIN Data2 ON Data1.RGUID == Data2.RGUID
+       WHERE OrderItemId != 0;
+
+OUTPUT TO SSTREAM @MyOutputFile;
+OUTPUT Data1 TO SSTREAM @MyOutputFile1;
