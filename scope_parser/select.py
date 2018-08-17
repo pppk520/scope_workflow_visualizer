@@ -76,7 +76,7 @@ class Select(object):
     aggr_ident_aggressive = Group(aggr + Regex('\(.*\)'))
     aggr_ident_over = aggr_ident_basic + 'OVER' + '(' + window_over_param + ')'
     aggr_ident = Optional(cast) + (aggr_ident_over | aggr_ident_operator | aggr_ident_aggressive)
-    distinct_ident = DISTINCT + ident
+    distinct_ident = DISTINCT + ident_dot
     new_something = 'new' + func_chain
     as_something = (AS + ident).setName('as_something')
 
@@ -148,7 +148,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.one_column_anything.parseString("Microsoft.RnR.AdInsight.Utils.ConvertToInt(SUM(IF(ALL(ValidImpressions > 0, Utility.AbsPositionFromPagePosition(PagePosition, Markets, LCID, MarketplaceClassificationId, PublisherOwnerId, CountryCode, MLAdsCnt, RequestedMainlineAdsCnt) <= 4), 1, 0))) AS MLImpressions"))
+        print(self.one_column_anything.parseString("Monetization_PageView.*"))
 
 
     def parse_ternary(self, s):
@@ -236,14 +236,12 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-AllLevelPerf = 
-    SELECT
-        Microsoft.RnR.AdInsight.Utils.ConvertToInt(SUM(IF(ALL(ValidImpressions > 0, Utility.AbsPositionFromPagePosition(PagePosition, Markets, LCID, MarketplaceClassificationId, PublisherOwnerId, CountryCode, MLAdsCnt, RequestedMainlineAdsCnt) <= 4), 1, 0))) AS MLImpressions,
-        (double)SUM(ConversionCnt) AS Conversions
-    FROM BillableListings
-    CROSS JOIN PositionBoostConfig
-    HAVING LCID >= 0 AND MatchTypeId >= 0 AND MLImpressions >= 0 AND MLImpressionsWithoutAdjust >= 0;
-
+PageData = 
+    SELECT DISTINCT
+        Monetization_PageView.*
+    FROM Monetization_PageView 
+        LEFT OUTER JOIN Diagnostic AS B
+            ON Monetization_PageView.RGUID == B.RGUID;
                     '''))
 
 

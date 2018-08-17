@@ -3,7 +3,7 @@ from pyparsing import *
 
 class Common(object):
     comment = "//" + restOfLine
-    ident = Group(Word('_<>[]' + alphanums)).setName("identifier")
+    ident = Group(Word('_<>[]*' + alphanums)).setName("identifier")
     ident_dot = delimitedList(ident, delim='.', combine=True)
     ident_float_suffix = '.' + Word(nums) + Optional('F')
     ident_val = Combine(Word('- ' + nums) + Optional(ident_float_suffix | 'UL'))

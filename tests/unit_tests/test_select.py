@@ -775,5 +775,22 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'AllLevelPerf')
         self.assertCountEqual(result['sources'], ['BillableListings', 'PositionBoostConfig'])
 
+    def test_column_ident_dot(self):
+        s = '''
+        PageData = 
+            SELECT DISTINCT
+                Monetization_PageView.*
+            FROM Monetization_PageView 
+                LEFT OUTER JOIN Diagnostic AS B
+                    ON Monetization_PageView.RGUID == B.RGUID;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'PageData')
+        self.assertCountEqual(result['sources'], ['Monetization_PageView', 'Diagnostic'])
+
+
+
 
 
