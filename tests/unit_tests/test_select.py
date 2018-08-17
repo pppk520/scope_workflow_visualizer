@@ -723,4 +723,41 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'AccountTacticData')
         self.assertCountEqual(result['sources'], ['AccountTacticData', 'AccountInfo', 'AccountLocationMapping', 'AccountVerticalMapping', 'OptTacticMapping'])
 
+    def test_column_func_lambda(self):
+        s = '''
+        BidHistoryRecord = 
+            SELECT OrderItemId,
+                   History.Split(';').Select(a => new BidHistory(a)).ToList() AS History
+            FROM 
+            (
+                SSTREAM @BidHistory
+            )
+            WHERE NOT string.IsNullOrEmpty(History);
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'BidHistoryRecord')
+        self.assertCountEqual(result['sources'], ['SSTREAM_@BidHistory'])
+
+    def test_column_op_ident_eq(self):
+        s = '''
+        Monetization_Ad = 
+            SELECT Monetization_Ad.*,
+                   OrderId ?? SAOrderId         AS AdGroupId,
+                   CountryCode,
+                   RawBid == 0 AS UsingDefaultBid
+            FROM Monetization_Ad 
+            LEFT OUTER JOIN IdMapping
+            ON Monetization_Ad.ListingId == IdMapping.OrderItemId
+            LEFT OUTER JOIN BidHistoryRecord 
+            ON Monetization_Ad.ListingId == BidHistoryRecord.OrderItemId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'Monetization_Ad')
+        self.assertCountEqual(result['sources'], ['Monetization_Ad', 'IdMapping', 'BidHistoryRecord'])
+
+
 

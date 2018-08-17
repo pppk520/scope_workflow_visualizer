@@ -70,7 +70,7 @@ class Select(object):
 
     column_rval = real_num | int_num | quotedString | column_name | bool_val # need to add support for alg expressions
 
-    operator_ident = Group(ident + OneOrMore(oneOf('+ - * /') + ident))
+    operator_ident = Group(ident + OneOrMore(oneOf('+ - * / == != >= <=') + ident))
     aggr_ident_basic = Group(aggr + '(' + (operator_ident | ident | Empty()) + ')')
     aggr_ident_operator = aggr_ident_basic + ZeroOrMore(oneOf('+ - * /') + (aggr_ident_basic | ident))
     aggr_ident_aggressive = Group(aggr + Regex('\(.*\)'))
@@ -147,7 +147,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.one_column.parseString('AccountId.ToString() + "_" + OptTypeId.ToString() AS TempOpportunityId'))
+        print(self.one_column_no_as.parseString("RawBid == 0"))
 
 
     def parse_ternary(self, s):
@@ -235,33 +235,22 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
+Monetization_Ad = 
+    SELECT Monetization_Ad.*,
+           OrderId ?? SAOrderId         AS AdGroupId,
+           CampaignId ?? SACampaignId   AS CampaignId,
+           AccountId ?? SAAccountId     AS AccountId,
+           CustomerId ?? SACustomerId   AS CustomerId,
+           CountryCode,
+           History,
+           ExchangeRate,
+           RawBid == 0 AS UsingDefaultBid
+    FROM Monetization_Ad 
+    LEFT OUTER JOIN IdMapping
+    ON Monetization_Ad.ListingId == IdMapping.OrderItemId
+    LEFT OUTER JOIN BidHistoryRecord 
+    ON Monetization_Ad.ListingId == BidHistoryRecord.OrderItemId;
 
-    AccountTacticData =
-        SELECT AccountId,
-               OptTypeId,
-               AccountId.ToString() + "_" + OptTypeId.ToString() AS TempOpportunityId,
-               AccountVerticalMapping.Primary,
-               AccountVerticalMapping.Secondary,
-               AccountInfo.ServiceSegment,
-               AccountLocationMapping.ServiceLocation,
-               AccountLocationMapping.ServiceRegion,
-               OptTacticMapping.TacticCategory,
-               OptTacticMapping.TacticCode,
-               OptTacticMapping.TacticId,
-               OptTacticMapping.OptAdInsightCategory
-        FROM AccountTacticData
-             LEFT JOIN
-                 AccountInfo
-             ON AccountTacticData.AccountId == AccountInfo.AccountId
-             LEFT JOIN
-                 AccountLocationMapping
-             ON AccountTacticData.AccountId == AccountLocationMapping.AccountId
-             LEFT JOIN
-                 AccountVerticalMapping
-             ON AccountTacticData.AccountId == AccountVerticalMapping.AccountId
-             LEFT JOIN
-                 OptTacticMapping
-             ON AccountTacticData.OptTypeId == OptTacticMapping.OptTypeId;
                     '''))
 
 

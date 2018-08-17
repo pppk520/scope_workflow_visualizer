@@ -146,6 +146,12 @@ class ScriptParser(object):
 
         return content
 
+    def remove_split_reserved_char(self, content):
+        content = re.sub("';'", '', content)
+        content = re.sub('";"', '', content)
+
+        return content
+
     def remove_view_template(self, content):
         re_view = re.compile('.*CREATE VIEW.*?AS BEGIN(.*)END;', re.DOTALL | re.MULTILINE)
         match = re.match(re_view, content)
@@ -333,6 +339,7 @@ class ScriptParser(object):
         content = self.resolve_external_params(content, self.external_params)
         content = self.remove_loop(content)
         content = self.remove_data_hint(content)
+        content = self.remove_split_reserved_char(content)
 
         if filepath.endswith('.view'):
             content = self.remove_view_template(content)
@@ -425,6 +432,7 @@ if __name__ == '__main__':
 
     # BTE
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
 
     # VIEW
 #    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
@@ -432,4 +440,4 @@ if __name__ == '__main__':
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
-    ScriptParser(b_add_sstream_link=False).parse_file('../tests/files/test_scope.script', dest_filepath='d:/tmp/test_scope.script')
+#    ScriptParser(b_add_sstream_link=False).parse_file('../tests/files/test_scope.script', dest_filepath='d:/tmp/test_scope.script')

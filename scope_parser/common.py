@@ -22,7 +22,10 @@ class Common(object):
     func_ptr = Forward()
     func_params = delimitedList(param_str_cat | expr | ident | Word('-' + nums))
 
-    func <<= Group(delimitedList(ident, delim='.', combine=True) + Group('(' + Optional(func | func_params) + ')'))
+    param_lambda = Group(Optional('(') + delimitedList(ident) + Optional(')') + '=>' + OneOrMore(func | ident))
+    func_lambda = Group(delimitedList(ident, delim='.', combine=True) + Group('(' + param_lambda + ')'))
+
+    func <<= func_lambda | Group(delimitedList(ident, delim='.', combine=True) + Group('(' + Optional(func | func_params) + ')'))
     func_ptr <<= Group(delimitedList(ident, delim='.', combine=True))
 
     func_chain = Combine(Optional('@') + delimitedList(func, delim='.', combine=True))
@@ -31,7 +34,10 @@ if __name__ == '__main__':
     obj = Common()
 
     print(obj.expr.parseString('(CountryCode[0]<< 8) | CountryCode[1]'))
-    print(obj.func.parseString('LIST((CountryCode[0]<< 8) | CountryCode[1])'))
+    print(obj.param_lambda.parseString('a => new BidHistory(a)'))
+    print(obj.func_lambda.parseString('Select(a => new BidHistory(a))'))
+    print(obj.func.parseString('Select(a => new BidHistory(a))'))
+    print(obj.func_chain.parseString("History.Split(';').Select(a => new BidHistory(a)).ToList()"))
 
 
     '''
