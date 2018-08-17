@@ -97,8 +97,9 @@ class Select(object):
     one_column = Group(one_column_no_as_comb + Optional(as_something) | '*').setName('one_column')
 
     one_column_anything = Word(printables + ' ', excludeChars=',\n')
+    one_column_as = Regex(r'(.*?)AS') + ident
 
-    column_name_list = Group(delimitedList(one_column | one_column_anything))('column_name_list')
+    column_name_list = Group(delimitedList(one_column_as | one_column | one_column_anything))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
     func_expr = Combine(func + ZeroOrMore('.' + ident))
@@ -147,7 +148,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.one_column_no_as.parseString("RawBid == 0"))
+        print(self.one_column_anything.parseString("Microsoft.RnR.AdInsight.Utils.ConvertToInt(SUM(IF(ALL(ValidImpressions > 0, Utility.AbsPositionFromPagePosition(PagePosition, Markets, LCID, MarketplaceClassificationId, PublisherOwnerId, CountryCode, MLAdsCnt, RequestedMainlineAdsCnt) <= 4), 1, 0))) AS MLImpressions"))
 
 
     def parse_ternary(self, s):
@@ -235,21 +236,13 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-Monetization_Ad = 
-    SELECT Monetization_Ad.*,
-           OrderId ?? SAOrderId         AS AdGroupId,
-           CampaignId ?? SACampaignId   AS CampaignId,
-           AccountId ?? SAAccountId     AS AccountId,
-           CustomerId ?? SACustomerId   AS CustomerId,
-           CountryCode,
-           History,
-           ExchangeRate,
-           RawBid == 0 AS UsingDefaultBid
-    FROM Monetization_Ad 
-    LEFT OUTER JOIN IdMapping
-    ON Monetization_Ad.ListingId == IdMapping.OrderItemId
-    LEFT OUTER JOIN BidHistoryRecord 
-    ON Monetization_Ad.ListingId == BidHistoryRecord.OrderItemId;
+AllLevelPerf = 
+    SELECT
+        Microsoft.RnR.AdInsight.Utils.ConvertToInt(SUM(IF(ALL(ValidImpressions > 0, Utility.AbsPositionFromPagePosition(PagePosition, Markets, LCID, MarketplaceClassificationId, PublisherOwnerId, CountryCode, MLAdsCnt, RequestedMainlineAdsCnt) <= 4), 1, 0))) AS MLImpressions,
+        (double)SUM(ConversionCnt) AS Conversions
+    FROM BillableListings
+    CROSS JOIN PositionBoostConfig
+    HAVING LCID >= 0 AND MatchTypeId >= 0 AND MLImpressions >= 0 AND MLImpressionsWithoutAdjust >= 0;
 
                     '''))
 

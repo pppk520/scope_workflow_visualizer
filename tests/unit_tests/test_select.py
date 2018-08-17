@@ -759,5 +759,21 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'Monetization_Ad')
         self.assertCountEqual(result['sources'], ['Monetization_Ad', 'IdMapping', 'BidHistoryRecord'])
 
+    def test_column_nested_func(self):
+        s = '''
+        AllLevelPerf = 
+            SELECT
+                Microsoft.RnR.AdInsight.Utils.ConvertToInt(SUM(IF(ALL(ValidImpressions > 0, Utility.AbsPositionFromPagePosition(PagePosition, Markets, LCID, MarketplaceClassificationId, PublisherOwnerId, CountryCode, MLAdsCnt, RequestedMainlineAdsCnt) <= 4), 1, 0))) AS MLImpressions,
+                (double)SUM(ConversionCnt) AS Conversions
+            FROM BillableListings
+            CROSS JOIN PositionBoostConfig
+            HAVING LCID >= 0 AND MatchTypeId >= 0 AND MLImpressions >= 0 AND MLImpressionsWithoutAdjust >= 0;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AllLevelPerf')
+        self.assertCountEqual(result['sources'], ['BillableListings', 'PositionBoostConfig'])
+
 
 
