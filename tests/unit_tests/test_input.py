@@ -115,7 +115,6 @@ class TestInput(TestCase):
                 CampaignLocationTarget = NKWData.CampaignLocationTarget,
                 EnableMM = true
             );
-        )
         '''
 
         result = Input().parse(s)

@@ -129,23 +129,12 @@ if __name__ == '__main__':
     i.debug()
 
     print(i.parse('''
-NKWResult =
-    NKWAPI.KeywordBidEstimation
-    (
-        KeywordAdvertiser = OrderSuggKW_CrossLCID,
-        CampaignLocationTarget = NKWData.CampaignLocationTarget,
-        LowTrafficKw = NKWData.LowTrafficKw,
-        LowTrafficAdGroup = NKWData.LowTrafficAdGroup,
-        LocationBucket = NKWData.LocationBucket,
-        AdvertiserPRFactor = NKWData.AdvertiserPR,
-        KeywordQuery = NKWData.KeywordQuery,
-        OrderNegativeKeyword = NKWData.OrderNegativeKeyword,
-        CampaignNegativeKeyword = NKWData.CampaignNegativeKeyword,
-        KeywordTraffic = NKWData.KeywordTraffic,
-        KeywordSuggestion = NKWData.KeywordSuggestion,
-        OrderSuggestion = NKWData.OrderSuggestion,
-        Mode = "Traffic",
-        EnableMM = true
-    );
-    '''))
+        NKWResult =
+            NKWAPI.KeywordBidEstimation
+            (
+                KeywordAdvertiser = OrderSuggKW_CrossLCID,
+                CampaignLocationTarget = NKWData.CampaignLocationTarget,
+                EnableMM = true
+            );
+'''))
 
