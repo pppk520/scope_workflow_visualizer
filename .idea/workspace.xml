@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="92683f41-f921-43be-81b6-4a4ba6eb9a7b" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/common.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/common.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/input.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/input.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/select.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/select.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/unit_tests/test_select.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/unit_tests/test_select.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/myparser/script_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/script_parser.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -17,11 +13,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="script_parser.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="script_parser.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="454">
-              <caret line="441" column="25" selection-start-line="441" selection-start-column="25" selection-end-line="441" selection-end-column="25" />
+            <state relative-caret-position="594">
+              <caret line="225" column="42" selection-start-line="225" selection-start-column="42" selection-end-line="225" selection-end-column="42" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -56,11 +52,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_select.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_select.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_select.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="674">
-              <caret line="805" column="79" selection-start-line="805" selection-start-column="79" selection-end-line="805" selection-end-column="79" />
+            <state relative-caret-position="630">
+              <caret line="803" lean-forward="true" selection-start-line="803" selection-end-line="803" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
               </folding>
@@ -124,7 +120,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>aggr</find>
       <find>union_select</find>
       <find>fillco</find>
       <find>label</find>
@@ -154,6 +149,7 @@
       <find>BidOptWithMPI</find>
       <find>__serialnum</find>
       <find>MODULE</find>
+      <find>SSTREAM</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -210,12 +206,12 @@
         <option value="$PROJECT_DIR$/tests/files/test_scope.script" />
         <option value="$PROJECT_DIR$/myparser/workflow_parser.py" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/myparser/script_parser.py" />
         <option value="$PROJECT_DIR$/scope_parser/common.py" />
         <option value="$PROJECT_DIR$/scope_parser/input.py" />
         <option value="$PROJECT_DIR$/scope_parser/input.py" />
         <option value="$PROJECT_DIR$/scope_parser/select.py" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_select.py" />
+        <option value="$PROJECT_DIR$/myparser/script_parser.py" />
       </list>
     </option>
   </component>
@@ -427,9 +423,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_unit_tests - 2018.08.17 at 11h 16m 38s.xml">
-      <configuration name="Unittests in unit_tests" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.08.17 at 11h 25m 36s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
@@ -455,6 +448,9 @@
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.08.20 at 11h 53m 57s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.08.20 at 11h 55m 01s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
   </component>
@@ -781,16 +777,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="454">
-          <caret line="441" column="25" selection-start-line="441" selection-start-column="25" selection-end-line="441" selection-end-column="25" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config/config.ini">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="352">
@@ -831,10 +817,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_select.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="674">
-          <caret line="805" column="79" selection-start-line="805" selection-start-column="79" selection-end-line="805" selection-end-column="79" />
+        <state relative-caret-position="630">
+          <caret line="803" lean-forward="true" selection-start-line="803" selection-end-line="803" />
           <folding>
             <element signature="e#0#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="225" column="42" selection-start-line="225" selection-start-column="42" selection-end-line="225" selection-end-column="42" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>

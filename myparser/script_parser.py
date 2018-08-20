@@ -212,7 +212,7 @@ class ScriptParser(object):
 
             input_type = node.name.split('_')[0]
 
-            if input_type not in ['SSTREAM', 'EXTRACT', 'MODULE', 'VIEW', 'FUNC']:
+            if input_type not in ['SSTREAM', 'SSTREAM<STREAMSET>', 'EXTRACT', 'MODULE', 'VIEW', 'FUNC']:
                 continue
 
             attr = node.attr
@@ -222,6 +222,8 @@ class ScriptParser(object):
             # color scheme: https://www.graphviz.org/doc/info/colors.html#brewer
             if input_type == 'SSTREAM':
                 attr['fillcolor'] = 'greenyellow'
+            elif input_type == 'SSTREAM<STREAMSET>':
+                attr['fillcolor'] = 'wheat'
             elif input_type == 'EXTRACT':
                 attr['fillcolor'] = 'honeydew'
             elif input_type == 'MODULE':
