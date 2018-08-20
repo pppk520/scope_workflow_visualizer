@@ -261,20 +261,9 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-Suggestions =
-    REDUCE
-    (
-        SELECT AccountId,
-               OrderId,
-               SuggKW,
-               SuggMatchTypeId,
-               TrackId,
-               TrafficId,
-               Score
-        FROM Suggestions
-    )
-    ON OrderId
-    PRESORT Score DESC
-    USING Utils.TopNReducer(@OrderSuggestionCount)                    '''))
+    FilteredSuggestions =
+        SELECT *
+        FROM Result.FilteredByMarket;
+    '''))
 
 

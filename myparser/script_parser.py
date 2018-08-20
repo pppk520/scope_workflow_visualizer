@@ -307,6 +307,12 @@ class ScriptParser(object):
             if source.startswith('MODULE_'):
                 self.connect_module_params(node_map, all_nodes, edges, node_map[source], d.get('params', []))
 
+            if '.' in source:
+                main_node_name = source.split('.')[0]
+
+                if main_node_name in node_map:
+                    edges.append(Edge(node_map[main_node_name], node_map[source]))
+
         if len(from_nodes) == 0:
             from_nodes.append(node_map['last_node'])
 
