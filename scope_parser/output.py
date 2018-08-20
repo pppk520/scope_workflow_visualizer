@@ -1,6 +1,7 @@
 import json
 from pyparsing import *
 from scope_parser.common import Common
+from scope_parser.select import Select
 
 
 class Output(object):
@@ -18,6 +19,8 @@ class Output(object):
     value_str = Common.value_str
     func = Common.func
 
+    select_stmt = Select.select_stmt
+
     with_streamexpiry = Group(WITH_STREAMEXPIRY + value_str)
     partitioned_by = PARTITIONED_BY + ident
     using = USING + func
@@ -26,7 +29,7 @@ class Output(object):
 
     simple_where = Group(WHERE + ident + oneOf("== != >= <= > <") + (oneOf("true false") | value_str))
 
-    output_sstream = OUTPUT + ((ident('ident') + TO) | TO) + Optional(SSTREAM)('sstream') + value_str('path') + \
+    output_sstream = OUTPUT + (((ident('ident') | select_stmt) + TO) | TO) + Optional(SSTREAM)('sstream') + value_str('path') + \
                      Optional(clustered_by) + \
                      Optional(sorted_by) + \
                      Optional(partitioned_by)('partition') + \
@@ -53,6 +56,8 @@ class Output(object):
 
         if 'ident' in data:
             ret['ident'] = data['ident'][0]
+        elif 'table_name' in data:
+            ret['ident'] = data['table_name'] # directly from SELECT statement
 
         ret['path'] = data['path']
 
@@ -67,24 +72,6 @@ class Output(object):
 if __name__ == '__main__':
     obj = Output()
 
-    print(obj.parse('OUTPUT data TO SSTREAM "/local/tt.ss"'))
-    print(obj.parse('OUTPUT TO SSTREAM "/local/tt.ss"'))
-    print(obj.parse('OUTPUT AuctionMonetizationValidate TO SSTREAM @PubilsherBumpedAuction WITH STREAMEXPIRY @StreamExpiry'))
-    print(obj.parse('OUTPUT AuctionMonetizationValidate TO SSTREAM @PubilsherBumpedAuction WITH STREAMEXPIRY @StreamExpiry WHERE PublisherBump==true'))
-
-    print(obj.parse('''OUTPUT TO SSTREAM "@@TopAdvReport@@"
-                       HASH CLUSTERED BY ListingFilterReason
-                       WITH STREAMEXPIRY "15";'''))
-
-    print(obj.parse('''OUTPUT IS_ORDERITEM TO @ImpressionShareReportOrderItem
-                       PARTITIONED BY StripePartitionId
-                       WITH STREAMEXPIRY @EXPIRY
-                       USING CSVFileOutputter(@METADATA_AGG_DSV, "ImpressionShareData_OrderItem", @ASCIICsvXfmArgs_ISOutputs)'''))
-
     print(obj.parse('''
-        OUTPUT BIOrderItem
-        TO SSTREAM @BIContact
-           CLUSTERED BY OrderItemId
-               SORTED BY OrderItemId
-           WITH STREAMEXPIRY @StreamExpiryDays;
+        OUTPUT (SELECT * FROM Suggestions WHERE bNeedFiltered == true) TO SSTREAM @Output_FilteredBy_SpecialRuleForCustomerFilter CLUSTERED BY OrderId WITH STREAMEXPIRY @STREAM_EXPIRY
     '''))

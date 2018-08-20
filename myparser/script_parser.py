@@ -66,13 +66,20 @@ class ScriptParser(object):
         return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
 
     def remove_comments(self, content):
-        re_comment = re.compile(r'(/\*.*?)\*/', re.MULTILINE | re.DOTALL)
+        # handy function from https://stackoverflow.com/questions/241327/python-snippet-to-remove-c-and-c-comments
+        def replacer(match):
+            s = match.group(0)
+            if s.startswith('/'):
+                return " "  # note: a space and not an empty string
+            else:
+                return s
 
-        # remove comments
-        content = re.sub(re_comment, '', content)
-        content = re.sub(r'(//.*)\n', '\n', content)
+        pattern = re.compile(
+            r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
+            re.DOTALL | re.MULTILINE
+        )
 
-        return content
+        return re.sub(pattern, replacer, content)
 
     def remove_if(self, content):
         re_if = re.compile(r'#IF.*?\n(.*?)#ENDIF', re.MULTILINE | re.DOTALL)
@@ -435,26 +442,26 @@ if __name__ == '__main__':
 #        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
 #        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
 
-    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
+#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
     # BTE
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend/BTE/Src/BTELibrary/BidOpportunity/ScopeScripts/BidOptMPIProcessing.script''', dest_filepath='d:/tmp/BidOptMPIProcessing.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend/BTE/Src/BTELibrary/BidOpportunity/ScopeScripts/BidOptMPIProcessing.script''', dest_filepath='d:/tmp/BidOptMPIProcessing.script')
 
     # VIEW
-    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
+#    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
 
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
