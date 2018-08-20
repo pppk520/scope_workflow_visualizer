@@ -389,9 +389,13 @@ class ScriptParser(object):
                 self.process_set(part, declare_map)
             elif 'IMPORT' in part:
                 self.logger.info('not support IMPORT for now.')
+            elif 'OUTPUT' in part:
+                self.process_output(part, node_map, all_nodes, edges)
+            elif 'REDUCE' in part:
+                self.process_reduce(part, node_map, all_nodes, edges)
             elif 'SELECT' in part:
                 self.process_select(part, node_map, all_nodes, edges)
-            elif 'SSTREAM' in part and not 'OUTPUT' in part:
+            elif 'SSTREAM' in part:
                 self.process_input_sstream(part, node_map, all_nodes, edges)
             elif 'EXTRACT' in part:
                 self.process_extract(part, node_map, all_nodes, edges)
@@ -399,10 +403,6 @@ class ScriptParser(object):
                 self.process_view(part, node_map, all_nodes, edges)
             elif 'PROCESS' in part:
                 self.process_process(part, node_map, all_nodes, edges)
-            elif 'REDUCE' in part:
-                self.process_reduce(part, node_map, all_nodes, edges)
-            elif 'OUTPUT' in part:
-                self.process_output(part, node_map, all_nodes, edges)
             else:
                 try:
                     self.process_input_module(part, node_map, all_nodes, edges)
@@ -446,9 +446,9 @@ if __name__ == '__main__':
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
 #    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')

@@ -261,21 +261,20 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-            Merge =
-            SELECT DateKey,
-                   Domain,
-                   SUM(ImpressionCntInAuction) AS ImpressionCntInAuction,
-                   //SUM(CoImpression_AuctionLog) AS CoImpression_AuctionLog,    
-                   SUM(CoImpressionCnt) AS CoImpressionCnt,
-                   SUM(TopCnt) AS TopCnt
-            FROM
-            (
-            SELECT *
-            FROM Step1
-            UNION ALL
-            SELECT *
-            FROM ImpressionShare
-            )
-                    '''))
+Suggestions =
+    REDUCE
+    (
+        SELECT AccountId,
+               OrderId,
+               SuggKW,
+               SuggMatchTypeId,
+               TrackId,
+               TrafficId,
+               Score
+        FROM Suggestions
+    )
+    ON OrderId
+    PRESORT Score DESC
+    USING Utils.TopNReducer(@OrderSuggestionCount)                    '''))
 
 

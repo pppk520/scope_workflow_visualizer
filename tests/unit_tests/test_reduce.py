@@ -77,4 +77,25 @@ class TestReduce(TestCase):
         self.assertCountEqual(result['sources'], ['Suggestions'])
         self.assertTrue(result['using'] == 'GroupRankReducer')
 
+    def test_from_select(self):
+        s = '''
+        Suggestions =
+            REDUCE
+            (
+                SELECT AccountId,
+                       OrderId,
+                       Score
+                FROM Suggestions
+            )
+            ON OrderId
+            PRESORT Score DESC
+            USING Utils.TopNReducer(@OrderSuggestionCount)
+        '''
+
+        result = Reduce().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'Suggestions')
+        self.assertCountEqual(result['sources'], ['Suggestions'])
+        self.assertTrue(result['using'] == 'Utils.TopNReducer')
+
 
