@@ -38,6 +38,7 @@ if __name__ == '__main__':
     print(obj.func_lambda.parseString('Select(a => new BidHistory(a))'))
     print(obj.func.parseString('Select(a => new BidHistory(a))'))
     print(obj.func_chain.parseString("History.Split(';').Select(a => new BidHistory(a)).ToList()"))
+    print(obj.value_str.parseString("6"))
 
 
     '''

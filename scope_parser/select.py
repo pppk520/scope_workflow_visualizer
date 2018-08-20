@@ -129,7 +129,13 @@ class Select(object):
     from_module = Group('(' + Input.module + ')' + Optional(as_something).suppress())
     from_view = Group('(' + Input.view + ')' + Optional(as_something).suppress())
     from_sstream = Group('(' + Input.sstream + ')' + Optional(as_something).suppress())
-    from_stmt = FROM + (from_select("select") | from_module("module") | from_view("view") | from_sstream("sstream") | table_name_list("tables"))
+    from_sstream_streamset = Group('(' + Input.sstream_value_streamset + ')' + Optional(as_something).suppress())
+    from_stmt = FROM + (from_select("select") |
+                        from_module("module") |
+                        from_view("view") |
+                        from_sstream_streamset("sstream_streamset") |
+                        from_sstream("sstream") |
+                        table_name_list("tables"))
 
     select_stmt <<= (SELECT + (column_name_list | '*')("columns") +
                      Optional(DISTINCT) +
@@ -148,7 +154,12 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.one_column_anything.parseString("Monetization_PageView.*"))
+        print(self.from_sstream_streamset.parseString('''
+        (SSTREAM 
+           STREAMSET @MPI_PATH
+           PATTERN @"KeywordOptMPIFinal%n.ss"
+           RANGE __serialnum=["0", "6"])
+        '''))
 
 
     def parse_ternary(self, s):
@@ -201,6 +212,9 @@ class Select(object):
         if 'sstream' in parsed_result:
             sources.add("SSTREAM_{}".format(parsed_result['sstream'][2]))
 
+        if 'sstream_streamset' in parsed_result:
+            sources.add("SSTREAM<STREAMSET>_{}".format(parsed_result['sstream_streamset'][3]))
+
         if 'select' in parsed_result:
             self.add_source(sources, parsed_result['select'])
 
@@ -236,12 +250,12 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-PageData = 
-    SELECT DISTINCT
-        Monetization_PageView.*
-    FROM Monetization_PageView 
-        LEFT OUTER JOIN Diagnostic AS B
-            ON Monetization_PageView.RGUID == B.RGUID;
+MPI =  SELECT *, __serialnum AS N FROM 
+                                      (SSTREAM 
+           STREAMSET @MPI_PATH
+           PATTERN @"KeywordOptMPIFinal%n.ss"
+           RANGE __serialnum=["0", "6"]
+);
                     '''))
 
 

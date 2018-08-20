@@ -39,10 +39,11 @@ class Input(object):
     # Different Input Categories
     ##################################
     parentheses_func_param = '(' + func_param + ')'
-    streamset_type = oneOf("__datetime __hour __day __year")
-    streamset_range = streamset_type + '=' + Combine('[' + delimitedList(value_str) + ']' + Optional(parentheses_func_param))
+    streamset_type = oneOf("__datetime __hour __day __year __serialnum")
+    list_values = delimitedList(value_str)
+    streamset_range = streamset_type + '=' + Group('[' + list_values + ']' + Optional(parentheses_func_param))
 
-    streamset = STREAMSET + value_str + PATTERN + value_pattern + RANGE + streamset_range
+    streamset = STREAMSET + value_str('from_source') + PATTERN + value_pattern + RANGE + streamset_range
     sstream_value_streamset = SSTREAM + streamset
     sstream = SSTREAM + value_str('from_source')
     extract = EXTRACT + delimitedList(extract_column) + FROM + value_str('from_source') + Optional(USING + func)
@@ -50,10 +51,20 @@ class Input(object):
     module = Group(dot_name("module_dotname") + '(' + param_assign_list + ')')
 
     assign_sstream = Combine(ident)('assign_var') + '=' + sstream('sstream')
+    assign_sstream_streamset = Combine(ident)('assign_var') + '=' + sstream_value_streamset('sstream_streamset')
     assign_extract = Combine(ident)('assign_var') + '=' + extract('extract')
     assign_module = Combine(ident)('assign_var') + '=' + module('module')
     assign_view = Combine(ident)('assign_var') + '=' + view('view')
     import_as = IMPORT + quotedString('from_source') + "AS" + Combine(ident)('assign_var') + Optional(params)
+
+    def debug(self):
+        print(self.list_values.parseString('"0", "6"'))
+        print(self.sstream_value_streamset.parseString('''
+SSTREAM 
+           STREAMSET @MPI_PATH
+           PATTERN @"KeywordOptMPIFinal%n.ss"
+           RANGE __serialnum=["0", "6"]        
+        '''))
 
     def parse_sstream(self, s):
         return self.sstream.parseString(s)
@@ -81,8 +92,12 @@ class Input(object):
             ret = self.assign_extract.parseString(s)
             d['sources'].add('EXTRACT_' + ret['from_source'])
         elif 'SSTREAM' in s:
-            ret = self.assign_sstream.parseString(s)
-            d['sources'].add('SSTREAM_' + ret['from_source'])
+            if 'STREAMSET' in s:
+                ret = self.assign_sstream_streamset.parseString(s)
+                d['sources'].add('SSTREAM_' + ret['from_source'])
+            else:
+                ret = self.assign_sstream.parseString(s)
+                d['sources'].add('SSTREAM_' + ret['from_source'])
         elif 'VIEW' in s:
             ret = self.assign_view.parseString(s)
             d['sources'].add('VIEW_' + ret['from_source'])
@@ -108,11 +123,10 @@ class Input(object):
 
         return d
 
-    def debug(self):
-        pass
 
 if __name__ == '__main__':
     i = Input()
+    i.debug()
 
     print(i.parse('''
     AccountInfo =
@@ -126,5 +140,4 @@ if __name__ == '__main__':
         FROM @AllAccountInfoFile
         USING DefaultTextExtractor(silent: true)
     '''))
-
 

@@ -790,6 +790,20 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'PageData')
         self.assertCountEqual(result['sources'], ['Monetization_PageView', 'Diagnostic'])
 
+    def test_from_sstream_streamset(self):
+        s = '''
+        MPI =  SELECT *, __serialnum AS N FROM 
+                                              (SSTREAM 
+                   STREAMSET @MPI_PATH
+                   PATTERN @"KeywordOptMPIFinal%n.ss"
+                   RANGE __serialnum=["0", "6"]
+        );
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'MPI')
+        self.assertCountEqual(result['sources'], ['SSTREAM<STREAMSET>_@MPI_PATH'])
 
 
 
