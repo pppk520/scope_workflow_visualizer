@@ -805,6 +805,27 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'MPI')
         self.assertCountEqual(result['sources'], ['SSTREAM<STREAMSET>_@MPI_PATH'])
 
+    def test_from_inner_select(self):
+        s = '''
+        DedupeList_BlockRules =
+            (SELECT CustomerId AS EntityId
+             FROM BlockRules_Customer
+             UNION DISTINCT
+             SELECT *
+             FROM BlockRules_Account
+            )
+            EXCEPT ALL
+            (SELECT EntityId
+             FROM DedupeList
+             WHERE EntityLevel == "CID"
+            )
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'DedupeList_BlockRules')
+        self.assertCountEqual(result['sources'], ['BlockRules_Customer', 'BlockRules_Account', 'DedupeList'])
+
 
 
 

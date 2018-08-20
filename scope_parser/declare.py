@@ -3,7 +3,7 @@ from scope_parser.common import Common
 
 class Declare(object):
     DECLARE = Keyword("#DECLARE")
-    DATA_TYPE = oneOf("string String DateTime int bool double")('data_type')
+    DATA_TYPE = oneOf("string String DateTime int bool double long")('data_type')
 
     ident = Common.ident
 
@@ -27,4 +27,4 @@ if __name__ == '__main__':
     d = Declare()
     #d.debug()
 
-    print(d.parse('#DECLARE FeatureAdoptionFilePath String = String.Format(@"{0}/{1:yyyy/MM/dd}/AccountFeatureAdoption_{1:yyyy-MM-dd}.ss", @FeatureAdoptionDataRoot, @RunDate)'))
+    print(d.parse('#DECLARE monthlyQVMinThr long = long.Parse("@@monthlyQVMinThr@@")'))

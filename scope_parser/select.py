@@ -18,6 +18,7 @@ class Select(object):
     DISTINCT = Keyword("DISTINCT")
     HAVING = Keyword("HAVING")
     IF = Keyword("IF")
+    EXCEPT = Keyword("EXCEPT")
 
     comment = Common.comment
     ident = Common.ident
@@ -105,6 +106,7 @@ class Select(object):
     func_expr = Combine(func + ZeroOrMore('.' + ident))
 
     union = Group(UNION + Optional('ALL' | DISTINCT))
+    except_ = Group(EXCEPT + Optional('ALL'))
 
     where_expression = Forward()
 
@@ -122,15 +124,16 @@ class Select(object):
     cross_apply_stmt = CROSS_APPLY + (func_expr("cross_apply_func") | table_name) + Optional(AS + ident)
 
     # define the grammar
-    union_select = ZeroOrMore(Optional(union) + select_stmt)
+    union_select = OneOrMore(union + Optional('(') + select_stmt + Optional(')'))
+    except_select = OneOrMore(except_ + Optional('(') + select_stmt + Optional(')'))
     having = HAVING + restOfLine
 
-    from_select = Group('(' + select_stmt + ')' + Optional(as_something).suppress())
-    from_module = Group('(' + Input.module + ')' + Optional(as_something).suppress())
-    from_view = Group('(' + Input.view + ')' + Optional(as_something).suppress())
-    from_sstream = Group('(' + Input.sstream + ')' + Optional(as_something).suppress())
-    from_sstream_streamset = Group('(' + Input.sstream_value_streamset + ')' + Optional(as_something).suppress())
-    from_stmt = FROM + (from_select("select") |
+    from_select = Group(Optional('(') + select_stmt + Optional(')') + Optional(as_something).suppress())
+    from_module = Group(Optional('(') + Input.module + Optional(')') + Optional(as_something).suppress())
+    from_view = Group(Optional('(') + Input.view + Optional(')') + Optional(as_something).suppress())
+    from_sstream = Group(Optional('(') + Input.sstream + Optional(')') + Optional(as_something).suppress())
+    from_sstream_streamset = Group(Optional('(') + Input.sstream_value_streamset + Optional(')') + Optional(as_something).suppress())
+    from_stmt = FROM + (from_select("from_select") |
                         from_module("module") |
                         from_view("view") |
                         from_sstream_streamset("sstream_streamset") |
@@ -144,21 +147,26 @@ class Select(object):
                      Optional(cross_apply_stmt) +
                      Optional(Group(WHERE + where_expression))("where") +
                      Optional(Group(union_select))('union') +
+                     Optional(Group(except_select))('except_') +
+                     Optional(select_stmt) +
                      Optional(having))
 
-    select_union = select_stmt + ZeroOrMore(union + select_stmt)
+    select_stmt = Optional('(') + select_stmt + Optional(')')
 
-    assign_select_stmt = (Combine(ident)("assign_var") + '=' + select_union).ignore(comment)
+    assign_select_stmt = (Combine(ident)("assign_var") + '=' + select_stmt).ignore(comment)
 
     def __init__(self):
         pass
 
     def debug(self):
-        print(self.from_sstream_streamset.parseString('''
-        (SSTREAM 
-           STREAMSET @MPI_PATH
-           PATTERN @"KeywordOptMPIFinal%n.ss"
-           RANGE __serialnum=["0", "6"])
+        print(self.from_select.parseString('''
+            (
+            SELECT *
+            FROM Step1
+            UNION ALL
+            SELECT *
+            FROM ImpressionShare
+            )
         '''))
 
 
@@ -203,6 +211,9 @@ class Select(object):
         if 'union' in parsed_result:
             self.add_source(sources, parsed_result['union'][0])
 
+        if 'except_' in parsed_result:
+            self.add_source(sources, parsed_result['except_'][0])
+
         if 'module' in parsed_result:
             sources.add("MODULE_{}".format(parsed_result['module'][1]['module_dotname']))
 
@@ -215,8 +226,8 @@ class Select(object):
         if 'sstream_streamset' in parsed_result:
             sources.add("SSTREAM<STREAMSET>_{}".format(parsed_result['sstream_streamset'][3]))
 
-        if 'select' in parsed_result:
-            self.add_source(sources, parsed_result['select'])
+        if 'from_select' in parsed_result:
+            self.add_source(sources, parsed_result['from_select'])
 
         if 'cross_apply_func' in parsed_result:
             sources.add("FUNC_{}".format(parsed_result['cross_apply_func']))
@@ -250,12 +261,21 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-MPI =  SELECT *, __serialnum AS N FROM 
-                                      (SSTREAM 
-           STREAMSET @MPI_PATH
-           PATTERN @"KeywordOptMPIFinal%n.ss"
-           RANGE __serialnum=["0", "6"]
-);
+            Merge =
+            SELECT DateKey,
+                   Domain,
+                   SUM(ImpressionCntInAuction) AS ImpressionCntInAuction,
+                   //SUM(CoImpression_AuctionLog) AS CoImpression_AuctionLog,    
+                   SUM(CoImpressionCnt) AS CoImpressionCnt,
+                   SUM(TopCnt) AS TopCnt
+            FROM
+            (
+            SELECT *
+            FROM Step1
+            UNION ALL
+            SELECT *
+            FROM ImpressionShare
+            )
                     '''))
 
 

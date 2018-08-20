@@ -66,7 +66,7 @@ class ScriptParser(object):
         return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
 
     def remove_comments(self, content):
-        re_comment = re.compile(r'/\*(.*?)\*/', re.MULTILINE | re.DOTALL)
+        re_comment = re.compile(r'(/\*.*?)\*/', re.MULTILINE | re.DOTALL)
 
         # remove comments
         content = re.sub(re_comment, '', content)
@@ -143,12 +143,16 @@ class ScriptParser(object):
 
     def remove_data_hint(self, content):
         #[ROWCOUNT=100]
-        re_dh_1 = re.compile(r'\[.*?=\d+?\]')
+        re_dh_1 = re.compile(r'\[.+?=\d+?\]')
         content = re.sub(re_dh_1, '', content)
 
         #[LOWDISTINCTNESS(MatchTypeId)]
         re_dh_2 = re.compile(r'\[LOWDISTINCTNESS\(.*\)\]')
         content = re.sub(re_dh_2, '', content)
+
+        #[PARTITION=(PARTITIONCOUNT=2000)]
+        re_dh_3 = re.compile(r'\[.+?=\(.+=.+\)\]')
+        content = re.sub(re_dh_3, '', content)
 
         return content
 
@@ -344,6 +348,7 @@ class ScriptParser(object):
         content = FileUtility.get_file_content(filepath)
         content = self.remove_comments(content)
         content = self.remove_if(content)
+        content = self.remove_if(content) # for nested if
         content = self.resolve_external_params(content, self.external_params)
         content = self.remove_loop(content)
         content = self.remove_data_hint(content)
@@ -432,6 +437,11 @@ if __name__ == '__main__':
 
     ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
