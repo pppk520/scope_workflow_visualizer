@@ -106,4 +106,23 @@ class TestInput(TestCase):
         self.assertTrue(result['assign_var'] == "AccountInfo")
         self.assertCountEqual(result['sources'], ['EXTRACT_@AllAccountInfoFile'])
 
+    def test_module_func_ptr(self):
+        s = '''
+        NKWResult =
+            NKWAPI.KeywordBidEstimation
+            (
+                KeywordAdvertiser = OrderSuggKW_CrossLCID,
+                CampaignLocationTarget = NKWData.CampaignLocationTarget,
+                EnableMM = true
+            );
+        )
+        '''
+
+        result = Input().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'NKWResult')
+        self.assertCountEqual(result['sources'], ['MODULE_NKWAPI.KeywordBidEstimation'])
+        self.assertCountEqual(result['params'], ['OrderSuggKW_CrossLCID', 'NKWData.CampaignLocationTarget', 'true'])
+
+
 

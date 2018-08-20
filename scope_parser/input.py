@@ -23,12 +23,13 @@ class Input(object):
     comment = Common.comment
     func = Common.func
     func_chain = Common.func_chain
+    func_ptr = Common.func_ptr
     func_param = Common.func_params
     value_str = Common.value_str
 
     value_pattern = Combine(Optional('@') + quotedString)
 
-    param_assign = ident + '=' + Combine(Optional('@') + (func_chain | value_str))('param_value*')
+    param_assign = ident + '=' + Combine(Optional('@') + (func_chain | func_ptr | value_str))('param_value*')
     param_assign_list = delimitedList(param_assign)
     params = PARAMS + '(' + param_assign_list + ')'
     dot_name = delimitedList(ident, delim='.', combine=True)
@@ -58,12 +59,11 @@ class Input(object):
     import_as = IMPORT + quotedString('from_source') + "AS" + Combine(ident)('assign_var') + Optional(params)
 
     def debug(self):
-        print(self.list_values.parseString('"0", "6"'))
-        print(self.sstream_value_streamset.parseString('''
-SSTREAM 
-           STREAMSET @MPI_PATH
-           PATTERN @"KeywordOptMPIFinal%n.ss"
-           RANGE __serialnum=["0", "6"]        
+        print(self.param_assign_list.parseString('''
+        KeywordAdvertiser = OrderSuggKW_CrossLCID,
+        CampaignLocationTarget = NKWData.CampaignLocationTarget,
+        LowTrafficKw = NKWData.LowTrafficKw,
+        LowTrafficAdGroup = NKWData.LowTrafficAdGroup
         '''))
 
     def parse_sstream(self, s):
@@ -129,15 +129,23 @@ if __name__ == '__main__':
     i.debug()
 
     print(i.parse('''
-    AccountInfo =
-        EXTRACT AccountId : int?,
-                Acct_Num : string,
-                Org : string,
-                Service : string,
-                Svc_Segment : string,
-                AdCenter_Svc_Lvl : string,
-                FinancialStatus : string
-        FROM @AllAccountInfoFile
-        USING DefaultTextExtractor(silent: true)
+NKWResult =
+    NKWAPI.KeywordBidEstimation
+    (
+        KeywordAdvertiser = OrderSuggKW_CrossLCID,
+        CampaignLocationTarget = NKWData.CampaignLocationTarget,
+        LowTrafficKw = NKWData.LowTrafficKw,
+        LowTrafficAdGroup = NKWData.LowTrafficAdGroup,
+        LocationBucket = NKWData.LocationBucket,
+        AdvertiserPRFactor = NKWData.AdvertiserPR,
+        KeywordQuery = NKWData.KeywordQuery,
+        OrderNegativeKeyword = NKWData.OrderNegativeKeyword,
+        CampaignNegativeKeyword = NKWData.CampaignNegativeKeyword,
+        KeywordTraffic = NKWData.KeywordTraffic,
+        KeywordSuggestion = NKWData.KeywordSuggestion,
+        OrderSuggestion = NKWData.OrderSuggestion,
+        Mode = "Traffic",
+        EnableMM = true
+    );
     '''))
 
