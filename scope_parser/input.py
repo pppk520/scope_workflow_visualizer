@@ -14,7 +14,7 @@ class Input(object):
     USING = Keyword("USING")
     IMPORT = Keyword("IMPORT")
 
-    extract_data_type = oneOf("string int ulong long short byte decimal")
+    extract_data_type = oneOf("string int ulong long short byte decimal double")
 
     ##################################
     # General
@@ -129,12 +129,13 @@ if __name__ == '__main__':
     i.debug()
 
     print(i.parse('''
-        NKWResult =
-            NKWAPI.KeywordBidEstimation
-            (
-                KeywordAdvertiser = OrderSuggKW_CrossLCID,
-                CampaignLocationTarget = NKWData.CampaignLocationTarget,
-                EnableMM = true
-            );
+    RPMUpLiftMapping =
+        EXTRACT Description : string,
+                Tactic : string,
+                OptType : int,
+                RPMUpLift : double,
+                SpendLift : double
+        FROM @RPMUpLiftFile
+        USING DefaultTextExtractor(silent: true)
 '''))
 

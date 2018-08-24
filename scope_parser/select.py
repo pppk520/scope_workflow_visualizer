@@ -129,7 +129,7 @@ class Select(object):
     having = HAVING + restOfLine
 
     from_select = Group(Optional('(') + select_stmt + Optional(')') + Optional(as_something).suppress())
-    from_module = Group(Optional('(') + Input.module + Optional(')') + Optional(as_something).suppress())
+    from_module = Group(Optional('(').suppress() + Input.module + Optional(')').suppress() + Optional(as_something).suppress())
     from_view = Group(Optional('(') + Input.view + Optional(')') + Optional(as_something).suppress())
     from_sstream = Group(Optional('(') + Input.sstream + Optional(')') + Optional(as_something).suppress())
     from_sstream_streamset = Group(Optional('(') + Input.sstream_value_streamset + Optional(')') + Optional(as_something).suppress())
@@ -215,7 +215,7 @@ class Select(object):
             self.add_source(sources, parsed_result['except_'][0])
 
         if 'module' in parsed_result:
-            sources.add("MODULE_{}".format(parsed_result['module'][1]['module_dotname']))
+            sources.add("MODULE_{}".format(parsed_result['module'][0]['module_dotname']))
 
         if 'view' in parsed_result:
             sources.add("VIEW_{}".format(parsed_result['view']['from_source']))
@@ -249,11 +249,12 @@ class Select(object):
             data = self.parse_assign_select(s)
             ret['assign_var'] = data['assign_var']
 
-        self.add_source(ret['sources'], data)
-
 #        print('-' *20)
 #        print(json.dumps(data.asDict(), indent=4))
 #        print('-' *20)
+
+        self.add_source(ret['sources'], data)
+
         return ret
 
 if __name__ == '__main__':
@@ -261,9 +262,13 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-    FilteredSuggestions =
+    
+    All_AdInsightMPI =
         SELECT *
-        FROM Result.FilteredByMarket;
+        FROM MPI_AdInsightFeatureAdoption
+        UNION ALL
+        SELECT *
+        FROM MPI_AdInsightOptimization
     '''))
 
 

@@ -149,6 +149,20 @@ class TestSelect(TestCase):
         self.assertTrue(result['assign_var'] == 'AdImpressionRaw')
         self.assertCountEqual(result['sources'], ['MODULE_MonetizationModules.MonetizationImpression'])
 
+    def test_parse_from_input_module_freestyle(self):
+        s = '''
+        DiagnosticFull = 
+            SELECT * 
+            FROM DiagnosticModules.DiagnosticPageView(INPUT_BASE = @CommomDataLayerBasePath, END_DATE_UTC = @RunDateTimeUTC) 
+             
+            WHERE NOT (Mainline4Reserve == null AND MainlineReserve == null AND ABTestConfigVersion == null AND NumSidebarAds == null)
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'DiagnosticFull')
+        self.assertCountEqual(result['sources'], ['MODULE_DiagnosticModules.DiagnosticPageView'])
+
     def test_parse_from_nowhere(self):
         s = '''
             RguidLevelAgg =

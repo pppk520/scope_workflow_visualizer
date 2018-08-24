@@ -390,17 +390,18 @@ if __name__ == '__main__':
 
     import json
 
-#    proj_name = 'Opportunities'
-#    exclude_keys = []
+    proj_name = 'Opportunities'
+    exclude_keys = []
 #    target_node_names = ['5.FinalCapping.script', 'MPIPrepare.script', '6.MPIProcessing0.script']
+    target_node_names = ['6.MPIProcessing0.script']
 #    target_node_names = []
 
-    proj_name = 'BTE'
-    exclude_keys = ['NKW/', 'NKW2/']
-    target_node_names = ['BidForPosition.script']
+#    proj_name = 'BTE'
+#    exclude_keys = ['NKW/', 'NKW2/']
+#    target_node_names = ['BidForPosition.script']
 
     wfp = WorkflowParser()
     obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\{}'.format(proj_name), exclude_keys=exclude_keys)
 
-#    wfp.print_params(obj, 'SOV3_StripeOutput', resolve=True)
-    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}_[{}]'.format(proj_name, '-'.join(target_node_names)), target_node_names=target_node_names)
+    wfp.print_params(obj, 'Opp_KWSuggV2_MPIProcessing0', resolve=True)
+#    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}_[{}]'.format(proj_name, '-'.join(target_node_names)), target_node_names=target_node_names)

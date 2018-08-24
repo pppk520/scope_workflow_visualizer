@@ -12,5 +12,8 @@ class Node(object):
         if not 'label' in attr:
             self.attr['label'] = name
 
+    # pydot use this as unique identity
+    # if you want to treat nodes with the same name as one node, return name
+    # otherwise, return id
     def __str__(self):
         return self.name

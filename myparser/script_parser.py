@@ -184,6 +184,17 @@ class ScriptParser(object):
 
         return content
 
+    def get_module_views(self, content):
+        re_module_view = re.compile('.*?VIEW(.*?)RETURN.*?BEGIN(.*?)END VIEW', re.DOTALL | re.MULTILINE)
+        occurs = re.findall(re_module_view, content)
+
+        ret = {}
+        for occur in occurs:
+            view_name, body = occur
+            ret[view_name.strip()] = body
+
+        return ret
+
     def add_sstream_link(self, nodes, declare_map):
         for node in nodes:
             # only target SSTREAM
@@ -362,12 +373,51 @@ class ScriptParser(object):
 
         self.logger.info('set [{}] as [{}]'.format(key, value))
 
+    def update_module_view_data(self, final_nodes, final_edges, nodes, edges, view_name):
+        processed = set()
+
+        for node in nodes:
+            # nodes may be duplicate because we recorded the whole appearance
+            if node in processed:
+                continue
+
+            node.name = '<{}>_{}'.format(view_name, node.name)
+            processed.add(node)
+
+        final_nodes.extend(nodes)
+        final_edges.extend(edges)
+
     def parse_file(self, filepath, external_params={}, dest_filepath=None):
         self.logger.info('parse_file [{}]'.format(filepath))
 
         self.external_params.update(external_params)
 
         content = FileUtility.get_file_content(filepath)
+
+        final_nodes = []
+        final_edges = []
+
+        if filepath.endswith('.module'):
+            d = self.get_module_views(content)
+
+            for view_name in d:
+                content = d[view_name]
+                nodes, edges = self.parse_content(content, external_params)
+
+                self.update_module_view_data(final_nodes, final_edges, nodes, edges, view_name)
+
+        if filepath.endswith('.view'):
+            content = self.remove_view_template(content)
+
+            final_nodes, final_edges = self.parse_content(content, external_params)
+
+        if filepath.endswith('.script'):
+            final_nodes, final_edges = self.parse_content(content, external_params)
+
+        if dest_filepath:
+            self.to_graph(dest_filepath, final_nodes, final_edges)
+
+    def parse_content(self, content, external_params={}):
         content = self.remove_comments(content)
         content = self.remove_if(content)
         content = self.remove_if(content) # for nested if
@@ -376,9 +426,6 @@ class ScriptParser(object):
         content = self.remove_data_hint(content)
         content = self.remove_split_reserved_char(content)
         content = self.remove_ascii_non_target(content)
-
-        if filepath.endswith('.view'):
-            content = self.remove_view_template(content)
 
         parts = content.split(';')
 
@@ -438,49 +485,55 @@ class ScriptParser(object):
         if self.b_add_sstream_link:
             self.add_sstream_link(all_nodes, declare_map)
 
-        if dest_filepath:
-            gu = GraphUtility(all_nodes, edges)
+        return all_nodes, edges
 
-            gexf_output_file = gu.to_gexf_file(dest_filepath)
-            self.logger.info('output .gexf file to [{}]'.format(gexf_output_file))
+    def to_graph(self, dest_filepath, nodes, edges):
+        gu = GraphUtility(nodes, edges)
 
-            dot_output_file = gu.to_dot_file(dest_filepath)
-            self.logger.info('output .dot file to [{}]'.format(dot_output_file))
+        gexf_output_file = gu.to_gexf_file(dest_filepath)
+        self.logger.info('output .gexf file to [{}]'.format(gexf_output_file))
 
-            self.logger.info('render graphviz file')
-            gu.dot_to_graphviz(dot_output_file)
+        dot_output_file = gu.to_dot_file(dest_filepath)
+        self.logger.info('output .dot file to [{}]'.format(dot_output_file))
+
+        self.logger.info('render graphviz file')
+        gu.dot_to_graphviz(dot_output_file)
+
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
 
-#    ScriptParser().parse_file(
-#        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
-#        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
+    ScriptParser().parse_file(
+        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
+        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
 
-#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
+    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
     # BTE
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend/BTE/Src/BTELibrary/BidOpportunity/ScopeScripts/BidOptMPIProcessing.script''', dest_filepath='d:/tmp/BidOptMPIProcessing.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
+    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend/BTE/Src/BTELibrary/BidOpportunity/ScopeScripts/BidOptMPIProcessing.script''', dest_filepath='d:/tmp/BidOptMPIProcessing.script')
 
     # VIEW
-#    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
+    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
 
+    # MODULE
+    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AllAdinsightMPI.module''', dest_filepath='d:/tmp/AllAdinsightMPI.module')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))
