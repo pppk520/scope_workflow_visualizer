@@ -407,7 +407,8 @@ class ScriptParser(object):
             if 'date' in key.lower():
                 continue
 
-            self.external_params[key] = external_params[key]
+            self.external_params[key] = external_params[key].replace('\"', '')
+            self.logger.debug('update external_param key [{}] to value [{}]'.format(key, self.external_params[key]))
 
         content = FileUtility.get_file_content(filepath)
 
