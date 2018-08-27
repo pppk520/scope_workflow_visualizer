@@ -3,6 +3,7 @@ import logging
 import re
 import os
 import codecs
+import editdistance
 from util.file_utility import FileUtility
 
 from graph.node import Node
@@ -78,6 +79,25 @@ class WorkflowParser(object):
         except Exception as ex:
             self.logger.debug('{}: {}'.format(filepath, ex))
 
+    @staticmethod
+    def get_closest_process_name(process_key, workflow_obj):
+        process_names = workflow_obj.workflows.keys()
+
+        if process_key in process_names:
+            return process_key
+
+        # use edit distance to identify the closest one
+        min_key = process_key
+        min_dist = len(process_key)
+
+        for key in process_names:
+            dist = editdistance.eval(key, process_key)
+            if dist < min_dist:
+                min_dist = dist
+                min_key = key
+
+        return min_key
+
     def parse_folder(self, folder_root, exclude_keys=[]):
         files = FileUtility.list_files_recursive(folder_root, target_suffix='.config')
 
@@ -91,7 +111,7 @@ class WorkflowParser(object):
         process_group_map = {}  # process_name -> group name
         group_master_map = {}   # group name -> master config name
 
-        exclude_keys.append('/objd/')
+        exclude_keys.append('/objd/') # by default, ignore this
 
         for filepath in files:
             for key in exclude_keys:
@@ -195,21 +215,31 @@ class WorkflowParser(object):
 
         return param_str.replace('\\"', '"')
 
-    def print_params(self, workflow_obj, process_name, resolve=False):
+    def get_params(self, workflow_obj, process_name):
         obj = workflow_obj
 
         master_key = obj.process_master_map[process_name]
         master_params = obj.masters[master_key]['parameters']
         job_params = obj.workflows[process_name]['ScopeJobParams']
 
+        param_map = {}
+
         for item in job_params:
             if not '-params' in item:
                 continue
 
-            if resolve:
-                print(self.resolve_param(master_params, item.split()[1].strip()))
-            else:
-                print(item)
+            _, target = item.split()
+            key, value = target.split('=')
+            param_map[key] = self.resolve_param(master_params, value.strip())
+
+        return param_map
+
+    def print_params(self, workflow_obj, process_name, resolve=False):
+        param_map = self.get_params(workflow_obj, process_name)
+
+        for key in param_map:
+            print('{} = {}'.format(key, param_map[key]))
+
 
     def normalize_event_name(self, event_name: str):
         match = re.match(r'(d\:)?([^/]*)(/.*)?', event_name)
@@ -403,5 +433,5 @@ if __name__ == '__main__':
     wfp = WorkflowParser()
     obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\{}'.format(proj_name), exclude_keys=exclude_keys)
 
-    wfp.print_params(obj, 'Opp_KWSuggV2_MPIProcessing0', resolve=True)
+    wfp.print_params(obj, 'Opp_KWSuggV2_MPIProcessing0')
 #    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}_[{}]'.format(proj_name, '-'.join(target_node_names)), target_node_names=target_node_names)

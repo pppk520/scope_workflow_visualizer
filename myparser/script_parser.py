@@ -5,6 +5,7 @@ import os
 import configparser
 
 from util.file_utility import FileUtility
+from util.datetime_utility import DatetimeUtility
 
 from scope_parser.declare import Declare
 from scope_parser.set import Set
@@ -25,7 +26,7 @@ from graph.graph_utility import GraphUtility
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
 
-    def __init__(self, external_params={}, b_add_sstream_link=True):
+    def __init__(self, b_add_sstream_link=True):
         self.vars = {}
 
         self.declare = Declare()
@@ -50,9 +51,6 @@ class ScriptParser(object):
         config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
         self.read_configs(config_filepath)
 
-        # overwrite external params
-        self.external_params.update(external_params)
-
     def read_configs(self, filepath):
         config = configparser.ConfigParser()
         config.optionxform = str # reserve case
@@ -62,7 +60,20 @@ class ScriptParser(object):
         self.sstream_link_suffix = config['ScriptParser']['sstream_link_suffix']
 
         for key in config['ExternalParam']:
+            if key.startswith('#'):
+                continue
+
             self.external_params[key] = config['ExternalParam'][key]
+
+        # make it default to 5 days ago
+        default_date_str = DatetimeUtility.get_datetime_str(delta_days=-5, fmt_str='%Y-%m-%d')
+        if 'RunDate' not in self.external_params:
+            self.external_params['RunDate'] = default_date_str
+        if 'Date' not in self.external_params:
+            self.external_params['Date'] = default_date_str
+        if 'PROCESS_DATE' not in self.external_params:
+            self.external_params['PROCESS_DATE'] = default_date_str
+
 
     def remove_empty_lines(self, content):
         return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
@@ -389,8 +400,14 @@ class ScriptParser(object):
 
     def parse_file(self, filepath, external_params={}, dest_filepath=None):
         self.logger.info('parse_file [{}]'.format(filepath))
+        self.logger.debug('external_params = {}'.format(external_params))
 
-        self.external_params.update(external_params)
+        # keep date key because external params from config is probably yyyy-MM-dd format
+        for key in external_params:
+            if 'date' in key.lower():
+                continue
+
+            self.external_params[key] = external_params[key]
 
         content = FileUtility.get_file_content(filepath)
 

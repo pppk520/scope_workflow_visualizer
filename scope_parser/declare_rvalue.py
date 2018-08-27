@@ -63,4 +63,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('aaa'))
+    print(r.parse('string.Format("{0}/KeywordOpportunity/Preparations/ODP/{1:yyyy/MM/dd}/EligibleOrders.ss", @OPT_SHARE_PATH, @dateObj)'))
