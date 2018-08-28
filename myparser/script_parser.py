@@ -22,11 +22,12 @@ from myparser.scope_resolver import ScopeResolver
 from graph.node import Node
 from graph.edge import Edge
 from graph.graph_utility import GraphUtility
+from cosmos.sstream_schema_utiltiy import SstreamUtility
 
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
 
-    def __init__(self, b_add_sstream_link=True):
+    def __init__(self, b_add_sstream_link=True, b_add_sstream_size=True):
         self.vars = {}
 
         self.declare = Declare()
@@ -43,6 +44,7 @@ class ScriptParser(object):
         self.scope_resolver = ScopeResolver()
 
         self.b_add_sstream_link = b_add_sstream_link
+        self.b_add_sstream_size = b_add_sstream_size
         self.sstream_link_prefix = ""
         self.sstream_link_suffix = ""
         self.external_params = {}
@@ -50,6 +52,8 @@ class ScriptParser(object):
         # read config from ini file
         config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
         self.read_configs(config_filepath)
+
+        self.ssu = SstreamUtility("d:/workspace/dummydummy.ini") # specify your auth file path
 
     def read_configs(self, filepath):
         config = configparser.ConfigParser()
@@ -206,7 +210,7 @@ class ScriptParser(object):
 
         return ret
 
-    def add_sstream_link(self, nodes, declare_map):
+    def add_sstream_info(self, nodes, declare_map):
         for node in nodes:
             # only target SSTREAM
             if not node.name.startswith('SSTREAM_'):
@@ -231,9 +235,17 @@ class ScriptParser(object):
                                        body_str,
                                        self.sstream_link_suffix)
 
-                label = '<{} <BR/> <FONT POINT-SIZE="4">{}</FONT>>'.format(node.attr['label'], href)
-                node.attr['label'] = label
-#                node.attr['href'] = href # not work when rendered to pdf, works in jupyter
+                the_label = node.attr['label']
+
+                if self.b_add_sstream_size:
+                    self.logger.debug('trying to get stream size of [{}]'.format(href))
+                    the_label = '{} ({})'.format(the_label, self.ssu.get_stream_size(href))
+
+                if self.b_add_sstream_link:
+                    the_label = '<{} <BR/> <FONT POINT-SIZE="4">{}</FONT>>'.format(the_label, href)
+                #    node.attr['href'] = href # not work when rendered to pdf, works in jupyter
+
+                node.attr['label'] = the_label
 
         # for highlight PROCESS/REDUCE ... USING
         for node in nodes:
@@ -500,8 +512,8 @@ class ScriptParser(object):
         self.logger.info('change node color for output')
         self.change_node_color(all_nodes)
 
-        if self.b_add_sstream_link:
-            self.add_sstream_link(all_nodes, declare_map)
+        if self.b_add_sstream_link or self.b_add_sstream_size:
+            self.add_sstream_info(all_nodes, declare_map)
 
         return all_nodes, edges
 
@@ -523,35 +535,35 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
 
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
 
-    ScriptParser().parse_file(
-        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
-        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
+#    ScriptParser().parse_file(
+#        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
+#        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
 
-    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
+#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
     ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
 
     # BTE
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend/BTE/Src/BTELibrary/BidOpportunity/ScopeScripts/BidOptMPIProcessing.script''', dest_filepath='d:/tmp/BidOptMPIProcessing.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
+#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend/BTE/Src/BTELibrary/BidOpportunity/ScopeScripts/BidOptMPIProcessing.script''', dest_filepath='d:/tmp/BidOptMPIProcessing.script')
 
     # VIEW
-    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
+#    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
 
     # MODULE
-    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AllAdinsightMPI.module''', dest_filepath='d:/tmp/AllAdinsightMPI.module')
+#    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AllAdinsightMPI.module''', dest_filepath='d:/tmp/AllAdinsightMPI.module')
 
 #    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
 #    print(ScriptParser().resolve_declare(s_declare))

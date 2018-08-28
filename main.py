@@ -13,7 +13,8 @@ def cli():
 def parse_script(proj_folder,
                  output_folder,
                  target_filenames=[],
-                 add_sstream_link=True,
+                 add_sstream_link=False,
+                 add_sstream_size=False,
                  exclude_keys=[]):
 
     wfp = WorkflowParser()
@@ -30,7 +31,8 @@ def parse_script(proj_folder,
         print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
         param_map = wfp.get_params(obj, process_name)
 
-        sp = ScriptParser(b_add_sstream_link=add_sstream_link)
+        sp = ScriptParser(b_add_sstream_link=add_sstream_link,
+                          b_add_sstream_size=add_sstream_size)
 
         dest_filepath = os.path.join(output_folder, target_filename)
         script_fullpath = script_fullpath_map[target_filename]
@@ -54,8 +56,6 @@ def script_to_graph(proj_folder,
     return parse_script(proj_folder, output_folder, target_filenames, add_sstream_link, exclude_keys)
 
 
-
-
 @click.argument('proj_folder', type=click.Path(exists=True))
 @click.argument('target_filename')
 @click.option('--exclude_keys', multiple=True, default=[])
@@ -72,10 +72,9 @@ if __name__ == '__main__':
 #    cli()
 
 #    print_wf_params(r'D:\workspace\AdInsights\private\Backend\Opportunities', '6.MPIProcessing.script')
+
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
-                 target_filenames=['6.MPIProcessing.script',
-                  '7.PKVGeneration_BMMO.script',
-                  '7.PKVGeneration_BMO.script',
-                  '7.PKVGeneration_BMOEX.script',
-                  '7.PKVGeneration_KWO.script'])
+                 target_filenames=['6.MPIProcessing.script'],
+                 add_sstream_link=True,
+                 add_sstream_size=True)

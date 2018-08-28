@@ -1,0 +1,74 @@
+import logging
+from cosmos.cosmos_http_utility import CosmosHttpUtility
+from bs4 import BeautifulSoup
+
+
+class SstreamUtility(object):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, auth_config_path):
+        self.hu = CosmosHttpUtility(auth_config_path)
+
+    def get_normalize_url(self, the_url):
+        if not the_url.endswith('?property=info'):
+            the_url += "?property=info"
+
+        self.logger.debug('the_url = {}'.format(the_url))
+        return the_url
+
+    def get_schema(self, data_url):
+        data_url = self.get_normalize_url(data_url)
+
+        the_html = self.hu.get(data_url)
+        soup = BeautifulSoup(the_html, 'html.parser')
+
+        ret = {}
+        for row in soup.find_all("div", class_="div-table-row"):
+            items = row.find_all("div", class_="div-table-col")
+            ret[items[0].string] = items[1].string
+
+        return ret
+
+    def sizeof_fmt(self, num, suffix=''):
+        ''' https://stackoverflow.com/a/1094933/1004325
+        '''
+        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+            if abs(num) < 1024.0:
+                return "%3.1f %s%s" % (num, unit, suffix)
+            num /= 1024.0
+
+        return "%.1f %s%s" % (num, 'Yi', suffix)
+
+    def ss_info_size_pretty(self, ss_info_size_raw):
+        # 169,299 Bytes
+        byte_num = ss_info_size_raw.split(' ')[0].replace(',', '')
+
+        return self.sizeof_fmt(int(byte_num))
+
+    def get_stream_size(self, data_url):
+        data_url = self.get_normalize_url(data_url)
+
+        the_html = self.hu.get(data_url)
+
+        try:
+            soup = BeautifulSoup(the_html, 'html.parser')
+
+            div = soup.find(id="details_fileinfo")
+            for row in div.find_all('tr'):
+                if 'File Size' in row.text:
+                    filesize_pretty = self.ss_info_size_pretty(row.find('td').text)
+
+                    return filesize_pretty
+        except Exception as ex:
+            self.logger.warning(ex)
+
+        return ''
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+
+    ss_path = "https://nonexist"
+
+#    print(SstreamUtility("d:/workspace/dummydummy.ini").get_schema(ss_path))
+    print(SstreamUtility("d:/workspace/dummydummy.ini").get_stream_size(ss_path))
