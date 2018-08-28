@@ -447,6 +447,9 @@ class ScriptParser(object):
         if dest_filepath:
             self.to_graph(dest_filepath, final_nodes, final_edges)
 
+        # save cosmos querying results
+        self.ssu.refresh_cache()
+
     def parse_content(self, content, external_params={}):
         content = self.remove_comments(content)
         content = self.remove_if(content)
