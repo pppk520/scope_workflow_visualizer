@@ -88,7 +88,7 @@ class WorkflowParser(object):
 
         # use edit distance to identify the closest one
         min_key = process_key
-        min_dist = len(process_key)
+        min_dist = len(process_key) * 2  # just a big enough value
 
         for key in process_names:
             dist = editdistance.eval(key, process_key)
@@ -217,6 +217,9 @@ class WorkflowParser(object):
 
     def get_params(self, workflow_obj, process_name):
         obj = workflow_obj
+
+        if not process_name in obj.process_master_map:
+            process_name = self.get_closest_process_name(process_name, obj)
 
         master_key = obj.process_master_map[process_name]
         master_params = obj.masters[master_key]['parameters']
@@ -423,7 +426,7 @@ if __name__ == '__main__':
     proj_name = 'Opportunities'
     exclude_keys = []
 #    target_node_names = ['5.FinalCapping.script', 'MPIPrepare.script', '6.MPIProcessing0.script']
-    target_node_names = ['6.MPIProcessing0.script']
+    target_node_names = ['MPIPrepare.script']
 #    target_node_names = []
 
 #    proj_name = 'BTE'
@@ -433,5 +436,5 @@ if __name__ == '__main__':
     wfp = WorkflowParser()
     obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\{}'.format(proj_name), exclude_keys=exclude_keys)
 
-    wfp.print_params(obj, 'Opp_KWSuggV2_MPIProcessing0')
+    wfp.print_params(obj, 'MPIPrepare.script')
 #    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}_[{}]'.format(proj_name, '-'.join(target_node_names)), target_node_names=target_node_names)
