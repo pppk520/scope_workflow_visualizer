@@ -130,12 +130,20 @@ class ScopeResolver(object):
         if 'DateTime.Parse' in func_str or 'AddDays' in func_str:
             result, _ = self.resolve_datetime_related(func_str, declare_map)
             self.logger.debug('resolved [{}] as datetime_obj {}'.format(func_str, result))
+        elif 'ToString' in func_str:
+            # check if it's DateTime.ToString('xxx')
+            the_obj_name = func_str.split('.')[0]
+
+            if the_obj_name in declare_map:
+                datetime_obj = declare_map[the_obj_name]
+                result = self.process_to_string(datetime_obj, func_str)
         elif func_str.startswith('int.Parse'):
             result = int(param)
         elif func_str.startswith('Math.Abs'):
             result = abs(int(param))
 
         if 'ToString()' in func_str:
+            # purely to string
             result = str(result)
 
         return result
@@ -287,5 +295,5 @@ class ScopeResolver(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    result = ScopeResolver().resolve_func('DateTime.Parse(@RunDate).AddDays(-0)', {})
+    result = ScopeResolver().resolve_func('@dateObj.ToString("yyyy-MM-dd")', {'dateObj': datetime.now()})
     print(result)

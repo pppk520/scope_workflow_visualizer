@@ -18,46 +18,46 @@ class TestScopeResolver(TestCase):
         items = ["66"]
 
         result = ScopeResolver().resolve_basic(items, {})
-        self.assertEqual(result, 66)
+        self.assertEqual(66, result)
 
     def test_basic_str_cat(self):
         items = ['"abc"', '+', '"123"']
 
         result = ScopeResolver().resolve_basic(items, {'"123"': '"ABC"'})
-        self.assertEqual(result, "abcABC")
+        self.assertEqual("abcABC", result)
 
     def test_str_format(self):
         fmt_str = '/{0}/{1}-{2}'
         items = ['AAA', 'BBB', 'CCC']
 
         result = ScopeResolver().resolve_str_format(fmt_str, items, {})
-        self.assertEqual(result, "/AAA/BBB-CCC")
+        self.assertEqual("/AAA/BBB-CCC", result)
 
     def test_func_int_parse(self):
         func_str = 'int.Parse("1000")'
 
         result = ScopeResolver().resolve_func(func_str)
-        self.assertEqual(result, 1000)
+        self.assertEqual(1000, result)
 
     def test_func_math_abs(self):
         func_str = 'Math.Abs(-1000)'
 
         result = ScopeResolver().resolve_func(func_str)
-        self.assertEqual(result, 1000)
+        self.assertEqual(1000, result)
 
     def test_func_datetime_parse(self):
         func_str = 'DateTime.Parse("2011-01-01")'
 
         result = ScopeResolver().resolve_func(func_str) # result is datetime obj
         result_str = result.strftime('%Y-%m-%d')
-        self.assertEqual(result_str, "2011-01-01")
+        self.assertEqual("2011-01-01", result_str)
 
     def test_func_datetime_parse_add_days(self):
         func_str = 'DateTime.Parse("2018-08-01").AddDays(3)'
 
         result = ScopeResolver().resolve_func(func_str)
         result_str = result.strftime('%Y-%m-%d')
-        self.assertEqual(result_str, "2018-08-04")
+        self.assertEqual("2018-08-04", result_str)
 
     def test_string_format_datetime_parse(self):
         s = '''
@@ -65,7 +65,7 @@ class TestScopeResolver(TestCase):
         '''
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
-        self.assertEqual(result, "path_to/BidEstimation/Result/2018/08/AuctionContext_2018-08-03.ss?date=2018-08-03")
+        self.assertEqual("path_to/BidEstimation/Result/2018/08/AuctionContext_2018-08-03.ss?date=2018-08-03", result)
 
     def test_str_cat_datetime_parse_range(self):
         s = '''
@@ -73,7 +73,7 @@ class TestScopeResolver(TestCase):
         '''
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
-        self.assertEqual(result, "/path_to/2017/12/KeywordsSearchCountDaily_2017-12-31.ss?date=2017-12-01...2017-12-31&sparsestreamset=true")
+        self.assertEqual("/path_to/2017/12/KeywordsSearchCountDaily_2017-12-31.ss?date=2017-12-01...2017-12-31&sparsestreamset=true", result)
 
     def test_string_format_datetime_parse_to_string(self):
         s = '''
@@ -81,7 +81,7 @@ class TestScopeResolver(TestCase):
         '''
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
-        self.assertEqual(result, '/path_to/Daily/2018/01/Campaign_FiltrationFunnelDaily_20180101.ss?date="2017-12-26"..."2018-01-01"')
+        self.assertEqual('/path_to/Daily/2018/01/Campaign_FiltrationFunnelDaily_20180101.ss?date="2017-12-26"..."2018-01-01"', result)
 
     def test_string_format_idx(self):
         s = '''
@@ -89,7 +89,7 @@ class TestScopeResolver(TestCase):
         '''
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
-        self.assertEqual(result, 'kw_raw_path/Preparations/MPIProcessing/2018/01/01/AuctionWithKeywordAndMT.ss')
+        self.assertEqual('kw_raw_path/Preparations/MPIProcessing/2018/01/01/AuctionWithKeywordAndMT.ss', result)
 
 
 
