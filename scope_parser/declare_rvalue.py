@@ -12,13 +12,13 @@ class DeclareRvalue(object):
 
     param = Combine('@' + ident)
     param_str = Combine(Optional('@') + quotedString)
-    param_str_cat = Group((param_str | param) + ZeroOrMore(oneOf('+ - * /') + (func_chain | param_str | param))) # delimitedList suppress delim, we want to keep it
+    param_str_cat = Group((param_str | param) + OneOrMore(oneOf('+ - * /') + (func_chain | param_str | param))) # delimitedList suppress delim, we want to keep it
     format_item = func_chain('func_chain') | param_str('param_str') | param('param') | ident('ident')
     placeholder_basic = Group('{' + Word(nums) + '}')
     placeholder_date = Group('{' + Word(nums) + ':' + delimitedList(oneOf('yyyy MM dd'), delim=oneOf('/ - _')) + '}')
     string_format = keyword_string_format + '(' + Optional('@') + quotedString('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
 
-    rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums)('nums') | func_chain('func_chain')
+    rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums)('nums') | func_chain('func_chain') | param_str('param_str') | param('param')
 
     def debug(self):
         data = quotedString.parseString("'aaa'")
@@ -55,6 +55,14 @@ class DeclareRvalue(object):
                 ret['format_items'] = [result['func_chain'],]
 
             ret['type'] = 'func_chain'
+        elif 'param_str' in result:
+            ret['format_items'] = [result['param_str'], ]
+            ret['type'] = 'str_cat'
+        elif 'param' in result:
+            ret['format_items'] = [result['param'], ]
+            ret['type'] = 'str_cat'
+
+
 #        print(ret)
 
         return ret
@@ -63,4 +71,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('string.Format("{0}/KeywordOpportunity/Preparations/ODP/{1:yyyy/MM/dd}/EligibleOrders.ss", @OPT_SHARE_PATH, @dateObj)'))
+    print(r.parse('@KWRawPath'))

@@ -14,6 +14,41 @@ class ScopeResolver(object):
         self.default_datetime_obj = datetime.now() - timedelta(5)
         pass
 
+    def resolve_datetime_parse(self, the_str, declare_map):
+        match = re.match(r'DateTime\.Parse\((.*?)\)', the_str)
+
+        if match:
+            param = match.group(1).replace('"', '')
+            param = declare_map.get(param, param)
+
+            return parser.parse(param)
+
+    def resolve_datetime_related(self, format_item, declare_map):
+        self.logger.debug('resolve_datetime_related of [{}]'.format(format_item))
+
+        the_data = None
+        datetime_obj = None
+
+        the_obj_name = format_item.split('.')[0]
+        if the_obj_name in declare_map:
+            datetime_obj = declare_map[the_obj_name]
+
+        if 'DateTime.Parse' in format_item:
+            datetime_obj = self.resolve_datetime_parse(format_item, declare_map)
+            self.logger.debug('parsed datetime_obj = {}'.format(datetime_obj))
+
+        if 'AddDays' in format_item:
+            datetime_obj = self.process_add_days(datetime_obj, format_item)
+
+        if 'ToString' in format_item:
+            if datetime_obj:
+                the_data = self.process_to_string(datetime_obj, format_item)
+
+        if not the_data:
+            the_data = datetime_obj
+
+        return the_data, datetime_obj
+
     def resolve_basic(self, format_items, declare_map):
         ret = []
 
@@ -23,17 +58,8 @@ class ScopeResolver(object):
             if format_item in declare_map:
                 the_data = declare_map[format_item]
             else:
-                if 'DateTime' in format_item:
-                    the_data = self.resolve_declare_rvalue(None, format_item, declare_map)
-                    datetime_obj = the_data
-                elif 'AddDays' in format_item:
-                    the_obj_name = format_item.split('.')[0]
-                    if the_obj_name in declare_map:
-                        the_obj = declare_map[the_obj_name]
-                        the_data = self.process_add_days(the_obj, format_item)
-                        datetime_obj = the_data
-
-                    the_data = self.process_to_string(the_data, format_item)
+                if 'DateTime' in format_item or 'AddDays' in format_item or 'ToString' in format_item:
+                    the_data, datetime_obj = self.resolve_datetime_related(format_item, declare_map)
                 else:
                     # change
                     match = re.match('@"(.*)"', format_item)
@@ -54,6 +80,8 @@ class ScopeResolver(object):
                     ret[i] = '"{}"'.format(ret[i])
 
         to_eval = ''.join(ret)
+
+        self.logger.debug('prepare to eval [{}]'.format(to_eval))
         result = eval(to_eval)
 
         # final checking fot %Y %m %d
@@ -90,6 +118,8 @@ class ScopeResolver(object):
         return datetime_obj
 
     def resolve_func(self, func_str, declare_map={}):
+        self.logger.debug('resolve_func of {}'.format(func_str))
+
         params = re.findall(r'\((.*?)\)', func_str)
         param = params[0].lstrip('"').rstrip('"')
 
@@ -97,11 +127,9 @@ class ScopeResolver(object):
 
         result = func_str
 
-        if func_str.startswith('DateTime.Parse'):
-            if isinstance(param, str):
-                result = parser.parse(param)
-            else:
-                result = param
+        if 'DateTime.Parse' in func_str or 'AddDays' in func_str:
+            result, _ = self.resolve_datetime_related(func_str, declare_map)
+            self.logger.debug('resolved [{}] as datetime_obj {}'.format(func_str, result))
         elif func_str.startswith('int.Parse'):
             result = int(param)
         elif func_str.startswith('Math.Abs'):
@@ -109,10 +137,6 @@ class ScopeResolver(object):
 
         if 'ToString()' in func_str:
             result = str(result)
-
-        if 'AddDays' in func_str:
-            # must be datetime already
-            result = self.process_add_days(result, func_str)
 
         return result
 
@@ -122,14 +146,20 @@ class ScopeResolver(object):
     def resolve_str_format(self, format_str, format_items, declare_map):
         placeholders = re.findall(r'{(.*?)}', format_str)
 
-        # resolve placeholder values
+        datetime_obj = None
+
+        # resolve placeholder values and find if any datetime obj
         for i, format_item in enumerate(format_items):
+            # check if Datetime related. Use last occurrence as hidden datetime obj
+            _, tmp_datetime_obj = self.resolve_datetime_related(format_item, declare_map)
+            if tmp_datetime_obj:
+                datetime_obj = tmp_datetime_obj
+
             format_items[i] = self.resolve_declare_rvalue(None, format_item, declare_map)
 
         self.logger.debug('format_items = ' + str(format_items))
 
         replace_map = {}
-        datetime_obj = None
 
         for ph in placeholders:
             if ':' in ph:
@@ -250,13 +280,12 @@ class ScopeResolver(object):
                 resolved = self.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
                 declare_map[declare_lvalue] = resolved
             except Exception as ex:
+                self.logger.debug('Exception in resolve_declare: {}'.format(ex))
                 # ignore unsupported syntax
                 pass
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    fmt_str = '/{0}/{1}-{2}'
-    items = ['AAA', 'BBB', 'CCC']
-
-    result = ScopeResolver().resolve_str_format(fmt_str, items, {})
+    result = ScopeResolver().resolve_func('DateTime.Parse(@RunDate).AddDays(-0)', {})
+    print(result)

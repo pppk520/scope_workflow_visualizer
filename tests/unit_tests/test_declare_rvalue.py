@@ -78,3 +78,12 @@ class TestDeclareRvalue(TestCase):
         self.assertTrue(result['format_str'] == '{0}/{1:yyyy/MM/dd}/Delta{2}_')
         self.assertCountEqual(result['format_items'], ['@"/local/prod/pipelines/Optimization/KeywordOpportunity/Preparations/MPIProcessing/Debug"','DateTime.Parse(@RunDate)', '@DateDelta'])
 
+
+    def test_ref_func_chain(self):
+        s = '''
+        @RunDate.AddDays(-6).ToString("yyyy-MM-dd") 
+        '''
+
+        result = DeclareRvalue().parse(s)
+        self.assertCountEqual(result['format_items'], ['@RunDate.AddDays(-6).ToString("yyyy-MM-dd")'])
+

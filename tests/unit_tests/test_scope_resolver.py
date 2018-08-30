@@ -10,7 +10,8 @@ class TestScopeResolver(TestCase):
             '@BTEPath': 'the_bte_path',
             '@BTERunDate': '2018-08-01',
             '@RunDate': '2018-01-02',
-            '@dateObj': parser.parse('2018-01-01')
+            '@dateObj': parser.parse('2018-01-01'),
+            '@KWRawPath': 'kw_raw_path'
         }
 
     def test_basic_num(self):
@@ -73,4 +74,22 @@ class TestScopeResolver(TestCase):
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
         self.assertEqual(result, "/path_to/2017/12/KeywordsSearchCountDaily_2017-12-31.ss?date=2017-12-01...2017-12-31&sparsestreamset=true")
+
+    def test_string_format_datetime_parse_to_string(self):
+        s = '''
+        string.Format("/path_to/Daily/%Y/%m/Campaign_FiltrationFunnelDaily_%Y%m%d.ss?date={0}...{1}", @dateObj.AddDays(-6).ToString("yyyy-MM-dd"), @dateObj.ToString("yyyy-MM-dd"));
+        '''
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
+        self.assertEqual(result, '/path_to/Daily/2018/01/Campaign_FiltrationFunnelDaily_20180101.ss?date="2017-12-26"..."2018-01-01"')
+
+    def test_string_format_idx(self):
+        s = '''
+        string.Format("{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/AuctionWithKeywordAndMT.ss", @KWRawPath, @dateObj)
+        '''
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
+        self.assertEqual(result, 'kw_raw_path/Preparations/MPIProcessing/2018/01/01/AuctionWithKeywordAndMT.ss')
+
+
 
