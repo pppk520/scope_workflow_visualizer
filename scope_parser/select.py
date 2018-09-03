@@ -98,9 +98,11 @@ class Select(object):
     one_column = Group(one_column_no_as_comb + Optional(as_something) | '*').setName('one_column')
 
     one_column_anything = Word(printables + ' ', excludeChars=',\n')
-    one_column_as = Regex(r'(.*?)AS') + ident
 
-    column_name_list = Group(delimitedList(one_column_as | one_column | one_column_anything))('column_name_list')
+    one_column_la_from = Regex(r'(.*?)(?=FROM)')
+    one_column_as = Regex(r'(.*?)AS') + ident  # aggresive regex for very complex column
+
+    column_name_list = Group(delimitedList(one_column_la_from | one_column_as | one_column | one_column_anything))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
     func_expr = Combine(func + ZeroOrMore('.' + ident))
@@ -159,14 +161,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.from_select.parseString('''
-            (
-            SELECT *
-            FROM Step1
-            UNION ALL
-            SELECT *
-            FROM ImpressionShare
-            )
+        print(self.one_column_as.parseString(''' Microsoft.RnR.AdInsight.Utils.ConvertToInt(SUM(IF(ALL(ValidImpressions > 0, Utility.AbsPositionFromPagePosition(PagePosition, Markets, LCID, MarketplaceClassificationId, PublisherOwnerId, CountryCode, MLAdsCnt, RequestedMainlineAdsCnt) <= 4), 1, 0))) AS MLImpressions
         '''))
 
 
@@ -263,12 +258,9 @@ if __name__ == '__main__':
 
     print(obj.parse('''
     
-    All_AdInsightMPI =
-        SELECT *
-        FROM MPI_AdInsightFeatureAdoption
-        UNION ALL
-        SELECT *
-        FROM MPI_AdInsightOptimization
+CampaignInRGUIDsWithName =
+    SELECT A.*,B.CampaignName FROM CampaignInRGUIDs AS A LEFT OUTER JOIN NoSLCampaigns AS B
+    ON A.CampaignId == B.CampaignId
     '''))
 
 

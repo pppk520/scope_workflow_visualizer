@@ -840,6 +840,18 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'DedupeList_BlockRules')
         self.assertCountEqual(result['sources'], ['BlockRules_Customer', 'BlockRules_Account', 'DedupeList'])
 
+    def test_from_one_line_from(self):
+        s = '''
+        CampaignInRGUIDsWithName =
+            SELECT A.*,B.CampaignName FROM CampaignInRGUIDs AS A LEFT OUTER JOIN NoSLCampaigns AS B
+            ON A.CampaignId == B.CampaignId
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'CampaignInRGUIDsWithName')
+        self.assertCountEqual(result['sources'], ['CampaignInRGUIDs', 'NoSLCampaigns'])
+
 
 
 

@@ -66,6 +66,18 @@ def print_wf_params(proj_folder, target_filename, exclude_keys=[]):
     process_name = wfp.get_closest_process_name(target_filename, obj)
     print(json.dumps(wfp.get_params(obj, process_name), indent=4))
 
+@click.argument('proj_folder', type=click.Path(exists=True))
+@click.argument('output_folder')
+@click.option('--target_node_names', multiple=True, default=[])
+@click.option('--exclude_keys', multiple=True, default=[])
+def to_workflow_dep_graph(proj_folder, output_folder, target_node_names=[], exclude_keys=[]):
+    wfp = WorkflowParser()
+    obj = wfp.parse_folder(proj_folder)
+
+    proj_name = os.path.basename(proj_folder)
+    dest_filepath = '{}/event_dep_[{}]'.format(output_folder, proj_name, '-'.join(target_node_names))
+
+    wfp.to_workflow_dep_graph(obj, dest_filepath=dest_filepath, target_node_names=target_node_names)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -73,13 +85,38 @@ if __name__ == '__main__':
 
 #    print_wf_params(r'D:\workspace\AdInsights\private\Backend\Opportunities', '6.MPIProcessing.script')
 
+    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
-                 target_filenames=['6.MPIProcessing.script',
-                                   '7.PKVGeneration_BMMO.script',
-                                   '7.PKVGeneration_BMO.script',
-                                   '7.PKVGeneration_BMOEX.script',
-                                   '7.PKVGeneration_KWO.script',
-                                   'MPIPrepare.script'],
+                 target_filenames=[
+                     '6.MPIProcessing.script',
+#                     '7.PKVGeneration_BMMO.script',
+#                     '7.PKVGeneration_BMO.script',
+#                     '7.PKVGeneration_BMOEX.script',
+#                     '7.PKVGeneration_KWO.script',
+#                     'MPIPrepare.script',
+#                     'CampaignTargetingInfo.script'
+                     'KeywordOpt_CampaignTargetInfo.script'
+                 ],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''
+
+    '''
+    to_workflow_dep_graph(
+                 r'D:/workspace/AdInsights/private/Backend\Opportunities',
+                 r'D:/tmp/tt',
+                 target_node_names=[
+                     'KeywordOpt_CampaignTargetInfo.script'
+                 ])
+    '''
+
+    parse_script(r'D:/workspace/AdInsights/private/Backend/FeatureAdoption',
+                 r'D:/tmp/tt',
+                 target_filenames=[
+                     'SiteLinkOpportunity.script'
+                 ],
+                 add_sstream_link=True,
+                 add_sstream_size=True)
+
+
