@@ -20,8 +20,13 @@ class ScopeResolver(object):
         if match:
             param = match.group(1).replace('"', '')
             param = declare_map.get(param, param)
+            param = param.replace('"', '')
 
-            return parser.parse(param)
+            if isinstance(param, str):
+                self.logger.debug('try to do datetime parse [{}]'.format(param))
+                param = parser.parse(param)
+
+            return param
 
     def resolve_datetime_related(self, format_item, declare_map):
         self.logger.debug('resolve_datetime_related of [{}]'.format(format_item))
@@ -152,6 +157,7 @@ class ScopeResolver(object):
         return datetime_obj.strftime(fmt_str)
 
     def resolve_str_format(self, format_str, format_items, declare_map):
+        self.logger.debug('resolve_str_format of [{}], format_items = [{}]'.format(format_str, format_items))
         placeholders = re.findall(r'{(.*?)}', format_str)
 
         datetime_obj = None
@@ -160,6 +166,7 @@ class ScopeResolver(object):
         for i, format_item in enumerate(format_items):
             # check if Datetime related. Use last occurrence as hidden datetime obj
             _, tmp_datetime_obj = self.resolve_datetime_related(format_item, declare_map)
+
             if tmp_datetime_obj:
                 datetime_obj = tmp_datetime_obj
 
@@ -242,7 +249,7 @@ class ScopeResolver(object):
             # replace those declare items inside rvalue, if any remains
             declare_rvalue = self.replace_declare_items(declare_rvalue, declare_map)
         except Exception as ex:
-            self.logger.warning('resolve_declare_rvalue: {}'.format(ex))
+            self.logger.warning('Exception in resolve_declare_rvalue: {}'.format(ex))
             return declare_rvalue
 
         format_str = ret_declare_rvalue['format_str']
@@ -286,6 +293,7 @@ class ScopeResolver(object):
                     continue
 
                 resolved = self.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
+                self.logger.info('update resolved [{}] to [{}]'.format(declare_lvalue, resolved))
                 declare_map[declare_lvalue] = resolved
             except Exception as ex:
                 self.logger.debug('Exception in resolve_declare: {}'.format(ex))
@@ -295,5 +303,13 @@ class ScopeResolver(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    result = ScopeResolver().resolve_func('@dateObj.ToString("yyyy-MM-dd")', {'dateObj': datetime.now()})
+#    result = ScopeResolver().resolve_func('@dateObj.ToString("yyyy-MM-dd")', {'dateObj': datetime.now()})
+#    print(result)
+
+    result = ScopeResolver().resolve_str_format('{0}/Result/%Y/%m/BidRange_%Y-%m-%d.ss?date={1:yyyy-MM-dd}...{2:yyyy-MM-dd}',
+                                                ['@EKWFolder', 'DateTime.Parse(@BTEResultStartDate)',
+                                                 'DateTime.Parse(@BTEResultEndDate)'],
+                                                {'EKWFolder': '/path/to/ekw',
+                                                 'BTEResultStartDate': datetime.now(),
+                                                 'BTEResultEndDate': datetime.now()})
     print(result)

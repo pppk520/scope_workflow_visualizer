@@ -21,6 +21,7 @@ class WorkflowObj(object):
         self.process_master_map = {} # process_name -> master config filename
         self.process_group_map = {}  # process_name -> group name
         self.group_master_map = {}   # group name -> master config name
+        self.script_process_map = {} # script name -> process_name
 
 
 class WorkflowParser(object):
@@ -82,9 +83,13 @@ class WorkflowParser(object):
     @staticmethod
     def get_closest_process_name(process_key, workflow_obj):
         process_names = workflow_obj.workflows.keys()
+        script_process_map = workflow_obj.script_process_map
 
         if process_key in process_names:
             return process_key
+
+        if process_key in script_process_map:
+            return script_process_map[process_key]
 
         # use edit distance to identify the closest one
         min_key = process_key
@@ -110,14 +115,20 @@ class WorkflowParser(object):
         process_master_map = {} # process_name -> master config filename
         process_group_map = {}  # process_name -> group name
         group_master_map = {}   # group name -> master config name
+        script_process_map = {} # script name -> process_name
 
         exclude_keys.append('/objd/') # by default, ignore this
 
         for filepath in files:
+            b_exclude = False
             for key in exclude_keys:
                 if key in filepath:
                     self.logger.info('skip exclude file [{}]'.format(filepath))
-                    continue
+                    b_exclude = True
+                    break
+
+            if b_exclude:
+                continue
 
             self.logger.debug('parse_folder: filepath = {}'.format(filepath))
             try:
@@ -130,7 +141,13 @@ class WorkflowParser(object):
                 continue
 
             if d['master']:
+                self.logger.info('found master config [{}]'.format(filepath))
                 key = os.path.basename(filepath)
+
+                if key in masters:
+                    self.logger.info('only use the first occurrence of a master config')
+                    continue
+
                 masters[key] = d
                 master_wf_groups[key] = set()
 
@@ -156,13 +173,18 @@ class WorkflowParser(object):
                     self.logger.info('skip non-ScopeJobRunner config.')
                     continue
 
-                script_name = os.path.basename(d['ScriptFile']).replace('.script', '')
+                script_name = os.path.basename(d['ScriptFile'])
+                script_name_key = script_name.replace('.script', '')
                 config_name = os.path.basename(filepath).replace('.config', '')
 
                 if config_name != process_name:
-                    self.logger.warning('config_name != script_name, use config_name as process_name')
+                    self.logger.warning('config_name != script_name_key, use config_name as process_name')
                     process_name = config_name
                     d['process_name'] = config_name
+
+                # keep the first occurrence
+                if script_name not in script_process_map:
+                    script_process_map[script_name] = d['process_name']
 
                 self.logger.debug('process_name = {}'.format(process_name))
                 workflows[process_name] = d
@@ -184,6 +206,7 @@ class WorkflowParser(object):
         obj.group_master_map = group_master_map
         obj.process_group_map = process_group_map
         obj.process_master_map = process_master_map
+        obj.script_process_map = script_process_map
 
         return obj
 
@@ -207,10 +230,15 @@ class WorkflowParser(object):
                         self.logger.warning(ex)
 
     def resolve_param(self, master_params, param_str):
+        self.logger.debug('resolve_param of [{}]'.format(param_str))
+
         for match in re.findall(r'\$\(.*?\)', param_str):
             param = match[2:-1]
 
             if param in master_params:
+                if master_params[param] is None:
+                    continue
+
                 param_str = param_str.replace(match, master_params[param])
 
         return param_str.replace('\\"', '"')

@@ -4,9 +4,9 @@ from scope_parser.common import Common
 class Using(object):
     USING = Keyword("USING")
 
-    value_str = Common.value_str
+    ident_dot = Common.ident_dot;
 
-    using = USING + Combine(value_str)('path')
+    using = USING + Combine(ident_dot)('path')
 
     def parse(self, s):
         data = self.using.parseString(s)
@@ -16,4 +16,4 @@ class Using(object):
 if __name__ == '__main__':
     obj = Using()
 
-    print(obj.parse('USING ImpressionShareLib;'))
+    print(obj.parse('USING AdInsight.Common.SharedSchema.LogRecord.Bid'))

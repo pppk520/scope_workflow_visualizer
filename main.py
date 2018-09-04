@@ -11,6 +11,7 @@ def cli():
     pass
 
 def parse_script(proj_folder,
+                 workflow_folder,
                  output_folder,
                  target_filenames=[],
                  add_sstream_link=False,
@@ -18,7 +19,7 @@ def parse_script(proj_folder,
                  exclude_keys=[]):
 
     wfp = WorkflowParser()
-    obj = wfp.parse_folder(proj_folder)
+    obj = wfp.parse_folder(workflow_folder)
 
     script_fullpath_map = {}
     for f in FileUtility.list_files_recursive(proj_folder, target_suffix='.script'):
@@ -43,11 +44,13 @@ def parse_script(proj_folder,
 
 @cli.command()
 @click.argument('proj_folder')
+@click.argument('workflow_folder')
 @click.argument('output_folder')
 @click.option('--target_filenames', multiple=True, default=[])
 @click.option('--add_sstream_link', type=bool, default=True, help='resolve and add sstream link')
 @click.option('--exclude_keys', multiple=True, default=[])
 def script_to_graph(proj_folder,
+                 workflow_folder,
                  output_folder,
                  target_filenames,
                  add_sstream_link,
@@ -56,25 +59,25 @@ def script_to_graph(proj_folder,
     return parse_script(proj_folder, output_folder, target_filenames, add_sstream_link, exclude_keys)
 
 
-@click.argument('proj_folder', type=click.Path(exists=True))
+@click.argument('workflow_folder', type=click.Path(exists=True))
 @click.argument('target_filename')
 @click.option('--exclude_keys', multiple=True, default=[])
-def print_wf_params(proj_folder, target_filename, exclude_keys=[]):
+def print_wf_params(workflow_folder, target_filename, exclude_keys=[]):
     wfp = WorkflowParser()
-    obj = wfp.parse_folder(proj_folder)
+    obj = wfp.parse_folder(workflow_folder)
 
     process_name = wfp.get_closest_process_name(target_filename, obj)
     print(json.dumps(wfp.get_params(obj, process_name), indent=4))
 
-@click.argument('proj_folder', type=click.Path(exists=True))
+@click.argument('workflow_folder', type=click.Path(exists=True))
 @click.argument('output_folder')
 @click.option('--target_node_names', multiple=True, default=[])
 @click.option('--exclude_keys', multiple=True, default=[])
-def to_workflow_dep_graph(proj_folder, output_folder, target_node_names=[], exclude_keys=[]):
+def to_workflow_dep_graph(workflow_folder, output_folder, target_node_names=[], exclude_keys=[]):
     wfp = WorkflowParser()
-    obj = wfp.parse_folder(proj_folder)
+    obj = wfp.parse_folder(workflow_folder)
 
-    proj_name = os.path.basename(proj_folder)
+    proj_name = os.path.basename(workflow_folder)
     dest_filepath = '{}/event_dep_[{}]'.format(output_folder, proj_name, '-'.join(target_node_names))
 
     wfp.to_workflow_dep_graph(obj, dest_filepath=dest_filepath, target_node_names=target_node_names)
@@ -87,6 +90,7 @@ if __name__ == '__main__':
 
     '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
+                 r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
                  target_filenames=[
                      '6.MPIProcessing.script',
@@ -111,6 +115,7 @@ if __name__ == '__main__':
                  ])
     '''
 
+    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend/FeatureAdoption',
                  r'D:/tmp/tt',
                  target_filenames=[
@@ -118,5 +123,21 @@ if __name__ == '__main__':
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''
 
+    '''
+    to_workflow_dep_graph(
+                 r'D:/workspace/AdInsights/private/Backend/UCM',
+                 r'D:/tmp/tt',
+                 target_node_names=[])
+    '''
 
+    # it uses external parameters, use cloudbuild result because it resolves external params
+    parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
+                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
+                 r'D:/tmp/tt',
+                 target_filenames=[
+                     'BidOptMPIProcessing.script'
+                 ],
+                 add_sstream_link=True,
+                 add_sstream_size=True)

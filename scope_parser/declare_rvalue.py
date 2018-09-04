@@ -71,4 +71,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('@KWRawPath'))
+    print(r.parse('string.Format("{0}/Result/%Y/%m/BidRange_%Y-%m-%d.ss?date={1:yyyy-MM-dd}...{2:yyyy-MM-dd}",     @EKWFolder, DateTime.Parse(@BTEResultStartDate), DateTime.Parse(@BTEResultEndDate))'))

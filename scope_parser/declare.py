@@ -1,3 +1,4 @@
+import re
 from pyparsing import *
 from scope_parser.common import Common
 
@@ -7,14 +8,15 @@ class Declare(object):
 
     ident = Common.ident
 
-    declare = DECLARE + Combine(ident)('key') + DATA_TYPE + '=' + restOfLine('value')
+    declare = DECLARE + Combine(ident)('key') + DATA_TYPE + '=' + Regex('(.*?);', flags=(re.DOTALL|re.MULTILINE))
 
     def parse(self, s):
+        s = s + ';' # ; is our end of string, must be existing
         data = self.declare.searchString(s)
 
         if data:
             return data[0][1].strip(), \
-                   data[0][-1].strip().rstrip(';')
+                   data[0][-1].replace('\n', '').rstrip(';').strip()
 
         return None, None
 
@@ -27,4 +29,7 @@ if __name__ == '__main__':
     d = Declare()
     #d.debug()
 
-    print(d.parse('#DECLARE monthlyQVMinThr long = long.Parse("@@monthlyQVMinThr@@")'))
+    print(d.parse('''
+#DECLARE BidRange string = string.Format("{0}/Result/%Y/%m/BidRange_%Y-%m-%d.ss?date={1:yyyy-MM-dd}...{2:yyyy-MM-dd}", 
+    @EKWFolder, DateTime.Parse(@BTEResultStartDate), DateTime.Parse(@BTEResultEndDate));
+        '''))
