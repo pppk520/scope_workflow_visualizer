@@ -87,3 +87,12 @@ class TestDeclareRvalue(TestCase):
         result = DeclareRvalue().parse(s)
         self.assertCountEqual(result['format_items'], ['@RunDate.AddDays(-6).ToString("yyyy-MM-dd")'])
 
+    def test_format_str_param(self):
+        s = '''
+        string.Format(@IdNamePath, @BidOptFolder, @RunDateTime, "OrderItemIdNameMap") 
+        '''
+
+        result = DeclareRvalue().parse(s)
+        self.assertCountEqual(result['format_items'], ['@BidOptFolder', '@RunDateTime', '"OrderItemIdNameMap"'])
+
+

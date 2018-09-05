@@ -16,7 +16,7 @@ class DeclareRvalue(object):
     format_item = func_chain('func_chain') | param_str('param_str') | param('param') | ident('ident')
     placeholder_basic = Group('{' + Word(nums) + '}')
     placeholder_date = Group('{' + Word(nums) + ':' + delimitedList(oneOf('yyyy MM dd'), delim=oneOf('/ - _')) + '}')
-    string_format = keyword_string_format + '(' + Optional('@') + quotedString('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
+    string_format = keyword_string_format + '(' + (param_str | param)('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
 
     rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums)('nums') | func_chain('func_chain') | param_str('param_str') | param('param')
 
@@ -34,7 +34,7 @@ class DeclareRvalue(object):
         }
 
         if 'format_str' in result:
-            ret['format_str'] = result['format_str'].lstrip('"').rstrip('"')
+            ret['format_str'] = result['format_str'].lstrip('@').lstrip('"').rstrip('"')
             ret['format_items'] = result['format_item']
             ret['type'] = 'format_str'
         elif 'str_cat' in result:
@@ -71,4 +71,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('string.Format("{0}/Result/%Y/%m/BidRange_%Y-%m-%d.ss?date={1:yyyy-MM-dd}...{2:yyyy-MM-dd}",     @EKWFolder, DateTime.Parse(@BTEResultStartDate), DateTime.Parse(@BTEResultEndDate))'))
+    print(r.parse('string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate));'))

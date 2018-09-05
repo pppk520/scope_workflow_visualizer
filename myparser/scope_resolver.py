@@ -156,8 +156,28 @@ class ScopeResolver(object):
     def resolve_ymd(self, fmt_str, datetime_obj):
         return datetime_obj.strftime(fmt_str)
 
+    def get_format_str_declared(self, format_str, declare_map):
+        if not format_str:
+            return format_str
+
+        # CASE: string.Format(@IdNamePath, @BidOptFolder, @RunDateTime, "OrderItemIdNameMap")
+        if '@' + format_str in declare_map:
+            format_str = declare_map['@' + format_str]
+
+        return format_str
+
+    def convert_datetime_obj(self, datetime_obj):
+        if isinstance(datetime_obj, str):
+            self.logger.warning('datetime_obj is str [{}], try to parse it.'.format(datetime_obj))
+            return parser.parse(datetime_obj)
+
+        return datetime_obj
+
     def resolve_str_format(self, format_str, format_items, declare_map):
         self.logger.debug('resolve_str_format of [{}], format_items = [{}]'.format(format_str, format_items))
+
+        format_str = self.get_format_str_declared(format_str, declare_map)
+
         placeholders = re.findall(r'{(.*?)}', format_str)
 
         datetime_obj = None
@@ -189,6 +209,8 @@ class ScopeResolver(object):
                         datetime_obj = declare_map[item]
                     else:
                         datetime_obj = item
+
+                    datetime_obj = self.convert_datetime_obj(datetime_obj)
 
                     date_Y = datetime_obj.strftime('%Y')
                     date_m = datetime_obj.strftime('%m')
@@ -256,6 +278,8 @@ class ScopeResolver(object):
         format_items = ret_declare_rvalue['format_items']
         type_ = ret_declare_rvalue['type']
 
+        format_str = self.get_format_str_declared(format_str, declare_map)
+
         result = ""
 
         # update declare_map
@@ -306,10 +330,8 @@ if __name__ == '__main__':
 #    result = ScopeResolver().resolve_func('@dateObj.ToString("yyyy-MM-dd")', {'dateObj': datetime.now()})
 #    print(result)
 
-    result = ScopeResolver().resolve_str_format('{0}/Result/%Y/%m/BidRange_%Y-%m-%d.ss?date={1:yyyy-MM-dd}...{2:yyyy-MM-dd}',
-                                                ['@EKWFolder', 'DateTime.Parse(@BTEResultStartDate)',
-                                                 'DateTime.Parse(@BTEResultEndDate)'],
-                                                {'EKWFolder': '/path/to/ekw',
-                                                 'BTEResultStartDate': datetime.now(),
-                                                 'BTEResultEndDate': datetime.now()})
+    result = ScopeResolver().resolve_str_format('@"{0}/C2CPrepare/{1:yyyy/MM}/{2}_{1:yyyy-MM-dd}.ss"',
+                                                ['@BidOptFolder', '@RunDateTime', '"OrderItemIdNameMap"'],
+                                                {'@BidOptFolder': '/path/to/ekw',
+                                                 '@RunDateTime': datetime.now()})
     print(result)

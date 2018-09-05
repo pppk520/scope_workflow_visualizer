@@ -137,7 +137,8 @@ if __name__ == '__main__':
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
                  r'D:/tmp/tt',
                  target_filenames=[
-                     'BidOptMPIProcessing.script'
+                     'BidOptMPIPreProcessing.script',
+#                     'BidOptMPIProcessing.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
