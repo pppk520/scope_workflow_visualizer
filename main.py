@@ -73,14 +73,21 @@ def print_wf_params(workflow_folder, target_filename, exclude_keys=[]):
 @click.argument('output_folder')
 @click.option('--target_node_names', multiple=True, default=[])
 @click.option('--exclude_keys', multiple=True, default=[])
-def to_workflow_dep_graph(workflow_folder, output_folder, target_node_names=[], exclude_keys=[]):
+@click.option('--filter_type', default=None)
+def to_workflow_dep_graph(workflow_folder, output_folder, target_node_names=[], exclude_keys=[], filter_type=None):
     wfp = WorkflowParser()
     obj = wfp.parse_folder(workflow_folder)
 
     proj_name = os.path.basename(workflow_folder)
-    dest_filepath = '{}/event_dep_[{}]'.format(output_folder, proj_name, '-'.join(target_node_names))
+    dest_filepath = '{}/event_dep_[{}]_target_[{}]_filter_{}'.format(output_folder,
+                                                                   proj_name,
+                                                                   '-'.join(target_node_names),
+                                                                   filter_type)
 
-    wfp.to_workflow_dep_graph(obj, dest_filepath=dest_filepath, target_node_names=target_node_names)
+    wfp.to_workflow_dep_graph(obj,
+                              dest_filepath=dest_filepath,
+                              target_node_names=target_node_names,
+                              filter_type=filter_type)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -88,23 +95,21 @@ if __name__ == '__main__':
 
 #    print_wf_params(r'D:\workspace\AdInsights\private\Backend\Opportunities', '6.MPIProcessing.script')
 
-    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
                  target_filenames=[
-                     '6.MPIProcessing.script',
+#                     '6.MPIProcessing.script',
 #                     '7.PKVGeneration_BMMO.script',
 #                     '7.PKVGeneration_BMO.script',
 #                     '7.PKVGeneration_BMOEX.script',
 #                     '7.PKVGeneration_KWO.script',
 #                     'MPIPrepare.script',
-#                     'CampaignTargetingInfo.script'
+                     'CampaignTargetingInfo.script',
                      'KeywordOpt_CampaignTargetInfo.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
-    '''
 
     '''
     to_workflow_dep_graph(
@@ -132,13 +137,34 @@ if __name__ == '__main__':
                  target_node_names=[])
     '''
 
+    '''
     # it uses external parameters, use cloudbuild result because it resolves external params
     parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
                  r'D:/tmp/tt',
                  target_filenames=[
                      'BidOptMPIPreProcessing.script',
-#                     'BidOptMPIProcessing.script'
+                     'BidOptMPIProcessing.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''
+
+    '''
+    parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
+                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
+                 r'D:/tmp/tt',
+                 target_filenames=[
+                     'NKW3_TrafficEstimation.script',
+                 ],
+                 add_sstream_link=True,
+                 add_sstream_size=True)
+    '''
+
+    to_workflow_dep_graph(
+                 r'D:/workspace/AdInsights/private/Backend/BTE',
+                 r'D:/tmp/tt',
+                 target_node_names=[],
+#                 filter_type='SCRIPT')
+                 filter_type=None)
+

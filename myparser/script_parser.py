@@ -167,7 +167,7 @@ class ScriptParser(object):
 
     def remove_data_hint(self, content):
         #[ROWCOUNT=100]
-        re_dh_1 = re.compile(r'\[.+?=\d+?\]')
+        re_dh_1 = re.compile(r'\[.+?=[ ]?\d+?\]')
         content = re.sub(re_dh_1, '', content)
 
         #[LOWDISTINCTNESS(MatchTypeId)]
