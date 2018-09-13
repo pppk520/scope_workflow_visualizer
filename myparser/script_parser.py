@@ -382,7 +382,13 @@ class ScriptParser(object):
     def process_declare(self, part, declare_map):
         key, value = self.declare.parse(part)
 
-        declare_map['@' + key] = value
+        # ignore MAP for now
+        if 'MAP' in value:
+            declare_map['@' + key] = 'MAP'
+
+        # back-to-back double quotes are from resolving external params
+        # case: "@@ExtParam@@" with @@ExtParam@@ = \"some_string\"
+        declare_map['@' + key] = value.replace('""', '"')
 
         self.logger.info('declare [{}] as [{}]'.format(key, value))
 
@@ -420,7 +426,7 @@ class ScriptParser(object):
             if 'date' in key.lower() or 'hour' in key.lower():
                 continue
 
-            self.external_params[key] = external_params[key].replace('\"', '')
+            self.external_params[key] = external_params[key]
             self.logger.debug('update external_param key [{}] to value [{}]'.format(key, self.external_params[key]))
 
         content = FileUtility.get_file_content(filepath)

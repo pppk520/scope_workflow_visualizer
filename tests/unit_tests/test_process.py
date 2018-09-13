@@ -38,3 +38,14 @@ class TestProcess(TestCase):
         self.assertCountEqual(result['sources'], ['KWCandidatesPrepared'])
         self.assertTrue(result['using'], 'BTEAdjustmentProcessor')
 
+
+    def test_process_no_assign(self):
+        s = '''
+        PROCESS USING BSCPartitionLookup(@BSCPartitionHistogramFileName ); 
+        '''
+
+        result = Process().parse(s)
+
+        self.assertTrue(result['assign_var'] is None)
+        self.assertCountEqual(result['sources'], [])
+        self.assertTrue(result['using'], 'BSCPartitionLookup')

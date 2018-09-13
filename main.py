@@ -99,7 +99,9 @@ if __name__ == '__main__':
                  r'D:/workspace/AdInsights/private/Backend/SOV',
                  r'D:/tmp/tt',
                  target_filenames=[
-                     'SOV3_StripeOutput.script',
+#                     'SOV3_StripeOutput.script',
+                     'SOV_BSC_Final.script',
+#                     'EligibleRGuids.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)

@@ -13,8 +13,14 @@ class Process(object):
     func = Common.func
     func_ptr = Common.func_ptr
 
-    process_stmt = Combine(ident)('assign_var') + '=' + PROCESS + Combine(ident)('source') + Optional(PRODUCE + produce_schema) + USING + (func | func_ptr)('using')
+    using_func = USING + (func | func_ptr)('using')
+    process_implicit = PROCESS + Optional(PRODUCE + produce_schema) + using_func
+    process_explicit = PROCESS + Combine(ident)('source') + Optional(PRODUCE + produce_schema) + using_func
+    process_stmt = process_explicit | process_implicit
 
+    assign_process_stmt = Combine(ident)('assign_var') + '=' + process_stmt
+
+    process_both = assign_process_stmt | process_stmt
 
     def parse(self, s):
         ret = {
@@ -23,10 +29,12 @@ class Process(object):
             'using': None
         }
 
-        d = self.process_stmt.parseString(s)
+        d = self.process_both.parseString(s)
 
-        ret['assign_var'] = d['assign_var']
-        ret['sources'].add(d['source'])
+        ret['assign_var'] = d.get('assign_var', None)
+        if 'source' in d:
+            ret['sources'].add(d['source'])
+
         ret['using'] = d['using'][0]
 
         return ret
@@ -35,9 +43,7 @@ if __name__ == '__main__':
     obj = Process()
 
     print(obj.parse('''
-Suggestions = 
-    PROCESS Suggestions
-    USING Utils.RankingProcessor("AdvertiserIntelligenceConfig.txt","[Algo1]");
+IS_ORDER_BSC = PROCESS IS_ORDER_BSC USING StripePartitionLookupProcessor("PipelineConfiguration.xml")
         '''))
 
 

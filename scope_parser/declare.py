@@ -6,9 +6,11 @@ class Declare(object):
     DECLARE = Keyword("#DECLARE")
     DATA_TYPE = oneOf("string String DateTime int bool double long ulong")('data_type')
 
+    data_type_map = 'MAP' + '<' + DATA_TYPE + ',' + DATA_TYPE + Optional('?') + '>'
+
     ident = Common.ident
 
-    declare = DECLARE + Combine(ident)('key') + DATA_TYPE + '=' + Regex('(.*?);', flags=(re.DOTALL|re.MULTILINE))
+    declare = DECLARE + Combine(ident)('key') + (DATA_TYPE | data_type_map) + '=' + Regex('(.*?);', flags=(re.DOTALL|re.MULTILINE))
 
     def parse(self, s):
         s = s + ';' # ; is our end of string, must be existing
@@ -30,6 +32,17 @@ if __name__ == '__main__':
     #d.debug()
 
     print(d.parse('''
-#DECLARE BidRange string = string.Format("{0}/Result/%Y/%m/BidRange_%Y-%m-%d.ss?date={1:yyyy-MM-dd}...{2:yyyy-MM-dd}", 
-    @EKWFolder, DateTime.Parse(@BTEResultStartDate), DateTime.Parse(@BTEResultEndDate));
+#DECLARE FilterReasonMap           MAP<string,int?> = new MAP<string,int?> 
+                                        {
+                                            {"NoFilter", 0}
+                                            ,{"RAP_BelowRankScoreReserve", 2}
+                                            ,{"RAP_NotTopCandidate",2}
+                                            ,{"RAP_NotTopForSeller",2}
+                                            ,{"RAP_BelowMinimumBid",2}   
+                                            ,{"AdsBudget_BillingAccountIoPaused", 4}
+                                            ,{"AdsBudget_BillingDailyBudgetPaused", 4}
+                                            ,{"AdsBudget_BillingMonthlyBudgetPaused", 4}
+                                            ,{"AdsBudget_CbsAccountBudgetExhausted", 4}
+                                            ,{"AdsBudget_CbsCampaignBudgetExhausted", 4}
+                                        }
         '''))

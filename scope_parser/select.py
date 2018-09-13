@@ -120,7 +120,7 @@ class Select(object):
     )
     where_expression << where_condition + ZeroOrMore((and_ | or_ | '&&' | '|') + where_expression)
 
-    join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER'))) + JOIN)
+    join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER FULL'))) + JOIN)
     join_stmt = join + table_name("join_table_name*") + Optional(AS + ident) + ON + where_expression
     cross_join_stmt = CROSS_JOIN + table_name("join_table_name*")
     cross_apply_stmt = CROSS_APPLY + (func_expr("cross_apply_func") | table_name) + Optional(AS + ident)
@@ -257,10 +257,30 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-    
-CampaignInRGUIDsWithName =
-    SELECT A.*,B.CampaignName FROM CampaignInRGUIDs AS A LEFT OUTER JOIN NoSLCampaigns AS B
-    ON A.CampaignId == B.CampaignId
+Sov_Offer_LessDimension =
+    SELECT 
+        DateKey, 
+        HourNum, 
+        CustomerId,
+        AccountId,
+        CampaignId,
+        OrderId,
+        ProductOfferId,
+        DeviceTypeId,
+        RelationshipId,
+        NetworkId,
+         
+         
+        LoadTime,
+        SUM(ImpressionCnt) AS ImpressionCnt,
+        SUM(RankFilteredImpressionCnt) AS RankFilteredImpressionCnt,
+        SUM(BudgetFilteredImpressionCnt) AS BudgetFilteredImpressionCnt,
+        SUM(ImpressionCnt)+ SUM(RankFilteredImpressionCnt) + SUM(BudgetFilteredImpressionCnt) AS EligibleImpressionCnt,
+        (decimal)SUM(BenchmarkCTR_Numerator) AS BenchmarkCTR_Numerator,
+        (decimal)SUM(BenchmarkCTR_Denominator) AS BenchmarkCTR_Denominator,
+        (decimal)SUM(BenchmarkBid_Numerator) AS BenchmarkBid_Numerator ,
+        (decimal)SUM(BenchmarkBid_Denominator) AS BenchmarkBid_Denominator
+    FROM Sov_Offer
     '''))
 
 
