@@ -41,7 +41,7 @@ class TestDeclareRvalue(TestCase):
         '''
 
         result = DeclareRvalue().parse(s)
-        self.assertCountEqual(result['format_items'], ['66'])
+        self.assertEqual(result['format_items'][0], '66')
 
     def test_str_cat(self):
         s = '''

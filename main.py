@@ -93,7 +93,16 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 #    cli()
 
-#    print_wf_params(r'D:\workspace\AdInsights\private\Backend\Opportunities', '6.MPIProcessing.script')
+#    print_wf_params(r'D:\workspace\AdInsights\private\Backend\SOV', 'SOV3_StripeOutput.script')
+
+    parse_script(r'D:/workspace/AdInsights/private/Backend/SOV',
+                 r'D:/workspace/AdInsights/private/Backend/SOV',
+                 r'D:/tmp/tt',
+                 target_filenames=[
+                     'SOV3_StripeOutput.script',
+                 ],
+                 add_sstream_link=True,
+                 add_sstream_size=False)
 
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/workspace/AdInsights/private/Backend\Opportunities',
@@ -161,10 +170,11 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
+    '''
     to_workflow_dep_graph(
-                 r'D:/workspace/AdInsights/private/Backend/BTE',
+                 r'D:/workspace/AdInsights/private/Backend/SOV',
                  r'D:/tmp/tt',
-                 target_node_names=[],
+                 target_node_names=['SOV3_StripeOutput.script'],
 #                 filter_type='SCRIPT')
                  filter_type=None)
-
+    '''

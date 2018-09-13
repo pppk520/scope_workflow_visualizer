@@ -260,8 +260,17 @@ class WorkflowParser(object):
                 continue
 
             _, target = item.split()
-            key, value = target.split('=')
-            param_map[key] = self.resolve_param(master_params, value.strip())
+            # one params can map multiple params
+            # e.g. -params Date=\"{yyyy-MM-dd}\",hour={HH}
+
+            if ',' in target:
+                targets = target.split(',')
+            else:
+                targets = [target,]
+
+            for target in targets:
+                key, value = target.split('=')
+                param_map[key] = self.resolve_param(master_params, value.strip())
 
         return param_map
 

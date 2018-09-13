@@ -3,6 +3,9 @@ from myparser.scope_resolver import ScopeResolver
 from dateutil import parser
 from datetime import datetime
 
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
+
 class TestScopeResolver(TestCase):
     def setUp(self):
         self.declare_map = {
@@ -81,7 +84,7 @@ class TestScopeResolver(TestCase):
         '''
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
-        self.assertEqual('/path_to/Daily/2018/01/Campaign_FiltrationFunnelDaily_20180101.ss?date="2017-12-26"..."2018-01-01"', result)
+        self.assertEqual('/path_to/Daily/2018/01/Campaign_FiltrationFunnelDaily_20180101.ss?date=2017-12-26...2018-01-01', result)
 
     def test_string_format_idx(self):
         s = '''
@@ -90,6 +93,36 @@ class TestScopeResolver(TestCase):
 
         result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
         self.assertEqual('kw_raw_path/Preparations/MPIProcessing/2018/01/01/AuctionWithKeywordAndMT.ss', result)
+
+
+    def test_func_datetime_parseexact(self):
+        func_str = 'DateTime.ParseExact("2018-01-01" + " 00:00:00", "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);'
+
+        result = ScopeResolver().resolve_func(func_str) # result is datetime obj
+        result_str = result.strftime('%Y-%m-%d %H:%M:%S')
+        self.assertEqual("2018-01-01 00:00:00", result_str)
+
+    def test_string_format_cat_opitem(self):
+        s = '''
+        string.Format("/path/to/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}","2018-01-01",22/2*2)
+        '''
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, self.declare_map)
+        self.assertEqual('/path/to/data/prod/pipelines/ImpressionShare/Common/2018/01/01/DSAMerge2018010100.ss?date=2018-01-01&hour=22', result)
+
+
+    def test_string_format_item_int(self):
+        s = '''
+        String.Format("{0}/%Y/%m/%d/EligibleAuctionParticipants_%h.ss?date={1}&hour={2}", @SOVRawBasePath, @DATE_UTC, 23)
+        '''
+
+        declare_map = {'@SOVRawBasePath': '/path/to',
+                       '@DATE_UTC': '2018-01-01'}
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
+        self.assertEqual('/path/to/2018/01/01/EligibleAuctionParticipants_00.ss?date=2018-01-01&hour=23', result)
+
+
 
 
 

@@ -381,6 +381,7 @@ class ScriptParser(object):
 
     def process_declare(self, part, declare_map):
         key, value = self.declare.parse(part)
+
         declare_map['@' + key] = value
 
         self.logger.info('declare [{}] as [{}]'.format(key, value))
@@ -416,7 +417,7 @@ class ScriptParser(object):
 
         # keep date key because external params from config is probably yyyy-MM-dd format
         for key in external_params:
-            if 'date' in key.lower():
+            if 'date' in key.lower() or 'hour' in key.lower():
                 continue
 
             self.external_params[key] = external_params[key].replace('\"', '')
