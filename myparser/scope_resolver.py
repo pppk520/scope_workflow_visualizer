@@ -166,11 +166,17 @@ class ScopeResolver(object):
         if 'yyyy' in the_str: return True
         if 'MM' in the_str: return True
         if 'dd' in the_str: return True
+        if 'HH' in the_str: return True
 
         return False
 
     def to_normalized_time_format(self, the_str):
-        return the_str.replace('yyyy', '%Y').replace('MM', '%m').replace('dd', '%d')
+        return the_str.replace('yyyy', '%Y')\
+                      .replace('MM', '%m')\
+                      .replace('dd', '%d')\
+                      .replace('HH', '%H')\
+                      .replace('MM', '%M')\
+                      .replace('SS', '%S')
 
     def process_to_string(self, the_obj, func_str):
         found = re.findall('ToString\((.*?)\)', func_str)
@@ -319,8 +325,12 @@ class ScopeResolver(object):
                     date_Y = datetime_obj.strftime('%Y')
                     date_m = datetime_obj.strftime('%m')
                     date_d = datetime_obj.strftime('%d')
+                    date_h = datetime_obj.strftime('%H')
 
-                    replace_to = fmt.replace('yyyy', date_Y).replace('MM', date_m).replace('dd', date_d)
+                    replace_to = fmt.replace('yyyy', date_Y)\
+                                    .replace('MM', date_m)\
+                                    .replace('dd', date_d) \
+                                    .replace('HH', date_h)
             else:
                 idx = ph
                 replace_to = format_items[int(idx)]

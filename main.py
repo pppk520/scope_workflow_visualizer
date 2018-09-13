@@ -102,8 +102,9 @@ if __name__ == '__main__':
                      'SOV3_StripeOutput.script',
                  ],
                  add_sstream_link=True,
-                 add_sstream_size=False)
+                 add_sstream_size=True)
 
+    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
@@ -119,6 +120,7 @@ if __name__ == '__main__':
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''
 
     '''
     to_workflow_dep_graph(
