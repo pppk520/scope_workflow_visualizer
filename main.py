@@ -126,14 +126,13 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
-    '''
     to_workflow_dep_graph(
                  r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
                  target_node_names=[
-                     'KeywordOpt_CampaignTargetInfo.script'
-                 ])
-    '''
+                     '1.MergeSources.script'
+                 ]
+    )
 
     '''
     parse_script(r'D:/workspace/AdInsights/private/Backend/FeatureAdoption',
@@ -177,7 +176,8 @@ if __name__ == '__main__':
                  r'D:/tmp/tt',
                  target_filenames=[
 #                     'NKW3_TrafficEstimation.script',
-                     'NKWv3Call.script',
+#                     'NKWv3Call.script',
+                     'BTEKPICorrections.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     to_workflow_dep_graph(
                  r'D:/workspace/AdInsights/private/Backend/SOV',
                  r'D:/tmp/tt',
-                 target_node_names=['SOV3_StripeOutput.script'],
+#                 target_node_names=['SOV3_StripeOutput.script'],
 #                 filter_type='SCRIPT')
                  filter_type=None)
     '''

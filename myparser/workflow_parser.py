@@ -424,6 +424,7 @@ class WorkflowParser(object):
 
         event_deps = obj.process_event_deps
         workflows = obj.workflows
+        process_master_map = obj.process_master_map
 
         nodes_map = {}
         edges = []
@@ -432,6 +433,10 @@ class WorkflowParser(object):
         rev_map = {}
 
         for process_name in workflows:
+            # only show those enabled in master config
+            if not process_name in process_master_map:
+                continue
+
             script_name = os.path.basename(workflows[process_name]['ScriptFile'])
 
             script_attr = {
