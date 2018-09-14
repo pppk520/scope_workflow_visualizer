@@ -22,7 +22,7 @@ from myparser.scope_resolver import ScopeResolver
 from graph.node import Node
 from graph.edge import Edge
 from graph.graph_utility import GraphUtility
-from cosmos.sstream_schema_utiltiy import SstreamUtility
+from cosmos.sstream_utiltiy import SstreamUtility
 
 class ScriptParser(object):
     logger = logging.getLogger(__name__)

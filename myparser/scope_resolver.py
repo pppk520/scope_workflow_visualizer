@@ -405,6 +405,10 @@ class ScopeResolver(object):
         return s
 
     def replace_ref_strings(self, s):
+        # CASE: "/path/to"/subpath"
+        if s.startswith('"') and s.endswith('"') and not ParseUtil.is_extend_str_cat(s):
+            s = '"{}"'.format(s.replace('"', ''))
+
         return re.sub(r'@(".*?")', '\g<1>', s)
 
     def resolve_declare_rvalue(self, declare_lvalue, declare_rvalue, declare_map):
