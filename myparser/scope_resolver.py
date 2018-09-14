@@ -192,23 +192,31 @@ class ScopeResolver(object):
         found = re.findall('AddDays\((.*?)\)', func_str)
         if found:
             self.logger.debug('found AddDays [{}]'.format(found))
-            return datetime_obj + timedelta(int(found[0]))
+            return datetime_obj + timedelta(int(found[0].replace(' ', ''))) # clean flexible SCOPE format " - 3"
 
         return datetime_obj
 
     def resolve_func(self, func_str, declare_map={}):
         self.logger.debug('resolve_func of {}'.format(func_str))
 
+        func_str = func_str.strip()
         params = re.findall(r'\((.*?)\)', func_str)
         param = params[0].lstrip('"').rstrip('"')
 
+        self.logger.debug('param = {}'.format(param))
         param = self.replace_declare_items(param, declare_map)
+        self.logger.debug('param after replace_declare_items = {}'.format(param))
 
         result = func_str
 
         if 'DateTime.Parse' in func_str or 'AddDays' in func_str:
             result, _ = self.resolve_datetime_related(func_str, declare_map)
             self.logger.debug('resolved [{}] as datetime_obj {}'.format(func_str, result))
+        elif func_str.startswith('int.Parse') or func_str.startswith('Int32.Parse'):
+            result = int(param)
+        elif func_str.startswith('Math.Abs'):
+            self.logger.debug('Math.Abs of [{}]'.format(param))
+            result = abs(int(param))
         elif 'ToString' in func_str:
             # check if it's DateTime.ToString('xxx')
             the_obj_name = func_str.split('.')[0]
@@ -216,10 +224,6 @@ class ScopeResolver(object):
             if the_obj_name in declare_map:
                 datetime_obj = declare_map[the_obj_name]
                 result = self.process_to_string(datetime_obj, func_str)
-        elif func_str.startswith('int.Parse') or func_str.startswith('Int32.Parse'):
-            result = int(param)
-        elif func_str.startswith('Math.Abs'):
-            result = abs(int(param))
 
         if 'ToString()' in func_str:
             # purely to string
@@ -374,6 +378,9 @@ class ScopeResolver(object):
         except Exception:
             return False
 
+    def is_datetime(self, item):
+        return isinstance(item, datetime)
+
     def replace_declare_items(self, s, declare_map):
         while True:
             items = re.findall(r'(@[^ ,/\)\@]+)', s)
@@ -388,6 +395,7 @@ class ScopeResolver(object):
 
                 if item in declare_map:
                     self.logger.debug('replace declare item [{}] to [{}]'.format(item, declare_map[item]))
+                    self.logger.debug('type of item is [{}]'.format(type(declare_map[item])))
 
                     if self.is_int(declare_map[item]):
                         tmp = tmp.replace(item, str(declare_map[item]))
@@ -410,6 +418,12 @@ class ScopeResolver(object):
             s = '"{}"'.format(s.replace('"', ''))
 
         return re.sub(r'@(".*?")', '\g<1>', s)
+
+    def resolve_boolean(self, s):
+        if s == 'true':
+            return True
+
+        return False
 
     def resolve_declare_rvalue(self, declare_lvalue, declare_rvalue, declare_map):
         self.logger.debug('resolve_declare_rvalue: declare_lvalue [{}], declare_rvalue [{}]'.format(declare_lvalue, declare_rvalue))
@@ -452,6 +466,8 @@ class ScopeResolver(object):
                 result = format_items[0]
         elif type_ == 'nums':
             result = format_items[0]
+        elif type == 'boolean':
+            result = self.resolve_boolean(format_items[0])
 
         self.logger.debug('[resolve_declare_rvalue] result = ' + str(result))
 
@@ -478,7 +494,7 @@ class ScopeResolver(object):
 #                    continue
 
                 resolved = self.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
-                self.logger.info('update resolved [{}] to [{}]'.format(declare_lvalue, resolved))
+                self.logger.info('update resolved [{}] to [{}] type [{}]'.format(declare_lvalue, resolved, type(resolved)))
                 declare_map[declare_lvalue] = resolved
             except Exception as ex:
                 self.logger.debug('Exception in resolve_declare: {}'.format(ex))

@@ -95,4 +95,12 @@ class TestDeclareRvalue(TestCase):
         result = DeclareRvalue().parse(s)
         self.assertCountEqual(result['format_items'], ['@BidOptFolder', '@RunDateTime', '"OrderItemIdNameMap"'])
 
+    def test_bool(self):
+        s = '''
+        false 
+        '''
+
+        result = DeclareRvalue().parse(s)
+        self.assertCountEqual(result['format_items'], ['false'])
+
 

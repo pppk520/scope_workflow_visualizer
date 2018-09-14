@@ -108,24 +108,23 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
-    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
                  target_filenames=[
-#                     '6.MPIProcessing.script',
-#                     '7.PKVGeneration_BMMO.script',
-#                     '7.PKVGeneration_BMO.script',
-#                     '7.PKVGeneration_BMOEX.script',
-#                     '7.PKVGeneration_KWO.script',
-#                     'MPIPrepare.script',
+                     '6.MPIProcessing.script',
+                     '7.PKVGeneration_BMMO.script',
+                     '7.PKVGeneration_BMO.script',
+                     '7.PKVGeneration_BMOEX.script',
+                     '7.PKVGeneration_KWO.script',
+                     'MPIPrepare.script',
                      'CampaignTargetingInfo.script',
                      'KeywordOpt_CampaignTargetInfo.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
-    '''
 
+    '''
     to_workflow_dep_graph(
                  r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
@@ -133,6 +132,7 @@ if __name__ == '__main__':
                      '1.MergeSources.script'
                  ]
     )
+    '''
 
     '''
     parse_script(r'D:/workspace/AdInsights/private/Backend/FeatureAdoption',
@@ -164,10 +164,12 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
+    '''
     to_workflow_dep_graph(
                  r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tmp/tt',
                  target_node_names=[])
+    '''
 
 
     '''

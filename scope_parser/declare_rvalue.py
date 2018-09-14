@@ -20,8 +20,9 @@ class DeclareRvalue(object):
     placeholder_basic = Group('{' + Word(nums) + '}')
     placeholder_date = Group('{' + Word(nums) + ':' + delimitedList(oneOf('yyyy MM dd'), delim=oneOf('/ - _')) + '}')
     string_format = keyword_string_format + '(' + Combine(param_str_cat | param_str | param)('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
+    boolean_values = oneOf('true false')
 
-    rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums + '.')('nums') | func_chain('func_chain') | param_str('param_str') | param('param')
+    rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums + '.')('nums') | func_chain('func_chain') | param_str('param_str') | param('param') | boolean_values('boolean')
 
     def debug(self):
         data = self.format_item.parseString('"/shares/bingads.algo.prod.adinsights/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}"')
@@ -79,6 +80,9 @@ class DeclareRvalue(object):
         elif 'param' in result:
             ret['format_items'] = [result['param'], ]
             ret['type'] = 'str_cat'
+        elif 'boolean' in result:
+            ret['format_items'] = [result['boolean'], ]
+            ret['type'] = 'boolean'
 
         return ret
 

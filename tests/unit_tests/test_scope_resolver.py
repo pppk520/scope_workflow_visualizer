@@ -123,6 +123,22 @@ class TestScopeResolver(TestCase):
         self.assertEqual('/path/to/2018/01/01/EligibleAuctionParticipants_00.ss?date=2018-01-01&hour=23', result)
 
 
+    def test_resolve_math_abs(self):
+        s = '''
+        Math.Abs(-0).ToString()
+        '''
+
+        result = ScopeResolver().resolve_func(s)
+        self.assertEqual('0', result)
+
+    def test_func_datetime_parse_add_days_minus_blank(self):
+        func_str = 'DateTime.Parse("2018-08-04").AddDays( - 3 )'
+
+        result = ScopeResolver().resolve_func(func_str)
+        result_str = result.strftime('%Y-%m-%d')
+        self.assertEqual("2018-08-01", result_str)
+
+
 
 
 
