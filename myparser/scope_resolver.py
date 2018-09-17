@@ -191,7 +191,7 @@ class ScopeResolver(object):
     def process_add_days(self, datetime_obj, func_str):
         found = re.findall('AddDays\((.*?)\)', func_str)
         if found:
-            self.logger.debug('found AddDays [{}]'.format(found))
+            self.logger.debug('datetime_obj = [{}], found AddDays [{}]'.format(datetime_obj, found))
             return datetime_obj + timedelta(int(found[0].replace(' ', ''))) # clean flexible SCOPE format " - 3"
 
         return datetime_obj
@@ -388,14 +388,20 @@ class ScopeResolver(object):
             if len(items) == 0:
                 break
 
+            # special handling for datetime assignment, CASE: #DECLARE ObjDate DateTime = @PDATE;
+            if len(items) == 1 and items[0] in declare_map and self.is_datetime(declare_map[items[0]]):
+                self.logger.debug('found pure datetime assignment str [{}], return datetime object'.format(s))
+                return declare_map[items[0]]
+
             tmp = s
             for item in items:
                 if item.startswith('@@'):
                     continue # ignore external params
 
                 if item in declare_map:
-                    self.logger.debug('replace declare item [{}] to [{}]'.format(item, declare_map[item]))
-                    self.logger.debug('type of item is [{}]'.format(type(declare_map[item])))
+                    self.logger.debug('replace declare item [{}] to [{}], type is [{}]'.format(item,
+                                                                                               declare_map[item],
+                                                                                               type(declare_map[item])))
 
                     if self.is_int(declare_map[item]):
                         tmp = tmp.replace(item, str(declare_map[item]))
@@ -434,6 +440,10 @@ class ScopeResolver(object):
 
             # replace those declare items inside rvalue, if any remains
             declare_rvalue = self.replace_declare_items(declare_rvalue, declare_map)
+
+            # special handling for datetime object, no parsing, just keep it
+            if self.is_datetime(declare_rvalue):
+                return declare_rvalue
 
             self.logger.debug('finished replace_declare_items, start to parse.')
             ret_declare_rvalue = self.dr.parse(declare_rvalue)
@@ -504,14 +514,7 @@ class ScopeResolver(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-#    result = ScopeResolver().resolve_func('@dateObj.ToString("yyyy-MM-dd")', {'dateObj': datetime.now()})
-#    print(result)
-
-    result = ScopeResolver().resolve_str_format('"/shares/bingads.algo.prod.adinsights/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}"',
-                                                ['"2018-01-01"', '22/2*2'],
-                                                {})
+    result = ScopeResolver().resolve_declare_rvalue(None, 'String.Format(@"{0}RawSearchQuery/RawSearchQuery_{1:yyyy-MM-dd}.ss", @INPUT_PATH, @ObjDate.AddDays( - 1))',
+                                                    {'@INPUT_PATH': '/path/to/',
+                                                     '@ObjDate': parser.parse('2018-01-01')})
     print(result)
-
-
-#    result = ScopeResolver().resolve_declare_rvalue(None, 'string.Format("/shares/bingads.algo.prod.adinsights/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}","2018-01-01",22/2*2)',{})
-#    print(result)

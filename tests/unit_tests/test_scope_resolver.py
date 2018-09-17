@@ -139,6 +139,19 @@ class TestScopeResolver(TestCase):
         self.assertEqual("2018-08-01", result_str)
 
 
+    def test_string_format_add_days_black_minus(self):
+        s = '''
+        String.Format(@"{0}RawSearchQuery/RawSearchQuery_{1:yyyy-MM-dd}.ss", @INPUT_PATH, @ObjDate.AddDays( - 1))
+        '''
+
+        declare_map = {'@INPUT_PATH': '/path/to/',
+                       '@ObjDate': parser.parse('2018-01-01')}
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
+        self.assertEqual('/path/to/RawSearchQuery/RawSearchQuery_2017-12-31.ss', result)
+
+
+
 
 
 

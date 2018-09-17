@@ -20,7 +20,7 @@ class Common(object):
     expr = expr_item + ZeroOrMore(oneOf('+ - * / |') + expr_item)
     func = Forward()
     func_ptr = Forward()
-    func_param = param_str_cat | expr | ident | Word('-' + nums)
+    func_param = param_str_cat | expr | ident | Word('- ' + nums)
     func_params = func_param + ZeroOrMore(',' + func_param)
 
     param_lambda = Group(Optional('(') + delimitedList(ident) + Optional(')') + '=>' + OneOrMore(func | ident))
@@ -45,6 +45,7 @@ if __name__ == '__main__':
     print(obj.func_chain.parseString('DateTime.Parse(@DATE_UTC + " " + @hour + ":00:00")'))
     print(obj.func_chain.parseString('DateTime.ParseExact("1", "2", "3")'))
     print(obj.func_chain.parseString('DateTime.ParseExact(@DATE_UTC + " 00:00:00", "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)'))
+    print(obj.func_chain.parseString('@ObjDate.AddDays( - 1)'))
 
 
     '''

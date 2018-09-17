@@ -90,4 +90,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('String.Format("{0}/%Y/%m/%d/AuctionJoinPV_%h.ss?date={1}&hour={2}", "/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/ImpressionShare", @DATE_UTC, @hour)'))
+    print(r.parse('String.Format(@"{0}RawSearchQuery/RawSearchQuery_{1:yyyy-MM-dd}.ss", @INPUT_PATH, @ObjDate.AddDays( - 1))'))

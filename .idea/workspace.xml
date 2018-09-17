@@ -2,11 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="92683f41-f921-43be-81b6-4a4ba6eb9a7b" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/myparser/scope_resolver.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/scope_resolver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scope_parser/common.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/common.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -30,23 +29,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="graph_utility.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/graph/graph_utility.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="666">
-              <caret line="36" column="4" selection-start-line="36" selection-start-column="4" selection-end-line="36" selection-end-column="4" />
-              <folding>
-                <element signature="e#0#50#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="scope_resolver.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="scope_resolver.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myparser/scope_resolver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="385" selection-start-line="385" selection-end-line="385" />
+            <state relative-caret-position="433">
+              <caret line="443" column="76" lean-forward="true" selection-start-line="443" selection-start-column="76" selection-end-line="443" selection-end-column="76" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -66,8 +53,8 @@
       <file leaf-file-name="declare_rvalue.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/scope_parser/declare_rvalue.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="622">
-              <caret line="85" lean-forward="true" selection-start-line="85" selection-end-line="85" />
+            <state relative-caret-position="220">
+              <caret line="10" column="29" selection-start-line="10" selection-start-column="29" selection-end-line="10" selection-end-column="29" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -75,11 +62,20 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="common.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scope_parser/common.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="398">
+              <caret line="22" column="56" selection-start-line="22" selection-start-column="56" selection-end-line="22" selection-end-column="56" />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="test_scope_resolver.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="257">
-              <caret line="86" selection-start-line="86" selection-end-line="86" />
+            <state relative-caret-position="639">
+              <caret line="157" lean-forward="true" selection-start-line="157" selection-end-line="157" />
             </state>
           </provider>
         </entry>
@@ -96,11 +92,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="528">
-              <caret line="164" column="7" lean-forward="true" selection-start-line="164" selection-start-column="7" selection-end-line="164" selection-end-column="7" />
+            <state relative-caret-position="352">
+              <caret line="121" selection-start-line="121" selection-end-line="121" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -137,10 +133,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>declare_rvalue type is</find>
-      <find>InputPath</find>
-      <find>check_and</find>
-      <find>check_and_eval_extend_str_cat</find>
       <find>CosmosHttpUtility</find>
       <find>add_sstream_sizeadd_sstream_size</find>
       <find>self.ssu</find>
@@ -150,7 +142,6 @@
       <find>to_work</find>
       <find>graphviz</find>
       <find>remove</find>
-      <find>to_workflow_dep_graph</find>
       <find>DeltaMath.Abs</find>
       <find>Delta</find>
       <find>resolve_func of</find>
@@ -161,12 +152,17 @@
       <find>RawSearchQuery</find>
       <find>eclare_rvalue type is</find>
       <find>resolve_datetime_related</find>
-      <find>ObjDate</find>
       <find>update resolved</find>
       <find>type of item is</find>
       <find>is_datetime</find>
       <find>is_date</find>
+      <find>to_workflow_dep_graph</find>
+      <find>items = re.findall(</find>
       <find>add</find>
+      <find>RawSearchQuery_</find>
+      <find>Exception in resolve_declare</find>
+      <find>ObjDate</find>
+      <find>replace_declare_items</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -216,7 +212,6 @@
         <option value="$PROJECT_DIR$/tests/unit_tests/test_declare.py" />
         <option value="$PROJECT_DIR$/util/parsing_util.py" />
         <option value="$PROJECT_DIR$/util/parse_util.py" />
-        <option value="$PROJECT_DIR$/scope_parser/common.py" />
         <option value="$PROJECT_DIR$/scope_parser/declare.py" />
         <option value="$PROJECT_DIR$/scope_parser/select.py" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_process.py" />
@@ -224,11 +219,12 @@
         <option value="$PROJECT_DIR$/config/config.ini" />
         <option value="$PROJECT_DIR$/myparser/script_parser.py" />
         <option value="$PROJECT_DIR$/myparser/workflow_parser.py" />
-        <option value="$PROJECT_DIR$/main.py" />
-        <option value="$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py" />
         <option value="$PROJECT_DIR$/scope_parser/declare_rvalue.py" />
+        <option value="$PROJECT_DIR$/scope_parser/common.py" />
+        <option value="$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py" />
         <option value="$PROJECT_DIR$/myparser/scope_resolver.py" />
+        <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
@@ -328,7 +324,43 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.Unittests in unit_tests">
+  <component name="RunManager" selected="Python.main">
+    <configuration name="common" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="BackendProjectParser" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scope_parser" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scope_parser/common.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="declare_rvalue" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="BackendProjectParser" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scope_parser" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scope_parser/declare_rvalue.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="BackendProjectParser" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -365,32 +397,6 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="Unittests for test_declare_rvalue.TestDeclareRvalue.test_bool" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
-      <module name="BackendProjectParser" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/unit_tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_declare_rvalue.TestDeclareRvalue.test_bool&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-    </configuration>
-    <configuration name="Unittests for test_scope_resolver.TestScopeResolver.test_func_datetime_parse_add_days_minus_blank" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
-      <module name="BackendProjectParser" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/unit_tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_scope_resolver.TestScopeResolver.test_func_datetime_parse_add_days_minus_blank&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-    </configuration>
     <configuration name="Unittests in unit_tests" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <module name="BackendProjectParser" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -405,18 +411,18 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
     </configuration>
     <list>
-      <item itemvalue="Python.main" />
-      <item itemvalue="Python tests.Unittests in unit_tests" />
       <item itemvalue="Python.scope_resolver" />
-      <item itemvalue="Python tests.Unittests for test_scope_resolver.TestScopeResolver.test_func_datetime_parse_add_days_minus_blank" />
-      <item itemvalue="Python tests.Unittests for test_declare_rvalue.TestDeclareRvalue.test_bool" />
+      <item itemvalue="Python.declare_rvalue" />
+      <item itemvalue="Python.common" />
+      <item itemvalue="Python tests.Unittests in unit_tests" />
+      <item itemvalue="Python.main" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Unittests in unit_tests" />
         <item itemvalue="Python.main" />
-        <item itemvalue="Python tests.Unittests for test_declare_rvalue.TestDeclareRvalue.test_bool" />
-        <item itemvalue="Python tests.Unittests for test_scope_resolver.TestScopeResolver.test_func_datetime_parse_add_days_minus_blank" />
+        <item itemvalue="Python tests.Unittests in unit_tests" />
+        <item itemvalue="Python.common" />
+        <item itemvalue="Python.declare_rvalue" />
         <item itemvalue="Python.scope_resolver" />
       </list>
     </recent_temporary>
@@ -435,21 +441,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_for_test_scope_resolver_TestScopeResolver_test_func_datetime_parse_add_days_minus_blank - 2018.09.14 at 17h 16m 36s.xml">
-      <configuration name="Unittests for test_scope_resolver.TestScopeResolver.test_func_datetime_parse_add_days_minus_blank" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_for_test_scope_resolver_TestScopeResolver_test_func_datetime_parse_add_days_minus_blank - 2018.09.14 at 17h 18m 03s.xml">
-      <configuration name="Unittests for test_scope_resolver.TestScopeResolver.test_func_datetime_parse_add_days_minus_blank" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_for_test_scope_resolver_TestScopeResolver_test_func_datetime_parse_add_days_minus_blank - 2018.09.14 at 17h 18m 56s.xml">
-      <configuration name="Unittests for test_scope_resolver.TestScopeResolver.test_func_datetime_parse_add_days_minus_blank" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_unit_tests - 2018.09.14 at 17h 19m 03s.xml">
-      <configuration name="Unittests in unit_tests" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_for_test_declare_rvalue_TestDeclareRvalue_test_bool - 2018.09.14 at 17h 43m 52s.xml">
-      <configuration name="Unittests for test_declare_rvalue.TestDeclareRvalue.test_bool" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_for_test_declare_rvalue_TestDeclareRvalue_test_bool - 2018.09.14 at 17h 47m 53s.xml">
       <configuration name="Unittests for test_declare_rvalue.TestDeclareRvalue.test_bool" configurationId="tests" />
     </history-entry>
@@ -463,6 +454,21 @@
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.09.14 at 18h 23m 26s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.09.14 at 18h 25m 11s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_for_test_scope_resolver_TestScopeResolver_test_string_format_add_days_black_minus - 2018.09.17 at 10h 43m 40s.xml">
+      <configuration name="Unittests for test_scope_resolver.TestScopeResolver.test_string_format_add_days_black_minus" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.09.17 at 10h 49m 09s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.09.17 at 10h 49m 36s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.09.17 at 11h 06m 37s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
   </component>
@@ -497,22 +503,17 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/scope_resolver.py</url>
-          <line>506</line>
-          <option name="timeStamp" value="37" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myparser/scope_resolver.py</url>
-          <line>488</line>
+          <line>498</line>
           <option name="timeStamp" value="39" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/scope_resolver.py</url>
-          <line>501</line>
+          <line>511</line>
           <option name="timeStamp" value="40" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/scope_resolver.py</url>
-          <line>497</line>
+          <line>507</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
       </breakpoints>
@@ -779,13 +780,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scope_parser/common.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="15" column="54" lean-forward="true" selection-start-line="15" selection-start-column="54" selection-end-line="15" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scope_parser/process.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="490">
@@ -885,16 +879,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="528">
-          <caret line="164" column="7" lean-forward="true" selection-start-line="164" selection-start-column="7" selection-end-line="164" selection-end-column="7" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="710">
@@ -904,27 +888,44 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/scope_parser/declare_rvalue.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="622">
-          <caret line="85" lean-forward="true" selection-start-line="85" selection-end-line="85" />
+        <state relative-caret-position="220">
+          <caret line="10" column="29" selection-start-line="10" selection-start-column="29" selection-end-line="10" selection-end-column="29" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/scope_parser/common.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="398">
+          <caret line="22" column="56" selection-start-line="22" selection-start-column="56" selection-end-line="22" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="86" selection-start-line="86" selection-end-line="86" />
+        <state relative-caret-position="639">
+          <caret line="157" lean-forward="true" selection-start-line="157" selection-end-line="157" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/myparser/scope_resolver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="385" selection-start-line="385" selection-end-line="385" />
+        <state relative-caret-position="433">
+          <caret line="443" column="76" lean-forward="true" selection-start-line="443" selection-start-column="76" selection-end-line="443" selection-end-column="76" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="121" selection-start-line="121" selection-end-line="121" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
