@@ -80,8 +80,9 @@ class WorkflowParser(object):
         except Exception as ex:
             self.logger.debug('{}: {}'.format(filepath, ex))
 
-    @staticmethod
-    def get_closest_process_name(process_key, workflow_obj):
+    def get_closest_process_name(self, process_key, workflow_obj):
+        self.logger.debug('get_closest_process_name, process_key [{}]'.format(process_key))
+
         process_names = workflow_obj.workflows.keys()
         script_process_map = workflow_obj.script_process_map
 
@@ -90,6 +91,12 @@ class WorkflowParser(object):
 
         if process_key in script_process_map:
             return script_process_map[process_key]
+
+        process_key_core = os.path.splitext(process_key)[0]
+        # such as key [NKWOptMPIProcessing] and script [NKWOptMPIProcessing3.script]
+        for script_name in script_process_map:
+            if process_key_core in script_name:
+                return script_process_map[script_name]
 
         # use edit distance to identify the closest one
         min_key = process_key
@@ -182,7 +189,7 @@ class WorkflowParser(object):
                     process_name = config_name
                     d['process_name'] = config_name
 
-                # keep the first occurrence
+                # keep the first occurrence only
                 if script_name not in script_process_map:
                     script_process_map[script_name] = d['process_name']
 
@@ -358,6 +365,10 @@ class WorkflowParser(object):
 
         # init
         for node_name in target_node_names:
+            if node_name not in nodes_map:
+                self.logger.info('specified node [{}] not in node_map. skip.'.format(node_name))
+                continue
+
             target_map[node_name] = set(['up', 'down'])
 
             # highlight target nodes
@@ -434,10 +445,12 @@ class WorkflowParser(object):
 
         for process_name in workflows:
             # only show those enabled in master config
-            if not process_name in process_master_map:
+            if process_name not in process_master_map:
+                self.logger.debug('skip process [{}] because it is not in master config.'.format(process_name))
                 continue
 
-            script_name = os.path.basename(workflows[process_name]['ScriptFile'])
+            script_fullpath = workflows[process_name]['ScriptFile']
+            script_name = os.path.basename(script_fullpath)
 
             script_attr = {
                 'id': script_name,

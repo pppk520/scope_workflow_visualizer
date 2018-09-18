@@ -90,4 +90,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('String.Format(@"{0}RawSearchQuery/RawSearchQuery_{1:yyyy-MM-dd}.ss", @INPUT_PATH, @ObjDate.AddDays( - 1))'))
+    print(r.parse('string.Format("{0}/Flights/{1:yyyy/MM/dd}/AuctionParticipants{1:yyyyMMdd}.ss", "/path/to", @BTERunDate)'))

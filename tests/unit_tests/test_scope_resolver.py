@@ -150,6 +150,26 @@ class TestScopeResolver(TestCase):
         result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
         self.assertEqual('/path/to/RawSearchQuery/RawSearchQuery_2017-12-31.ss', result)
 
+    def test_string_format_param_datetime_parse(self):
+        s = '''
+        string.Format("{0}/{1:yyyy/MM/dd}/NegativeKWCandidates.ss", @InputPath, DateTime.Parse(@RunDate))
+        '''
+
+        declare_map = {'@InputPath': '/path/to',
+                       '@RunDate': '2018-01-01'}
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
+        self.assertEqual('/path/to/2018/01/01/NegativeKWCandidates.ss', result)
+
+    def test_string_format_param_str_datetime(self):
+        s = '''
+        string.Format("{0}/Flights/{1:yyyy/MM/dd}/AuctionParticipants{1:yyyyMMdd}.ss", "/path/to", @BTERunDate)
+        '''
+
+        declare_map = {'@BTERunDate': parser.parse('2018-01-01')}
+
+        result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
+        self.assertEqual('/path/to/Flights/2018/01/01/AuctionParticipants20180101.ss', result)
 
 
 

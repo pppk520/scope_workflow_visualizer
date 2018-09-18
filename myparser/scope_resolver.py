@@ -382,7 +382,10 @@ class ScopeResolver(object):
         return isinstance(item, datetime)
 
     def replace_declare_items(self, s, declare_map):
-        while True:
+        recur_max = 5
+
+        while recur_max > 0:
+            self.logger.debug('replace_declare_items [{}]'.format(s))
             items = re.findall(r'(@[^ ,/\)\@]+)', s)
 
             if len(items) == 0:
@@ -390,8 +393,9 @@ class ScopeResolver(object):
 
             # special handling for datetime assignment, CASE: #DECLARE ObjDate DateTime = @PDATE;
             if len(items) == 1 and items[0] in declare_map and self.is_datetime(declare_map[items[0]]):
-                self.logger.debug('found pure datetime assignment str [{}], return datetime object'.format(s))
-                return declare_map[items[0]]
+                if s.strip().startswith('@'):
+                    self.logger.debug('found pure datetime assignment str [{}], return datetime object'.format(s))
+                    return declare_map[items[0]]
 
             tmp = s
             for item in items:
@@ -415,6 +419,10 @@ class ScopeResolver(object):
                 break
 
             s = tmp
+
+            # to prevent infinite loop.
+            # CASE: #SET OutputFolder = @OutputFolder + @OrderItemId + "/";
+            recur_max -= 1
 
         return s
 
@@ -514,7 +522,12 @@ class ScopeResolver(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    result = ScopeResolver().resolve_declare_rvalue(None, 'String.Format(@"{0}RawSearchQuery/RawSearchQuery_{1:yyyy-MM-dd}.ss", @INPUT_PATH, @ObjDate.AddDays( - 1))',
-                                                    {'@INPUT_PATH': '/path/to/',
-                                                     '@ObjDate': parser.parse('2018-01-01')})
+    s = '''
+    string.Format("{0}/Flights/{1:yyyy/MM/dd}/AuctionParticipants{1:yyyyMMdd}.ss", "/path/to", @BTERunDate)
+    '''
+
+    declare_map = {'@BTERunDate': parser.parse('2018-01-01')}
+
+    result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
+
     print(result)
