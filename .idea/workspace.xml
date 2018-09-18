@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="92683f41-f921-43be-81b6-4a4ba6eb9a7b" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/myparser/scope_resolver.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/scope_resolver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/myparser/workflow_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/workflow_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py" afterDir="false" />
-    </list>
+    <list default="true" id="92683f41-f921-43be-81b6-4a4ba6eb9a7b" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -84,20 +77,20 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_scope_resolver.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_scope_resolver.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="471">
-              <caret line="170" column="42" lean-forward="true" selection-start-line="170" selection-start-column="42" selection-end-line="170" selection-end-column="42" />
+            <state relative-caret-position="198">
+              <caret line="32" selection-start-line="32" selection-end-line="32" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="137" column="1" selection-start-line="137" selection-start-column="1" selection-end-line="137" selection-end-column="1" />
+            <state relative-caret-position="484">
+              <caret line="141" column="39" lean-forward="true" selection-start-line="141" selection-start-column="39" selection-end-line="141" selection-end-column="39" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -156,7 +149,6 @@
       <find>remove</find>
       <find>editdist</find>
       <find>external_params</find>
-      <find>to_workflow_dep_graph</find>
       <find>get_closest_process_name</find>
       <find>DateDelta</find>
       <find>Flights</find>
@@ -164,6 +156,7 @@
       <find>finished</find>
       <find>found pure datetime assignment str</find>
       <find>http</find>
+      <find>to_workflow_dep_graph</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -325,7 +318,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python tests.Unittests in unit_tests">
     <configuration name="declare_rvalue" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="BackendProjectParser" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -415,8 +408,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main" />
         <item itemvalue="Python tests.Unittests in unit_tests" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.scope_resolver" />
         <item itemvalue="Python.declare_rvalue" />
         <item itemvalue="Python tests.Unittests for test_scope_resolver.TestScopeResolver.test_string_format_param_str_datetime" />
@@ -437,9 +430,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_unit_tests - 2018.09.14 at 18h 23m 26s.xml">
-      <configuration name="Unittests in unit_tests" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.09.14 at 18h 25m 11s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
@@ -467,18 +457,21 @@
     <history-entry file="Unittests_in_unit_tests - 2018.09.18 at 15h 52m 45s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.09.18 at 16h 31m 07s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="ToolWindowManager">
     <frame x="2552" y="-8" width="2576" height="1416" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3289777" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3289777" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3289777" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -882,13 +875,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="471">
-          <caret line="170" column="42" lean-forward="true" selection-start-line="170" selection-start-column="42" selection-end-line="170" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="710">
@@ -918,11 +904,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="137" column="1" selection-start-line="137" selection-start-column="1" selection-end-line="137" selection-end-column="1" />
+        <state relative-caret-position="484">
+          <caret line="141" column="39" lean-forward="true" selection-start-line="141" selection-start-column="39" selection-end-line="141" selection-end-column="39" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="32" selection-start-line="32" selection-end-line="32" />
         </state>
       </provider>
     </entry>
