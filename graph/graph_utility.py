@@ -21,8 +21,8 @@ class GraphUtility(object):
     def to_dot_file(self, dest_file):
         return self.nu.to_dot(dest_file)
 
-    def dot_to_graphviz(self, dot_file_path):
-        s = Source.from_file(dot_file_path)
+    def dot_to_graphviz(self, dot_file_path, format='pdf'):
+        s = Source.from_file(dot_file_path, format=format)
         s.render(dot_file_path, view=False)
 
 if __name__ == '__main__':

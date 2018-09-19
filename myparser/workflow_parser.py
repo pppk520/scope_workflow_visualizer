@@ -455,7 +455,8 @@ class WorkflowParser(object):
             script_attr = {
                 'id': script_name,
                 'label': script_name,
-                'type': 'SCRIPT'
+                'type': 'SCRIPT',
+                'tooltip': script_fullpath
             }
 
             if not script_name in nodes_map:
@@ -529,8 +530,11 @@ class WorkflowParser(object):
             dot_output_file = gu.to_dot_file(dest_filepath)
             self.logger.info('output .dot file to [{}]'.format(dot_output_file))
 
-            self.logger.info('render graphviz file')
-            gu.dot_to_graphviz(dot_output_file)
+            self.logger.info('render graphviz file pdf')
+            gu.dot_to_graphviz(dot_output_file, format='pdf')
+            self.logger.info('render graphviz file svg')
+            gu.dot_to_graphviz(dot_output_file, format='svg')
+
 
 
 
