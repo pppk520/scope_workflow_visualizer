@@ -146,7 +146,7 @@ if __name__ == '__main__':
     to_workflow_dep_graph(
                  r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tmp/tt',
-                 target_folder_name='BudgetSuggestions'
+                 target_folder_name='KeywordOpportunitiesV2'
     )
 
     '''

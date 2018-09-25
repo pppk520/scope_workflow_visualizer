@@ -22,7 +22,7 @@ class WorkflowObj(object):
         self.process_group_map = {}  # process_name -> group name
         self.group_master_map = {}   # group name -> master config name
         self.script_process_map = {} # script name -> process_name
-
+        self.event_interval_map = {}  # event_name -> interval
 
 class WorkflowParser(object):
     logger = logging.getLogger(__name__)
@@ -80,6 +80,28 @@ class WorkflowParser(object):
         except Exception as ex:
             self.logger.debug('{}: {}'.format(filepath, ex))
 
+    def normalized_delta_interval(self, interval_str):
+        ''' Only support D and H
+
+        1.00:00:00  -> 1D
+        2.00:00:00  -> 2D
+        P1D         -> 1D
+        P2D         -> 2D
+        03:00:00    -> 3H
+
+        :param interval_str: such as 2.00:00:00
+        :return: string '2D'
+        '''
+
+        if interval_str == 'P1D': return '1D'
+        if interval_str == 'P2D': return '2D'
+
+        if '.' in interval_str:
+            return interval_str[:interval_str.index('.')] + 'D'
+
+        return interval_str[:interval_str.index(':')].lstrip('0') + 'H'
+
+
     def get_closest_process_name(self, process_key, workflow_obj):
         self.logger.debug('get_closest_process_name, process_key [{}]'.format(process_key))
 
@@ -123,6 +145,7 @@ class WorkflowParser(object):
         process_group_map = {}  # process_name -> group name
         group_master_map = {}   # group name -> master config name
         script_process_map = {} # script name -> process_name
+        event_interval_map = {} # event_name -> interval
 
         exclude_keys.append('/objd/') # by default, ignore this
 
@@ -202,6 +225,10 @@ class WorkflowParser(object):
                 else:
                     process_event_deps[process_name] = ('None',)
 
+                # keep the interval of this event
+                if 'EventName' in d:
+                    event_interval_map[d['EventName']] = self.normalized_delta_interval(d['DeltaInterval'])
+
         obj = WorkflowObj()
 
         obj.workflows = workflows
@@ -214,6 +241,7 @@ class WorkflowParser(object):
         obj.process_group_map = process_group_map
         obj.process_master_map = process_master_map
         obj.script_process_map = script_process_map
+        obj.event_interval_map = event_interval_map
 
         return obj
 
@@ -308,7 +336,16 @@ class WorkflowParser(object):
             # color scheme: https://www.graphviz.org/doc/info/colors.html#brewer
             if type_ == 'EVENT':
                 attr['style'] = 'filled'
-                attr['fillcolor'] = 'lightblue'
+
+                interval = attr.get('interval', 'NA')
+
+                if interval.endswith('D'):
+                    attr['fillcolor'] = 'lightblue'
+                elif interval.endswith('H'):
+                    attr['fillcolor'] = 'palegoldenrod'
+                else:
+                    # external
+                    attr['fillcolor'] = 'gray'
 
     def filter_objects(self, adj_map, rev_map, nodes_map, type_='SCRIPT'):
         ''' To remove event nodes, reserve script mapping only
@@ -436,6 +473,7 @@ class WorkflowParser(object):
         event_deps = obj.process_event_deps
         workflows = obj.workflows
         process_master_map = obj.process_master_map
+        event_interval_map = obj.event_interval_map
 
         nodes_map = {}
         edges = []
@@ -468,7 +506,7 @@ class WorkflowParser(object):
             # the output event of this process
             output_event_name = workflows[process_name]['EventName']
 
-            if not output_event_name in nodes_map:
+            if output_event_name not in nodes_map:
                 script_out_event_node = Node(output_event_name, attr={'id': output_event_name,
                                                         'label': output_event_name,
                                                         'type': 'EVENT'})
@@ -503,6 +541,18 @@ class WorkflowParser(object):
                 edges.append(Edge(script_in_event_node, script_node))
                 # for target filtering
                 self.update_adj_map(script_in_event_node, script_node, adj_map, rev_map)
+
+        # update event interval
+        for node_name in nodes_map:
+            if nodes_map[node_name].attr['type'] == 'EVENT':
+                # external event
+                if node_name not in event_interval_map:
+                    continue
+
+                interval = event_interval_map[node_name]
+
+                nodes_map[node_name].attr['label'] += ' ({})'.format(interval)
+                nodes_map[node_name].attr['interval'] = interval
 
         self.logger.debug('node_map.keys = {}'.format(nodes_map.keys()))
 
