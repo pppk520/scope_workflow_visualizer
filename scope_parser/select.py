@@ -101,8 +101,9 @@ class Select(object):
 
     one_column_la_from = Regex(r'(.*?)(?=FROM)')
     one_column_as = Regex(r'(.*?)AS') + ident  # aggresive regex for very complex column
+    one_column_as_multiline = Regex(r'(.*?)AS', re.MULTILINE | re.DOTALL) + ident  # aggresive regex for very complex column, multiline version
 
-    column_name_list = Group(delimitedList(one_column_la_from | one_column_as | one_column | one_column_anything))('column_name_list')
+    column_name_list = Group(delimitedList(one_column_la_from | one_column_as | one_column | one_column_as_multiline | one_column_anything))('column_name_list')
     table_name = (delimitedList(ident, ".", combine=True))("table_name")
     table_name_list = delimitedList(table_name + Optional(as_something).suppress()) # AS something, don't care
     func_expr = Combine(func + ZeroOrMore('.' + ident))
@@ -257,30 +258,30 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-Sov_Offer_LessDimension =
-    SELECT 
-        DateKey, 
-        HourNum, 
-        CustomerId,
-        AccountId,
-        CampaignId,
-        OrderId,
-        ProductOfferId,
-        DeviceTypeId,
-        RelationshipId,
-        NetworkId,
-         
-         
-        LoadTime,
-        SUM(ImpressionCnt) AS ImpressionCnt,
-        SUM(RankFilteredImpressionCnt) AS RankFilteredImpressionCnt,
-        SUM(BudgetFilteredImpressionCnt) AS BudgetFilteredImpressionCnt,
-        SUM(ImpressionCnt)+ SUM(RankFilteredImpressionCnt) + SUM(BudgetFilteredImpressionCnt) AS EligibleImpressionCnt,
-        (decimal)SUM(BenchmarkCTR_Numerator) AS BenchmarkCTR_Numerator,
-        (decimal)SUM(BenchmarkCTR_Denominator) AS BenchmarkCTR_Denominator,
-        (decimal)SUM(BenchmarkBid_Numerator) AS BenchmarkBid_Numerator ,
-        (decimal)SUM(BenchmarkBid_Denominator) AS BenchmarkBid_Denominator
-    FROM Sov_Offer
+AuctionWithUpdatedPclick =
+    SELECT OptId,
+           CampaignId,
+           A.RGUID,
+           A.ListingId,
+           A.CPC,
+           (B.Position == NULL
+           ? (AuctionSimulator.SimulateCtx.ActualClicks.Any() && AuctionSimulator.SimulateCtx.Competitors.Values.Where(p=>p.ListingId == (ulong)ListingId).FirstOrDefault()!= NULL
+           ? Math.Min(1,
+           AuctionSimulator.SimulateCtx.ActualClicks.Sum(a => a.GetClicks(
+           AuctionSimulator.SimulateCtx.Competitors.Values.Where(p => p.ListingId == (ulong) ListingId).FirstOrDefault(),
+           Level.ListingLevel,
+           PClick,
+           (int) Position,
+           AuctionSimulator.SimulateCtx.TheAuction.GetPosition((ulong) ListingId))
+           ))
+           : 0)
+           : B.Clicks) AS PClick
+    FROM AuctionWithUpdatedCPC AS A
+         LEFT OUTER JOIN
+             ListingBidDemand AS B
+         ON A.RGUID == B.RGUID
+            AND A.ListingId == B.ListingId
+            AND A.Position == B.Position;
     '''))
 
 

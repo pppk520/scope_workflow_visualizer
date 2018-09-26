@@ -852,6 +852,39 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'CampaignInRGUIDsWithName')
         self.assertCountEqual(result['sources'], ['CampaignInRGUIDs', 'NoSLCampaigns'])
 
+    def test_complex_column_multiline(self):
+        s = '''
+        AuctionWithUpdatedPclick =
+            SELECT OptId,
+                   CampaignId,
+                   A.RGUID,
+                   A.ListingId,
+                   A.CPC,
+                   (B.Position == NULL
+                   ? (AuctionSimulator.SimulateCtx.ActualClicks.Any() && AuctionSimulator.SimulateCtx.Competitors.Values.Where(p=>p.ListingId == (ulong)ListingId).FirstOrDefault()!= NULL
+                   ? Math.Min(1,
+                   AuctionSimulator.SimulateCtx.ActualClicks.Sum(a => a.GetClicks(
+                   AuctionSimulator.SimulateCtx.Competitors.Values.Where(p => p.ListingId == (ulong) ListingId).FirstOrDefault(),
+                   Level.ListingLevel,
+                   PClick,
+                   (int) Position,
+                   AuctionSimulator.SimulateCtx.TheAuction.GetPosition((ulong) ListingId))
+                   ))
+                   : 0)
+                   : B.Clicks) AS PClick
+            FROM AuctionWithUpdatedCPC AS A
+                 LEFT OUTER JOIN
+                     ListingBidDemand AS B
+                 ON A.RGUID == B.RGUID
+                    AND A.ListingId == B.ListingId
+                    AND A.Position == B.Position;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AuctionWithUpdatedPclick')
+        self.assertCountEqual(result['sources'], ['AuctionWithUpdatedCPC', 'ListingBidDemand'])
+
 
 
 
