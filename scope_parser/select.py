@@ -22,6 +22,7 @@ class Select(object):
 
     comment = Common.comment
     ident = Common.ident
+    param_ident = '@' + Common.ident
     ident_dot = Common.ident_dot
     value_str = Common.value_str
     func = Common.func
@@ -57,7 +58,7 @@ class Select(object):
 
     and_ = Keyword("AND")
     or_ = Keyword("OR")
-    in_ = Keyword("IN")
+    in_ = Keyword("NOT IN") | Keyword("IN")
 
     select_stmt = Forward()
     column_name = Group(delimitedList(ident | '*', "."))
@@ -69,7 +70,7 @@ class Select(object):
                       Optional(E + Optional("+") + Word(nums)))
     bool_val = oneOf("true false")
 
-    column_rval = real_num | int_num | quotedString | column_name | bool_val # need to add support for alg expressions
+    column_rval = real_num | int_num | quotedString | column_name | bool_val | param_ident # need to add support for alg expressions
 
     operator_ident = Group(ident + OneOrMore(oneOf('+ - * / == != >= <=') + ident))
     aggr_ident_basic = Group(aggr + '(' + (operator_ident | ident | Empty()) + ')')
@@ -121,7 +122,7 @@ class Select(object):
     )
     where_expression << where_condition + ZeroOrMore((and_ | or_ | '&&' | '|') + where_expression)
 
-    join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER FULL'))) + JOIN)
+    join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER FULL HASH'))) + JOIN)
     join_stmt = join + table_name("join_table_name*") + Optional(AS + ident) + ON + where_expression
     cross_join_stmt = CROSS_JOIN + table_name("join_table_name*")
     cross_apply_stmt = CROSS_APPLY + (func_expr("cross_apply_func") | table_name) + Optional(AS + ident)
@@ -162,8 +163,7 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.one_column_as.parseString(''' Microsoft.RnR.AdInsight.Utils.ConvertToInt(SUM(IF(ALL(ValidImpressions > 0, Utility.AbsPositionFromPagePosition(PagePosition, Markets, LCID, MarketplaceClassificationId, PublisherOwnerId, CountryCode, MLAdsCnt, RequestedMainlineAdsCnt) <= 4), 1, 0))) AS MLImpressions
-        '''))
+        print(self.where_expression.parseString('''OptTypeId NOT IN(@GoogleImportOpportunity, @GoogleImportScheduledOpportunity)'''))
 
 
     def parse_ternary(self, s):
@@ -258,30 +258,17 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-AuctionWithUpdatedPclick =
-    SELECT OptId,
-           CampaignId,
-           A.RGUID,
-           A.ListingId,
-           A.CPC,
-           (B.Position == NULL
-           ? (AuctionSimulator.SimulateCtx.ActualClicks.Any() && AuctionSimulator.SimulateCtx.Competitors.Values.Where(p=>p.ListingId == (ulong)ListingId).FirstOrDefault()!= NULL
-           ? Math.Min(1,
-           AuctionSimulator.SimulateCtx.ActualClicks.Sum(a => a.GetClicks(
-           AuctionSimulator.SimulateCtx.Competitors.Values.Where(p => p.ListingId == (ulong) ListingId).FirstOrDefault(),
-           Level.ListingLevel,
-           PClick,
-           (int) Position,
-           AuctionSimulator.SimulateCtx.TheAuction.GetPosition((ulong) ListingId))
-           ))
-           : 0)
-           : B.Clicks) AS PClick
-    FROM AuctionWithUpdatedCPC AS A
-         LEFT OUTER JOIN
-             ListingBidDemand AS B
-         ON A.RGUID == B.RGUID
-            AND A.ListingId == B.ListingId
-            AND A.Position == B.Position;
+    UsagePattern =
+        SELECT *
+        FROM UsagePattern
+        WHERE OptTypeId NOT IN(@GoogleImportOpportunity, @GoogleImportScheduledOpportunity)
+        UNION ALL
+        SELECT *
+        FROM GICountingFeatures1
+        UNION ALL
+        SELECT
+            *
+        FROM GICountingFeatures2;
     '''))
 
 

@@ -4,7 +4,7 @@ from scope_parser.common import Common
 
 class Declare(object):
     DECLARE = Keyword("#DECLARE")
-    DATA_TYPE = oneOf("string String DateTime int bool double long ulong")('data_type')
+    DATA_TYPE = oneOf("string String DateTime int bool double long ulong float")('data_type')
 
     data_type_map = 'MAP' + '<' + DATA_TYPE + ',' + DATA_TYPE + Optional('?') + '>'
 
@@ -32,17 +32,5 @@ if __name__ == '__main__':
     #d.debug()
 
     print(d.parse('''
-#DECLARE FilterReasonMap           MAP<string,int?> = new MAP<string,int?> 
-                                        {
-                                            {"NoFilter", 0}
-                                            ,{"RAP_BelowRankScoreReserve", 2}
-                                            ,{"RAP_NotTopCandidate",2}
-                                            ,{"RAP_NotTopForSeller",2}
-                                            ,{"RAP_BelowMinimumBid",2}   
-                                            ,{"AdsBudget_BillingAccountIoPaused", 4}
-                                            ,{"AdsBudget_BillingDailyBudgetPaused", 4}
-                                            ,{"AdsBudget_BillingMonthlyBudgetPaused", 4}
-                                            ,{"AdsBudget_CbsAccountBudgetExhausted", 4}
-                                            ,{"AdsBudget_CbsCampaignBudgetExhausted", 4}
-                                        }
+    #DECLARE MeanOfCTR float = 0.1f
         '''))

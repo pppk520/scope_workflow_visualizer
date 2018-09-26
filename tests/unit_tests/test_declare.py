@@ -67,3 +67,5 @@ class TestDeclare(TestCase):
         self.assertTrue('DateTime.Parse(@BTEResultStartDate)' in value)
 
 
+
+

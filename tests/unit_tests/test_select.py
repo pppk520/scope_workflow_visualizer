@@ -886,5 +886,28 @@ KWCandidatesWithLocationTarget =
         self.assertCountEqual(result['sources'], ['AuctionWithUpdatedCPC', 'ListingBidDemand'])
 
 
+    def test_column_not_in_param_ident(self):
+        s = '''
+        UsagePattern =
+            SELECT *
+            FROM UsagePattern
+            WHERE OptTypeId NOT IN(@GoogleImportOpportunity, @GoogleImportScheduledOpportunity)
+            UNION ALL
+            SELECT *
+            FROM GICountingFeatures1
+            UNION ALL
+            SELECT
+                *
+            FROM GICountingFeatures2;
+
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'UsagePattern')
+        self.assertCountEqual(result['sources'], ['UsagePattern', 'GICountingFeatures1', 'GICountingFeatures2'])
+
+
+
 
 
