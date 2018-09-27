@@ -90,4 +90,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('string.Format("{0:yyyy}/{0:MM}/{0:dd}/AccountLevelFeatureAdoption_{0:yyyy-MM-dd}.ss", "2018-09-21 00:00:00")'))
+    print(r.parse('string.Format("{0}/%Y/%m/%d/PA_CampaignAuctionWon{1}.ss?date={2}...{3}&sparsestreamset=true", "/shares/bingads.algo.prod.adinsights/data/prod/pipelines/Optimization/Flights", 41, "DateTime.Parse("@dateObj.AddDays(-1).ToString("yyyy-MM-dd")").AddDays(1-15).ToString("yyyy-MM-dd")", @dateObj.ToString("yyyy-MM-dd"))'))

@@ -17,6 +17,7 @@ from scope_parser.reduce import Reduce
 from scope_parser.combine import Combine
 from scope_parser.using import Using
 from scope_parser.select import Select
+from scope_parser.loop import Loop
 from myparser.scope_resolver import ScopeResolver
 
 from graph.node import Node
@@ -120,7 +121,7 @@ class ScriptParser(object):
             text = match.group()
             return params.get(match.group(1), text)
 
-        return re_external_param.sub(replace_matched, content)
+        return re_external_param.sub(replace_matched, content).replace('""', '"')
 
     def find_latest_node(self, target_name, nodes):
         for node in nodes[::-1]:
@@ -137,28 +138,53 @@ class ScriptParser(object):
 
             node_map[node_name] = Node(node_name)
 
-    def remove_loop(self, content):
+    def expand_loop(self, content):
         ''' Assumption: end bracelet '}' of LOOP is isolated in single line
         If not, should use stack to process char by char
 
+        Note: LOOP is officially unrecommended operation
+        https://stackoverflow.microsoft.com/questions/5174/where-can-i-find-more-information-about-the-scope-keyword-loop/5175#5175
+
         :param content: the scope script body
-        :return: cleaned content
+        :return: expanded content
         '''
         lines = content.splitlines()
 
         result_lines = []
 
         loop_on = False
+        var = None
+        loop_count = 0
+        loop_content = []
+
         for line in lines:
             if loop_on:
-                if line.strip() == '}':
+                if '}' in line.strip():
                     loop_on = False
+
+                    # it can also be param in declare_map, just ignore this case now
+                    if self.is_int(loop_count):
+                        for i in range(int(loop_count)):
+                            for content_line in loop_content:
+                                result_lines.append(content_line.replace('@@{}@@'.format(var), str(i)))
+                    else:
+                        result_lines.extend(loop_content)
+
+                    # anything after enclosing should be kept
+                    result_lines.append(line.replace('}', ''))
+
                     continue
                 elif line.strip() == '{':
                     continue
 
+                loop_content.append(line)
+                continue
+
             if 'LOOP' in line:
                 loop_on = True
+                var, loop_count = Loop().get_var_loop_count(line)
+                self.logger.debug('found LOOP, var = {}, loop_count = {}'.format(var, loop_count))
+                loop_content = []
                 continue
 
             result_lines.append(line)
@@ -222,6 +248,13 @@ class ScriptParser(object):
 
         return False
 
+    def is_int(self, s):
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
+
     def add_sstream_info(self, nodes, declare_map):
         for node in nodes:
             param = ''
@@ -252,7 +285,7 @@ class ScriptParser(object):
             # ignore if already inserted href
             if not 'FONT' in node.attr['label']:
                 href = '{}{}{}'.format(self.sstream_link_prefix,
-                                       body_str,
+                                       body_str.replace('"', '').replace('\n', ''),
                                        self.sstream_link_suffix)
 
                 the_label = node.attr['label']
@@ -484,7 +517,7 @@ class ScriptParser(object):
         content = self.remove_if(content)
         content = self.remove_if(content) # for nested if
         content = self.resolve_external_params(content, self.external_params)
-        content = self.remove_loop(content)
+        content = self.expand_loop(content)
         content = self.remove_data_hint(content)
         content = self.remove_split_reserved_char(content)
         content = self.remove_ascii_non_target(content)
@@ -566,37 +599,33 @@ class ScriptParser(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
+    result = ScriptParser().expand_loop('''
+        #DECLARE Date5 string = string.Format("{0:yyyyMMdd}", @EndDate_Comp.AddDays(-1));
+        #DECLARE Date6 string = string.Format("{0:yyyyMMdd}", @EndDate_Comp);
+        
+        LOOP(a, 2){
+            Hour@@a@@ = SELECT @Date0 AS DateKey, string.Format("@@a@@") AS HourKey, 1 AS Tag FROM EmptyFile;
+        }
+            
+        Full0 = SELECT * FROM Hour23
+        LOOP(b, 3)
+        {
+            UNION ALL
+            SELECT * FROM Hour@@b@@
+        };
+        
+        LOOP(a, 2){
+            Hour@@a@@ = SELECT @Date1 AS DateKey, string.Format("@@a@@") AS HourKey, 1 AS Tag FROM EmptyFile;
+        }
+            
+        LOOP(b, @KK)
+        {
+            UNION ALL
+            SELECT * FROM Hour@@b@@
+        };
 
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\SOV\Scope\AuctionInsight\scripts\AucIns_Final.script''', dest_filepath='d:/tmp/AucIns_Final.script')
+    ''')
 
-#    ScriptParser().parse_file(
-#        '''D:\workspace\AdInsights\private\Backend\SOV\Scope\ImpressionShare\ImpressionSharePipeline\scripts\SOV3_StripeOutput.script''',
-#        dest_filepath='d:/tmp/SOV3_StripeOutput.script')
 
-#    ScriptParser().parse_file('''D:/workspace/AdInsights/private/Backend/UCM/Src/Scope/UCM_CopyTaxonomyVertical.script''', dest_filepath='d:/tmp/UCM_CopyTaxonomyVertical.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/1.MergeSources.script''', dest_filepath='d:/tmp/1.MergeSources.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.GenOrderInfoForOrderIntent.script''', dest_filepath='d:/tmp/2.GenOrderInfoForOrderIntent.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep1.script''', dest_filepath='d:/tmp/2.QualtiyControlStep1.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/2.QualtiyControlStep2.script''', dest_filepath='d:/tmp/2.QualtiyControlStep2.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/3.AssignOptType.script''', dest_filepath='d:/tmp/3.AssignOptType.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/4.TrafficEstimation.script''', dest_filepath='d:/tmp/4.TrafficEstimation.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/5.FinalCapping.script''', dest_filepath='d:/tmp/5.FinalCapping.script')
-    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/6.MPIProcessing.script''', dest_filepath='d:/tmp/6.MPIProcessing.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMMO.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_BMO.script''', dest_filepath='d:/tmp/7.PKVGeneration_BMO.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\Opportunities\Scope\KeywordOpportunitiesV2\KeywordOpportunitiesV2/7.PKVGeneration_KWO.script''', dest_filepath='d:/tmp/7.PKVGeneration_KWO.script')
+    print(result)
 
-    # BTE
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BidForPosition.script''', dest_filepath='d:/tmp/BidForPosition.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts\BillableAuction.script''', dest_filepath='d:/tmp/BillableAuction.script')
-#    ScriptParser().parse_file('''D:\workspace\AdInsights\private\Backend/BTE/Src/BTELibrary/BidOpportunity/ScopeScripts/BidOptMPIProcessing.script''', dest_filepath='d:/tmp/BidOptMPIProcessing.script')
-
-    # VIEW
-#    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AccountTacticSTR.view''', dest_filepath='d:/tmp/AccountTacticSTR.view')
-
-    # MODULE
-#    ScriptParser().parse_file(r'''D:\workspace\AdInsights\private\Backend\UCM\Src\Scope\AllAdinsightMPI.module''', dest_filepath='d:/tmp/AllAdinsightMPI.module')
-
-#    print(ScriptParser().resolve_external_params(s, {'external': 'yoyo'}))
-#    print(ScriptParser().resolve_declare(s_declare))
-#    ScriptParser(b_add_sstream_link=False).parse_file('../tests/files/test_scope.script', dest_filepath='d:/tmp/test_scope.script')
