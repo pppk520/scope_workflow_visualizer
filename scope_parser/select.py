@@ -136,12 +136,14 @@ class Select(object):
     from_module = Group(Optional('(').suppress() + Input.module + Optional(')').suppress() + Optional(as_something).suppress())
     from_view = Group(Optional('(') + Input.view + Optional(')') + Optional(as_something).suppress())
     from_sstream = Group(Optional('(') + Input.sstream + Optional(')') + Optional(as_something).suppress())
+    from_extract = Group(Optional('(') + Input.extract + Optional(')') + Optional(as_something).suppress())
     from_sstream_streamset = Group(Optional('(') + Input.sstream_value_streamset + Optional(')') + Optional(as_something).suppress())
     from_stmt = FROM + (from_select("from_select") |
                         from_module("module") |
                         from_view("view") |
                         from_sstream_streamset("sstream_streamset") |
                         from_sstream("sstream") |
+                        from_extract("extract") |
                         table_name_list("tables"))
 
     select_stmt <<= (SELECT + (column_name_list | '*')("columns") +
@@ -219,6 +221,9 @@ class Select(object):
         if 'sstream' in parsed_result:
             sources.add("SSTREAM_{}".format(parsed_result['sstream'][2]))
 
+        if 'extract' in parsed_result:
+            sources.add("EXTRACT_{}".format(parsed_result['extract']['from_source']))
+
         if 'sstream_streamset' in parsed_result:
             sources.add("SSTREAM<STREAMSET>_{}".format(parsed_result['sstream_streamset'][3]))
 
@@ -258,17 +263,7 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-    UsagePattern =
-        SELECT *
-        FROM UsagePattern
-        WHERE OptTypeId NOT IN(@GoogleImportOpportunity, @GoogleImportScheduledOpportunity)
-        UNION ALL
-        SELECT *
-        FROM GICountingFeatures1
-        UNION ALL
-        SELECT
-            *
-        FROM GICountingFeatures2;
+    EmptyManifest = SELECT COUNT() AS C FROM (EXTRACT A:string FROM @EmptyTxt USING DefaultTextExtractor)
     '''))
 
 

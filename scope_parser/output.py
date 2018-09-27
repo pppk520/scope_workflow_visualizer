@@ -73,5 +73,8 @@ if __name__ == '__main__':
     obj = Output()
 
     print(obj.parse('''
-        OUTPUT (SELECT * FROM Suggestions WHERE bNeedFiltered == true) TO SSTREAM @Output_FilteredBy_SpecialRuleForCustomerFilter CLUSTERED BY OrderId WITH STREAMEXPIRY @STREAM_EXPIRY
+OUTPUT AccountFeatureAdoption 
+TO SSTREAM @AdExtensionAccountLevelAdoptionFile
+	HASH CLUSTERED BY AccountId, FeatureTypeId
+    WITH STREAMEXPIRY @MeasurementStreamExpiry
     '''))

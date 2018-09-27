@@ -171,7 +171,13 @@ class TestScopeResolver(TestCase):
         result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
         self.assertEqual('/path/to/Flights/2018/01/01/AuctionParticipants20180101.ss', result)
 
+    def test_inner_string_format(self):
+        s = '''
+        "aaa__" + string.Format("/path/to/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}","2018-01-01",22/2*2)
+        '''
 
+        result = ScopeResolver().resolve_declare_rvalue(None, s, {})
+        self.assertEqual('aaa__/path/to/data/prod/pipelines/ImpressionShare/Common/2018/01/01/DSAMerge2018010100.ss?date=2018-01-01&hour=22', result)
 
 
 

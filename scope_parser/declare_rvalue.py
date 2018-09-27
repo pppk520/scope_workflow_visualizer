@@ -90,4 +90,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('string.Format("{0}/Flights/{1:yyyy/MM/dd}/AuctionParticipants{1:yyyyMMdd}.ss", "/path/to", @BTERunDate)'))
+    print(r.parse('string.Format("{0:yyyy}/{0:MM}/{0:dd}/AccountLevelFeatureAdoption_{0:yyyy-MM-dd}.ss", "2018-09-21 00:00:00")'))

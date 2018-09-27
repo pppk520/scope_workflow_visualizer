@@ -439,6 +439,38 @@ class ScopeResolver(object):
 
         return False
 
+    def search_inner_str_format(self, s):
+        results = re.findall(r'.*?([sS]tring\.Format\(.*\))', s)
+
+        return results
+
+    def resolve_inner_str_format(self, s, declare_map):
+        replace_map = {}
+
+        for str_format_part in self.search_inner_str_format(s):
+            self.logger.debug('str_format_part = [{}]'.format(str_format_part))
+
+            ret_declare_rvalue = self.dr.parse(str_format_part)
+
+            format_str = ret_declare_rvalue['format_str']
+            format_items = ret_declare_rvalue['format_items']
+            type_ = ret_declare_rvalue['type']
+
+            if type_ != 'format_str':
+                self.logger.warning('?? resolve_inner_str_format gets not recognized format')
+                continue
+
+            replace_map[str_format_part] = '"{}"'.format(self.resolve_str_format(format_str, format_items, declare_map))
+
+        result = s
+        for key in replace_map:
+            result = result.replace(key, replace_map[key])
+
+        # clean up double double quotes if any because we added it
+        result = result.replace('""', '"')
+
+        return result
+
     def resolve_declare_rvalue(self, declare_lvalue, declare_rvalue, declare_map):
         self.logger.debug('resolve_declare_rvalue: declare_lvalue [{}], declare_rvalue [{}]'.format(declare_lvalue, declare_rvalue))
 
@@ -452,6 +484,9 @@ class ScopeResolver(object):
             # special handling for datetime object, no parsing, just keep it
             if self.is_datetime(declare_rvalue):
                 return declare_rvalue
+
+            # special handling inner string.Format
+            declare_rvalue = self.resolve_inner_str_format(declare_rvalue, declare_map)
 
             self.logger.debug('finished replace_declare_items, start to parse.')
             ret_declare_rvalue = self.dr.parse(declare_rvalue)
@@ -523,11 +558,12 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     s = '''
-    string.Format("{0}/Flights/{1:yyyy/MM/dd}/AuctionParticipants{1:yyyyMMdd}.ss", "/path/to", @BTERunDate)
+    string.Format("/path/to/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}","2018-01-01",22/2*2)
     '''
 
     declare_map = {'@BTERunDate': parser.parse('2018-01-01')}
 
-    result = ScopeResolver().resolve_declare_rvalue(None, s, declare_map)
+    result = ScopeResolver().resolve_inner_str_format(s, declare_map)
+    result = ScopeResolver().resolve_declare_rvalue(None, result, declare_map)
 
     print(result)

@@ -32,5 +32,6 @@ if __name__ == '__main__':
     #d.debug()
 
     print(d.parse('''
-    #DECLARE MeanOfCTR float = 0.1f
+    #DECLARE AdExtensionAccountLevelAdoptionFile string = @OutputPath + string.Format(@"{0:yyyy}/{0:MM}/{0:dd}/AccountLevelFeatureAdoption_{0:yyyy-MM-dd}.ss", 
+    @RunDateUTC);
         '''))

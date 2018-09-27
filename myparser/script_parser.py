@@ -258,6 +258,8 @@ class ScriptParser(object):
 
     def change_node_color(self, nodes):
         for node in nodes:
+            self.logger.debug('node = {}'.format(node))
+
             if '_' not in node.name:
                 continue
 
