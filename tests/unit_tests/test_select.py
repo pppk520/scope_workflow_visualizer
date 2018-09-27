@@ -907,6 +907,17 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'UsagePattern')
         self.assertCountEqual(result['sources'], ['UsagePattern', 'GICountingFeatures1', 'GICountingFeatures2'])
 
+    def test_form_extract(self):
+        s = '''
+        EmptyManifest = SELECT COUNT() AS C FROM (EXTRACT A:string FROM @EmptyTxt USING DefaultTextExtractor)
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'EmptyManifest')
+        self.assertCountEqual(result['sources'], ['EXTRACT_@EmptyTxt'])
+
+
 
 
 

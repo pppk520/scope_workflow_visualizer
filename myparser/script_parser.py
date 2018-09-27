@@ -210,13 +210,33 @@ class ScriptParser(object):
 
         return ret
 
+    def is_input_sstream(self, node):
+        if node.name.startswith('SSTREAM_'):
+            return True
+
+        return False
+
+    def is_output(self, node):
+        if node.attr.get('type', None) == 'output':
+            return True
+
+        return False
+
     def add_sstream_info(self, nodes, declare_map):
         for node in nodes:
-            # only target SSTREAM
-            if not node.name.startswith('SSTREAM_'):
-                continue
+            param = ''
 
-            param = node.name[node.name.index('_') + 1:]
+            # only target SSTREAM and OUTPUT
+            if self.is_input_sstream(node):
+                param = node.name[node.name.index('_') + 1:]
+            elif self.is_output(node):
+                # skip debug files
+                if 'debug' in node.name.lower():
+                    continue
+
+                param = node.name
+            else:
+                continue
 
             if not param in declare_map:
                 self.logger.info('param [{}] not in declare_map, probably local reference. Ignore for now.'.format(param))
