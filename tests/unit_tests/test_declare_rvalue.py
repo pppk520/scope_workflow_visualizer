@@ -51,6 +51,15 @@ class TestDeclareRvalue(TestCase):
         result = DeclareRvalue().parse(s)
         self.assertCountEqual(result['format_items'], ['"abc"', '+', '"111"'])
 
+    def test_str_cat2(self):
+        s = '''
+        "abc" + "111" + "222" + "333"
+        '''
+
+        result = DeclareRvalue().parse(s)
+        self.assertCountEqual(result['format_items'], ['"abc"', '+', '"111"', '+', '"222"', '+', '"333"'])
+
+
     def test_str_format_item_fun(self):
         s = '''
         string.Format(@"{0}/Preparations/MPIProcessing/{1:yyyy/MM/dd}/Campaign_TargetInfo_{1:yyyyMMdd}.ss", @KWRawPath,  DateTime.Parse(@RunDate));

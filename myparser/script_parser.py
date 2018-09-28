@@ -159,7 +159,8 @@ class ScriptParser(object):
 
         for line in lines:
             if loop_on:
-                if '}' in line.strip():
+                # string.Format has format placeholder {}
+                if '}' in line.strip() and not 'string.format' in line.lower():
                     loop_on = False
 
                     # it can also be param in declare_map, just ignore this case now

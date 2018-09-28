@@ -14,21 +14,24 @@ class DeclareRvalue(object):
 
     param = Combine('@' + ident)
     param_str = Combine(Optional('@') + quotedString)
-    param_str_cat = Group((param_str | param) + OneOrMore(oneOf('+ - * /') + (func_chain | param_str | param))) # delimitedList suppress delim, we want to keep it
+    param_str_cat = Group((param_str | param) + OneOrMore('+' + (func_chain | param_str | param))) # delimitedList suppress delim, we want to keep it
     num_operation = Group(Word(nums) + OneOrMore(oneOf('+ - * /') + Word(nums)))
     format_item = func_chain('func_chain') | Combine(num_operation)('num_operation') | param_str_cat('param_str_cat') | param_str('param_str') | param('param') | Combine(ident('ident'))
     placeholder_basic = Group('{' + Word(nums) + '}')
     placeholder_date = Group('{' + Word(nums) + ':' + delimitedList(oneOf('yyyy MM dd'), delim=oneOf('/ - _')) + '}')
-    string_format = keyword_string_format + '(' + Combine(param_str_cat | param_str | param)('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
+    format_str = Combine(param_str_cat | param_str | param, adjacent=False)
+    string_format = keyword_string_format + '(' + format_str('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
     boolean_values = oneOf('true false')
 
     rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums + '.')('nums') | func_chain('func_chain') | param_str('param_str') | param('param') | boolean_values('boolean')
 
     def debug(self):
-        data = self.format_item.parseString('"/shares/bingads.algo.prod.adinsights/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}"')
-#        data = self.format_item.parseString('"2018-01-01"')
+        result = self.format_str.parseString('"/local/prod/pipelines/Opportunities/output/BudgetEnhancement/AIMTBondResult//2018/09/21" + "/BudgetOpt_Bond_PKV_Table_{0:yyyyMMdd}.ss"')
 
-        print(data)
+        print('-' *20)
+        print(json.dumps(result.asDict(), indent=4))
+        print('-' *20)
+
 
     def parse(self, s):
         result = self.rvalue.parseString(s)
@@ -90,4 +93,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('string.Format("{0}/%Y/%m/%d/PA_CampaignAuctionWon{1}.ss?date={2}...{3}&sparsestreamset=true", "/shares/bingads.algo.prod.adinsights/data/prod/pipelines/Optimization/Flights", 41, "DateTime.Parse("@dateObj.AddDays(-1).ToString("yyyy-MM-dd")").AddDays(1-15).ToString("yyyy-MM-dd")", @dateObj.ToString("yyyy-MM-dd"))'))
+    print(r.parse('string.Format("{0}/{1:yyyy/MM}/BMMSummary_Bond_PKV_Table_{1:yyyy-MM-dd}.ss", "/local/prod/pipelines/Optimization/BMMSuggestion/PkvTables/", @PDATE.AddDays(+1))'))
