@@ -20,7 +20,7 @@ class Common(object):
     expr = expr_item + ZeroOrMore(oneOf('+ - * / |') + expr_item)
     func = Forward()
     func_ptr = Forward()
-    func_param = param_str_cat | expr | ident | Word('- ' + nums)
+    func_param = param_str_cat | expr | ident | Word('- +' + nums)
     func_params = func_param + ZeroOrMore(',' + func_param)
 
     param_lambda = Group(Optional('(') + delimitedList(ident) + Optional(')') + '=>' + OneOrMore(func | ident))

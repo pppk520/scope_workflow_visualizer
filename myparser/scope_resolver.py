@@ -385,7 +385,7 @@ class ScopeResolver(object):
         recur_max = 5
 
         while recur_max > 0:
-            self.logger.debug('replace_declare_items [{}]'.format(s))
+            self.logger.debug('replace_declare_items of [{}], recur_max = {}'.format(s, recur_max))
             items = re.findall(r'(@[^ ,/\)\@]+)', s)
 
             if len(items) == 0:
@@ -403,14 +403,22 @@ class ScopeResolver(object):
                     continue # ignore external params
 
                 if item in declare_map:
-                    self.logger.debug('replace declare item [{}] to [{}], type is [{}]'.format(item,
-                                                                                               declare_map[item],
-                                                                                               type(declare_map[item])))
-
                     if self.is_int(declare_map[item]):
                         tmp = tmp.replace(item, str(declare_map[item]))
                     else:
-                        tmp = tmp.replace(item, '"{}"'.format(declare_map[item]))
+                        tt = '"{}"'.format(declare_map[item]).replace('""', '"')  # wrong format while replacing
+
+                        # for merged single quotedString, remove incorrect double quote inside
+                        if tt.startswith('"') and tt.endswith('"') and '+' not in tt:
+                            tt = '"{}"'.format(tt.replace('"', ''))
+
+                        tmp = tmp.replace(item, tt)
+
+                        self.logger.debug('replace declare item [{}] to [{}], type is [{}]'.format(item,
+                                                                                                   tt,
+                                                                                                   type(tt)))
+
+
                 else:
                     self.logger.debug('item [{}] is not in declare_map'.format(item))
 
@@ -427,8 +435,10 @@ class ScopeResolver(object):
         return s
 
     def replace_ref_strings(self, s):
+        self.logger.debug('replace_ref_strings of [{}]'.format(s))
+
         # CASE: "/path/to"/subpath"
-        if s.startswith('"') and s.endswith('"') and not ParseUtil.is_extend_str_cat(s):
+        if s.startswith('"') and s.endswith('"') and '+' not in s:
             s = '"{}"'.format(s.replace('"', ''))
 
         return re.sub(r'@(".*?")', '\g<1>', s)
@@ -488,7 +498,7 @@ class ScopeResolver(object):
             # special handling inner string.Format
             declare_rvalue = self.resolve_inner_str_format(declare_rvalue, declare_map)
 
-            self.logger.debug('finished replace_declare_items, start to parse.')
+            self.logger.debug('finished replace_declare_items, start to parse [{}].'.format(declare_rvalue))
             ret_declare_rvalue = self.dr.parse(declare_rvalue)
         except Exception as ex:
             self.logger.warning('Exception in resolve_declare_rvalue: {}'.format(ex))
@@ -540,11 +550,6 @@ class ScopeResolver(object):
         for declare_lvalue in declare_map:
             try:
                 declare_rvalue = declare_map[declare_lvalue]
-
-                # check if it references existing param, if yes directly use it
-#                if declare_rvalue in declare_map:
-#                    declare_map[declare_lvalue] = declare_map[declare_rvalue]
-#                    continue
 
                 resolved = self.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
                 self.logger.info('update resolved [{}] to [{}] type [{}]'.format(declare_lvalue, resolved, type(resolved)))

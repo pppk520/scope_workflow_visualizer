@@ -4,7 +4,7 @@ from scope_parser.common import Common
 
 class Declare(object):
     DECLARE = Keyword("#DECLARE")
-    DATA_TYPE = oneOf("string String DateTime int bool double long ulong float")('data_type')
+    DATA_TYPE = oneOf("string String DateTime int bool double long ulong float decimal")('data_type')
 
     data_type_map = 'MAP' + '<' + DATA_TYPE + ',' + DATA_TYPE + Optional('?') + '>'
 
@@ -32,6 +32,6 @@ if __name__ == '__main__':
     #d.debug()
 
     print(d.parse('''
-    #DECLARE AdExtensionAccountLevelAdoptionFile string = @OutputPath + string.Format(@"{0:yyyy}/{0:MM}/{0:dd}/AccountLevelFeatureAdoption_{0:yyyy-MM-dd}.ss", 
-    @RunDateUTC);
+        #DECLARE BudgetFloor        decimal = 1.05m
+
         '''))
