@@ -483,7 +483,8 @@ class ScriptParser(object):
         # keep date key because external params from config is probably yyyy-MM-dd format
         for key in external_params:
             if 'date' in key.lower() or 'hour' in key.lower():
-                continue
+                if 'yyyy' in external_params[key] or 'mmdd' in external_params[key]:
+                    continue
 
             self.external_params[key] = external_params[key]
             self.logger.debug('update external_param key [{}] to value [{}]'.format(key, self.external_params[key]))

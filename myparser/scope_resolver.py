@@ -292,6 +292,9 @@ class ScopeResolver(object):
         format_str = self.get_format_str_declared(format_str, declare_map)
         format_str = self.check_and_eval_extend_str_cat(format_str)
 
+        # special handling for %n - streamset format placeholder
+        format_str = format_str.replace('%n', '1')  # fixed
+
         placeholders = re.findall(r'{(.*?)}', format_str)
 
         datetime_obj = None

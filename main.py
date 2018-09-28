@@ -16,7 +16,8 @@ def parse_script(proj_folder,
                  target_filenames=[],
                  add_sstream_link=False,
                  add_sstream_size=False,
-                 exclude_keys=[]):
+                 exclude_keys=[],
+                 external_params={}):
 
     wfp = WorkflowParser()
     obj = wfp.parse_folder(workflow_folder)
@@ -37,6 +38,8 @@ def parse_script(proj_folder,
 
         dest_filepath = os.path.join(output_folder, target_filename)
         script_fullpath = script_fullpath_map[target_filename]
+
+        param_map.update(external_params)
 
         # dest_filepath will be appended suffix like .dot.pdf
         sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
@@ -128,16 +131,16 @@ if __name__ == '__main__':
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
                  r'D:/tmp/tt',
                  target_filenames=[
-                     '6.MPIProcessing.script',
-                     '7.PKVGeneration_BMMO.script',
-                     '7.PKVGeneration_BMO.script',
-                     '7.PKVGeneration_BMOEX.script',
-                     '7.PKVGeneration_KWO.script',
-                     'MPIPrepare.script',
-                     'CampaignTargetingInfo.script',
-                     'KeywordOpt_CampaignTargetInfo.script',
-                     'NKWOptMPIProcessing.script',
-                     'BudgetOptMPIProcessing.script',
+#                     '6.MPIProcessing.script',
+#                     '7.PKVGeneration_BMMO.script',
+#                     '7.PKVGeneration_BMO.script',
+#                     '7.PKVGeneration_BMOEX.script',
+#                     '7.PKVGeneration_KWO.script',
+#                     'MPIPrepare.script',
+#                     'CampaignTargetingInfo.script',
+#                     'KeywordOpt_CampaignTargetInfo.script',
+#                     'NKWOptMPIProcessing.script',
+#                     'BudgetOptMPIProcessing.script',
                      'BudgetOptPKVGeneration.script'
                  ],
                  add_sstream_link=True,
@@ -255,5 +258,10 @@ if __name__ == '__main__':
                     'PosViewCntAnalyze.script',
                  ],
                  add_sstream_link=True,
-                 add_sstream_size=True)
+                 add_sstream_size=True,
+                 external_params={
+                     'startDateStr': '2018-09-21',
+                     'endDateStr': '2018-09-23',
+
+                 })
     '''
