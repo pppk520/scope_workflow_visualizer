@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 class SstreamUtility(object):
     logger = logging.getLogger(__name__)
 
+    GET_FAIL_MAX = 3
+
     def __init__(self, auth_config_path, cache_filename='sstream_utility_cache.json'):
         self.hu = CosmosHttpUtility(auth_config_path)
 
@@ -19,6 +21,9 @@ class SstreamUtility(object):
         if cache_filename:
             self.cache_filepath = os.path.join(self.cache_folder, cache_filename)
             self.load_cache()
+
+        self.fail_cache = {}
+
 
     def refresh_cache(self):
         self.save_cache()
@@ -102,6 +107,15 @@ class SstreamUtility(object):
                     return filesize_pretty
         except Exception as ex:
             self.logger.warning(ex)
+
+        if data_url not in self.fail_cache:
+            self.fail_cache[data_url] = 0
+
+        self.fail_cache[data_url] += 1
+
+        if self.fail_cache[data_url] > self.GET_FAIL_MAX:
+            self.logger.warning('failed getting size from url [{}]'.format(data_url))
+            self.update_cache(data_url, key, 'NA')
 
         return ''
 

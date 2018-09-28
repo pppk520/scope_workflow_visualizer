@@ -2,12 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="92683f41-f921-43be-81b6-4a4ba6eb9a7b" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cosmos/sstream_utiltiy.py" beforeDir="false" afterPath="$PROJECT_DIR$/cosmos/sstream_utiltiy.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/myparser/scope_resolver.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/scope_resolver.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/myparser/script_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/script_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/common.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/common.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -18,11 +16,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="script_parser.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="script_parser.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="161" column="57" selection-start-line="161" selection-start-column="57" selection-end-line="161" selection-end-column="57" />
+            <state relative-caret-position="257">
+              <caret line="298" column="72" lean-forward="true" selection-start-line="298" selection-start-column="72" selection-end-line="298" selection-end-column="72" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -45,8 +43,8 @@
       <file leaf-file-name="scope_resolver.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myparser/scope_resolver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="594">
-              <caret line="450" lean-forward="true" selection-start-line="450" selection-end-line="450" />
+            <state relative-caret-position="423">
+              <caret line="340" column="58" lean-forward="true" selection-start-line="340" selection-start-column="58" selection-end-line="340" selection-end-column="58" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -66,11 +64,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="config.ini" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/config/config.ini">
+      <file leaf-file-name="sstream_utiltiy.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/cosmos/sstream_utiltiy.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="110">
-              <caret line="5" column="22" lean-forward="true" selection-start-line="5" selection-start-column="22" selection-end-line="5" selection-end-column="22" />
+            <state relative-caret-position="600">
+              <caret line="116" selection-start-line="116" selection-end-line="116" />
+              <folding>
+                <element signature="e#0#14#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -96,20 +97,23 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="cosmos_http_utility.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cosmos/cosmos_http_utility.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="628">
+              <caret line="143" column="9" selection-start-line="143" selection-start-column="9" selection-end-line="143" selection-end-column="9" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="test_declare_rvalue.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="638">
               <caret line="45" lean-forward="true" selection-start-line="45" selection-end-line="45" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pyparsing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/pyparsing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="275">
-              <caret line="4232" selection-start-line="4232" selection-end-line="4232" />
             </state>
           </provider>
         </entry>
@@ -134,13 +138,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>DateTime.Parse</find>
-      <find>LoadTime</find>
-      <find>dateObj</find>
-      <find>loop</find>
-      <find>111</find>
-      <find>is_int</find>
-      <find>DateObj</find>
       <find>remove_loop</find>
       <find>prefix</find>
       <find>OutputDir</find>
@@ -164,6 +161,13 @@
       <find>TmpPkvFile</find>
       <find>format_str</find>
       <find>add_sstream_link</find>
+      <find />
+      <find>self.ssu</find>
+      <find>BroadMatchModifierSummary</find>
+      <find>yyyy</find>
+      <find>remove_if</find>
+      <find>cache</find>
+      <find>ssu</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -175,7 +179,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/graph/edge.py" />
         <option value="$PROJECT_DIR$/scope_parser/set.py" />
         <option value="$PROJECT_DIR$/graph/networkx_utility.py" />
         <option value="$PROJECT_DIR$/scope_parser/module.py" />
@@ -221,11 +224,12 @@
         <option value="$PROJECT_DIR$/scope_parser/loop.py" />
         <option value="$PROJECT_DIR$/config/config.ini" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_declare_rvalue.py" />
-        <option value="$PROJECT_DIR$/myparser/scope_resolver.py" />
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/scope_parser/declare_rvalue.py" />
         <option value="$PROJECT_DIR$/scope_parser/common.py" />
+        <option value="$PROJECT_DIR$/myparser/scope_resolver.py" />
         <option value="$PROJECT_DIR$/myparser/script_parser.py" />
+        <option value="$PROJECT_DIR$/cosmos/sstream_utiltiy.py" />
       </list>
     </option>
   </component>
@@ -432,9 +436,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_unit_tests - 2018.09.28 at 10h 33m 43s.xml">
-      <configuration name="Unittests in unit_tests" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.09.28 at 10h 34m 14s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
@@ -460,6 +461,9 @@
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.09.28 at 11h 27m 29s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.09.28 at 11h 42m 25s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
   </component>
@@ -494,17 +498,17 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/scope_resolver.py</url>
-          <line>551</line>
+          <line>555</line>
           <option name="timeStamp" value="39" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/scope_resolver.py</url>
-          <line>559</line>
+          <line>563</line>
           <option name="timeStamp" value="40" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/scope_resolver.py</url>
-          <line>555</line>
+          <line>559</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
       </breakpoints>
@@ -680,26 +684,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cosmos/cosmos_http_utility.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="578">
-          <caret line="143" column="9" selection-start-line="143" selection-start-column="9" selection-end-line="143" selection-end-column="9" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cosmos/sstream_utiltiy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="441">
-          <caret line="106" lean-forward="true" selection-start-line="106" selection-end-line="106" />
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tt.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="484">
@@ -870,30 +854,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="702">
-          <caret line="183" lean-forward="true" selection-start-line="183" selection-end-line="183" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/util/parse_util.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="110">
           <caret line="5" column="8" selection-start-line="5" selection-start-column="8" selection-end-line="5" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/myparser/scope_resolver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="594">
-          <caret line="450" lean-forward="true" selection-start-line="450" selection-end-line="450" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -931,12 +895,52 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
+    <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="161" column="57" selection-start-line="161" selection-start-column="57" selection-end-line="161" selection-end-column="57" />
+        <state relative-caret-position="702">
+          <caret line="183" lean-forward="true" selection-start-line="183" selection-end-line="183" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosmos/cosmos_http_utility.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="628">
+          <caret line="143" column="9" selection-start-line="143" selection-start-column="9" selection-end-line="143" selection-end-column="9" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/myparser/scope_resolver.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="423">
+          <caret line="340" column="58" lean-forward="true" selection-start-line="340" selection-start-column="58" selection-end-line="340" selection-end-column="58" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="298" column="72" lean-forward="true" selection-start-line="298" selection-start-column="72" selection-end-line="298" selection-end-column="72" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosmos/sstream_utiltiy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="116" selection-start-line="116" selection-end-line="116" />
+          <folding>
+            <element signature="e#0#14#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -175,8 +175,8 @@ class ScopeResolver(object):
                       .replace('MM', '%m')\
                       .replace('dd', '%d')\
                       .replace('HH', '%H')\
-                      .replace('MM', '%M')\
-                      .replace('SS', '%S')
+                      .replace('mm', '%M')\
+                      .replace('ss', '%S')
 
     def process_to_string(self, the_obj, func_str):
         found = re.findall('ToString\((.*?)\)', func_str)
@@ -330,11 +330,15 @@ class ScopeResolver(object):
                     date_m = datetime_obj.strftime('%m')
                     date_d = datetime_obj.strftime('%d')
                     date_h = datetime_obj.strftime('%H')
+                    date_M = datetime_obj.strftime('%M')
+                    date_S = datetime_obj.strftime('%S')
 
                     replace_to = fmt.replace('yyyy', date_Y)\
                                     .replace('MM', date_m)\
-                                    .replace('dd', date_d) \
-                                    .replace('HH', date_h)
+                                    .replace('dd', date_d)\
+                                    .replace('HH', date_h)\
+                                    .replace('mm', date_M)\
+                                    .replace('ss', date_S)
             else:
                 idx = ph
                 replace_to = format_items[int(idx)]

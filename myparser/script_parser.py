@@ -99,10 +99,13 @@ class ScriptParser(object):
 
         return re.sub(pattern, replacer, content)
 
-    def remove_if(self, content):
+    def remove_if(self, content, keep_if_content=True):
         re_if = re.compile(r'#IF.*?\n(.*?)#ENDIF', re.MULTILINE | re.DOTALL)
 
-        content = re.sub(re_if, '\g<1>', content)
+        if keep_if_content:
+            content = re.sub(re_if, '\g<1>', content)
+        else:
+            content = re.sub(re_if, '', content)
 
         # remove inner '#ELSE'
         # which means #IF (block_1) #ELSE (block_2) #ENDIF
