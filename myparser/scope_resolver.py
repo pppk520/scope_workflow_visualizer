@@ -570,10 +570,12 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     s = '''
-    string.Format("/path/to/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}","2018-01-01",22/2*2)
+    string.Format(@"{0}/KeywordOpportunity/Suggestions/SuggestionsAfterRuleFilter/SuggestionsAfterRuleFilter_Stage1_{1:yyyy-MM-dd}.ss", @OPT_PATH, @dateObj)
     '''
 
-    declare_map = {'@BTERunDate': parser.parse('2018-01-01')}
+    declare_map = {
+        '@OPT_PATH': 'path/to',
+        '@dateObj': parser.parse('2018-01-01')}
 
     result = ScopeResolver().resolve_inner_str_format(s, declare_map)
     result = ScopeResolver().resolve_declare_rvalue(None, result, declare_map)

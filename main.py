@@ -127,10 +127,17 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
+    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
                  r'D:/tmp/tt',
                  target_filenames=[
+                     '1.MergeSources.script',
+#                     '2.QualtiyControlStep1.script',
+#                     '2.QualtiyControlStep2.script',
+#                     '3.AssignOptType.script',
+#                     '4.TrafficEstimation.script',
+#                     '5.FinalCapping.script',
 #                     '6.MPIProcessing.script',
 #                     '7.PKVGeneration_BMMO.script',
 #                     '7.PKVGeneration_BMO.script',
@@ -141,10 +148,11 @@ if __name__ == '__main__':
 #                     'KeywordOpt_CampaignTargetInfo.script',
 #                     'NKWOptMPIProcessing.script',
 #                     'BudgetOptMPIProcessing.script',
-                     'BudgetOptPKVGeneration.script'
+#                     'BudgetOptPKVGeneration.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''
 
 
     '''
@@ -265,3 +273,9 @@ if __name__ == '__main__':
 
                  })
     '''
+
+    to_workflow_dep_graph(
+                 r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
+                 r'D:/tmp/tt',
+                 target_node_names=[],
+                 filter_type=None)

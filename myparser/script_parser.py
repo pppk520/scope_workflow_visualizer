@@ -122,9 +122,9 @@ class ScriptParser(object):
 
         def replace_matched(match):
             text = match.group()
-            return params.get(match.group(1), text)
+            return params.get(match.group(1), text).replace('""', '"')
 
-        return re_external_param.sub(replace_matched, content).replace('""', '"')
+        return re_external_param.sub(replace_matched, content)
 
     def find_latest_node(self, target_name, nodes):
         for node in nodes[::-1]:
@@ -185,11 +185,13 @@ class ScriptParser(object):
                 continue
 
             if 'LOOP' in line:
-                loop_on = True
                 var, loop_count = Loop().get_var_loop_count(line)
-                self.logger.debug('found LOOP, var = {}, loop_count = {}'.format(var, loop_count))
-                loop_content = []
-                continue
+                self.logger.debug('found keyword LOOP, var = {}, loop_count = {}'.format(var, loop_count))
+
+                if var is not None and loop_count is not None:
+                    loop_on = True
+                    loop_content = []
+                    continue
 
             result_lines.append(line)
 

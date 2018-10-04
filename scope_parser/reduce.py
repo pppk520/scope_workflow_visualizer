@@ -1,3 +1,4 @@
+import json
 from pyparsing import *
 from scope_parser.common import Common
 from scope_parser.select import Select
@@ -23,6 +24,10 @@ class Reduce(object):
     using = Optional(USING + (func | func_ptr)('using'))
     reduce_stmt = Combine(ident)('assign_var') + '=' + REDUCE + (Combine(ident)('source') | select_stmt('select_stmt')) + on + produce + presort + using
 
+    def debug(self):
+        print(self.using.parseString('USING GroupingReducer("SuggKW", "3")'))
+        print(self.presort.parseString('PRESORT Score DESC'))
+
     def parse(self, s):
         ret = {
             'assign_var': None,
@@ -31,6 +36,10 @@ class Reduce(object):
         }
 
         d = self.reduce_stmt.parseString(s)
+
+#        print('-' *20)
+#        print(json.dumps(d.asDict(), indent=4))
+#        print('-' *20)
 
         ret['assign_var'] = d['assign_var']
 
@@ -45,9 +54,10 @@ class Reduce(object):
 
 if __name__ == '__main__':
     obj = Reduce()
+    obj.debug()
 
     print(obj.parse('''
-Suggestions =
+KWOSuggestions_NoneChinese_Others =
     REDUCE
     (
         SELECT AccountId,
@@ -56,12 +66,18 @@ Suggestions =
                SuggMatchTypeId,
                TrackId,
                TrafficId,
-               Score
-        FROM Suggestions
+               KeyTerm,
+               BMMKeyword,
+               OptTypes,
+               Score,
+               LCID_C2C,
+               bChinese
+        FROM KWOSuggestions_NoneChinese
+        WHERE Theme == "Keyword Like" OR Theme == ""
     )
     ON OrderId
+    USING GroupingReducer("SuggKW", "3")
     PRESORT Score DESC
-    USING Utils.TopNReducer(@OrderSuggestionCount)
         '''))
 
 

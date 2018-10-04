@@ -172,7 +172,10 @@ class WorkflowParser(object):
 
             if d['master']:
                 self.logger.info('found master config [{}]'.format(filepath))
-                key = os.path.basename(filepath)
+                filename = os.path.basename(filepath)
+                folder_name = os.path.dirname(filepath)
+                key = folder_name + filename
+                self.logger.info('master config key = [{}]'.format(key))
 
                 if key in masters:
                     self.logger.info('only use the first occurrence of a master config')
