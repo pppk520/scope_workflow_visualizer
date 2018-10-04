@@ -2,13 +2,51 @@ import click
 import os
 import logging
 import json
+import sys
+import multiprocessing as mp
 from myparser.script_parser import ScriptParser
 from myparser.workflow_parser import WorkflowParser
 from util.file_utility import FileUtility
 
+__log_level = logging.DEBUG
+
 @click.group()
 def cli():
     pass
+
+def parse_script_single(target_filename,
+                        workflow_parser,
+                        workflow_obj,
+                        script_fullpath_map,
+                        add_sstream_link,
+                        add_sstream_size,
+                        output_folder,
+                        external_params):
+    # each process needs to set log level
+    logging.basicConfig(level=__log_level)
+
+    wfp = workflow_parser
+    obj = workflow_obj
+
+    target_filename = os.path.basename(target_filename)  # make sure it's basename
+
+    try:
+        process_name = wfp.get_closest_process_name(target_filename, obj)
+        print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
+        param_map = wfp.get_params(obj, process_name)
+
+        sp = ScriptParser(b_add_sstream_link=add_sstream_link,
+                          b_add_sstream_size=add_sstream_size)
+
+        dest_filepath = os.path.join(output_folder, target_filename)
+        script_fullpath = script_fullpath_map[target_filename]
+
+        param_map.update(external_params)
+
+        # dest_filepath will be appended suffix like .dot.pdf
+        sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
+    except Exception as ex:
+        print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
 
 def parse_script(proj_folder,
                  workflow_folder,
@@ -37,27 +75,22 @@ def parse_script(proj_folder,
         print('create folder [{}]'.format(output_folder))
         os.makedirs(output_folder)
 
+    arguments_list = []
     for target_filename in target_filenames:
-        try:
-            target_filename = os.path.basename(target_filename) # make sure it's basename
+        arguments = (target_filename,
+                     wfp,
+                     obj,
+                     script_fullpath_map,
+                     add_sstream_link,
+                     add_sstream_size,
+                     output_folder,
+                     external_params
+                     )
 
-            process_name = wfp.get_closest_process_name(target_filename, obj)
-            print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
-            param_map = wfp.get_params(obj, process_name)
+        arguments_list.append(arguments)
 
-            sp = ScriptParser(b_add_sstream_link=add_sstream_link,
-                              b_add_sstream_size=add_sstream_size)
-
-            dest_filepath = os.path.join(output_folder, target_filename)
-            script_fullpath = script_fullpath_map[target_filename]
-
-            param_map.update(external_params)
-
-            # dest_filepath will be appended suffix like .dot.pdf
-            sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
-        except Exception as ex:
-            print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
-
+    pool = mp.Pool(processes=10)
+    pool.starmap(parse_script_single, arguments_list)
 
 @cli.command()
 @click.argument('proj_folder')
@@ -123,7 +156,6 @@ def to_workflow_dep_graph(proj_folder,
                               filter_type=filter_type)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
 #    cli()
 
 #    print_wf_params(r'D:\workspace\AdInsights\private\Backend\SOV', 'SOV3_StripeOutput.script')

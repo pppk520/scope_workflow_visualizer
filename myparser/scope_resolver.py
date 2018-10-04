@@ -170,7 +170,8 @@ class ScopeResolver(object):
 
         return False
 
-    def to_normalized_time_format(self, the_str):
+    @staticmethod
+    def to_normalized_time_format(the_str):
         return the_str.replace('yyyy', '%Y')\
                       .replace('MM', '%m')\
                       .replace('dd', '%d')\

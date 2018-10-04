@@ -101,7 +101,6 @@ class WorkflowParser(object):
 
         return interval_str[:interval_str.index(':')].lstrip('0') + 'H'
 
-
     def get_closest_process_name(self, process_key, workflow_obj):
         self.logger.debug('get_closest_process_name, process_key [{}]'.format(process_key))
 

@@ -42,7 +42,7 @@ class DeclareRvalue(object):
 
         ret = {
             'format_str': None,
-            'format_items': None,
+            'format_items': [],
             'type': None
         }
 
@@ -55,8 +55,10 @@ class DeclareRvalue(object):
             else:
                 ret['format_str'] = format_str.lstrip('@')
 
-            ret['format_items'] = list(result['format_item'])
             ret['type'] = 'format_str'
+
+            if 'format_item' in result:
+                ret['format_items'] = list(result['format_item'])
         elif 'str_cat' in result:
             ret['format_items'] = list(result['str_cat'])
             ret['type'] = 'str_cat'
@@ -93,4 +95,4 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('string.Format("{0}/{1:yyyy/MM}/BMMSummary_Bond_PKV_Table_{1:yyyy-MM-dd}.ss", "/local/prod/pipelines/Optimization/BMMSuggestion/PkvTables/", @PDATE.AddDays(+1))'))
+    print(r.parse('DateTime.Today'))

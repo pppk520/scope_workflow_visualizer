@@ -4,6 +4,8 @@ import json
 import os
 import configparser
 
+from dateutil import parser
+
 from util.file_utility import FileUtility
 from util.datetime_utility import DatetimeUtility
 
@@ -24,6 +26,7 @@ from graph.node import Node
 from graph.edge import Edge
 from graph.graph_utility import GraphUtility
 from cosmos.sstream_utiltiy import SstreamUtility
+
 
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
@@ -72,12 +75,9 @@ class ScriptParser(object):
 
         # make it default to 5 days ago
         default_date_str = DatetimeUtility.get_datetime_str(delta_days=-5, fmt_str='%Y-%m-%d')
+
         if 'RunDate' not in self.external_params:
             self.external_params['RunDate'] = default_date_str
-        if 'Date' not in self.external_params:
-            self.external_params['Date'] = default_date_str
-        if 'PROCESS_DATE' not in self.external_params:
-            self.external_params['PROCESS_DATE'] = default_date_str
 
 
     def remove_empty_lines(self, content):
@@ -485,8 +485,22 @@ class ScriptParser(object):
         # keep date key because external params from config is probably yyyy-MM-dd format
         for key in external_params:
             if 'date' in key.lower() or 'hour' in key.lower():
-                if 'yyyy' in external_params[key] or 'mmdd' in external_params[key]:
-                    continue
+                if 'yyyy' in external_params[key] or 'mm' in external_params[key] or 'dd' in external_params[key]:
+                    normalized_format = ScopeResolver.to_normalized_time_format(external_params[key])
+                    normalized_format = normalized_format.replace('{', '')\
+                                                         .replace('}', '')\
+                                                         .replace('@', '')\
+                                                         .replace('"', '')
+
+
+                    self.logger.debug('external_param datetime format = {}, normalized to {}'.format(external_params[key], normalized_format))
+                    if key not in self.external_params:
+                        self.logger.debug('use RunDate in config.ini as default input datatime')
+                        default_datetime = parser.parse(self.external_params['RunDate'])  # use RunDate as default datetime
+                        self.external_params[key] = default_datetime.strftime(normalized_format)
+
+                        self.logger.debug('set self.external_params[{}] to [{}]'.format(key, self.external_params[key]))
+                        continue
 
             self.external_params[key] = external_params[key]
             self.logger.debug('update external_param key [{}] to value [{}]'.format(key, self.external_params[key]))
