@@ -26,23 +26,37 @@ def parse_script(proj_folder,
     for f in FileUtility.list_files_recursive(proj_folder, target_suffix='.script'):
         script_fullpath_map[os.path.basename(f)] = f
 
+    if len(target_filenames) == 0:
+        print('no specified target_filenames, add all scripts appear in workflows...')
+
+        for script_name in obj.script_process_map:
+            print('add script [{}]'.format(script_name))
+            target_filenames.append(script_name)
+
+    if not os.path.isdir(output_folder):
+        print('create folder [{}]'.format(output_folder))
+        os.makedirs(output_folder)
+
     for target_filename in target_filenames:
-        target_filename = os.path.basename(target_filename) # make sure it's basename
+        try:
+            target_filename = os.path.basename(target_filename) # make sure it's basename
 
-        process_name = wfp.get_closest_process_name(target_filename, obj)
-        print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
-        param_map = wfp.get_params(obj, process_name)
+            process_name = wfp.get_closest_process_name(target_filename, obj)
+            print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
+            param_map = wfp.get_params(obj, process_name)
 
-        sp = ScriptParser(b_add_sstream_link=add_sstream_link,
-                          b_add_sstream_size=add_sstream_size)
+            sp = ScriptParser(b_add_sstream_link=add_sstream_link,
+                              b_add_sstream_size=add_sstream_size)
 
-        dest_filepath = os.path.join(output_folder, target_filename)
-        script_fullpath = script_fullpath_map[target_filename]
+            dest_filepath = os.path.join(output_folder, target_filename)
+            script_fullpath = script_fullpath_map[target_filename]
 
-        param_map.update(external_params)
+            param_map.update(external_params)
 
-        # dest_filepath will be appended suffix like .dot.pdf
-        sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
+            # dest_filepath will be appended suffix like .dot.pdf
+            sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
+        except Exception as ex:
+            print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
 
 
 @cli.command()
@@ -274,8 +288,18 @@ if __name__ == '__main__':
                  })
     '''
 
+    '''
     to_workflow_dep_graph(
                  r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:/tmp/tt',
                  target_node_names=[],
                  filter_type=None)
+    '''
+
+
+    parse_script(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
+                 r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
+                 r'D:/tmp/tt/mad',
+                 target_filenames=[],
+                 add_sstream_link=True,
+                 add_sstream_size=True)
