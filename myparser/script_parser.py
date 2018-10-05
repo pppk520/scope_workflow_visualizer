@@ -73,12 +73,7 @@ class ScriptParser(object):
 
             self.external_params[key] = config['ExternalParam'][key]
 
-        # make it default to 5 days ago
-        default_date_str = DatetimeUtility.get_datetime_str(delta_days=-5, fmt_str='%Y-%m-%d')
-
-        if 'RunDate' not in self.external_params:
-            self.external_params['RunDate'] = default_date_str
-
+        self.target_date_str = config['ExternalParam']['TARGET_DATE']
 
     def remove_empty_lines(self, content):
         return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
@@ -297,8 +292,15 @@ class ScriptParser(object):
                 the_label = node.attr['label']
 
                 if self.b_add_sstream_size:
-                    self.logger.debug('trying to get stream size of [{}]'.format(href))
-                    the_label = '{} ({})'.format(the_label, self.ssu.get_stream_size(href))
+                    self.logger.info('trying to get stream size of [{}]'.format(href))
+
+                    stream_size = ''
+                    if 'tring.Format' not in href:
+                        stream_size = self.ssu.get_stream_size(href)
+                    else:
+                        self.logger.warning('skip not well-formed url [{}]'.format(href))
+
+                    the_label = '{} ({})'.format(the_label, stream_size)
 
                 if self.b_add_sstream_link:
                     the_label = '<{} <BR/> <FONT POINT-SIZE="4">{}</FONT>>'.format(the_label, href)
@@ -451,6 +453,9 @@ class ScriptParser(object):
         # case: "@@ExtParam@@" with @@ExtParam@@ = \"some_string\"
         declare_map['@' + key] = value.replace('""', '"')
 
+        # early resolve
+        declare_map['@' + key] = self.scope_resolver.resolve_declare_rvalue(None, declare_map['@' + key], declare_map)
+
         self.logger.info('declare [{}] as [{}]'.format(key, value))
 
     def process_set(self, part, declare_map):
@@ -460,7 +465,10 @@ class ScriptParser(object):
             self.logger.info('for now, we do not handle IF statement.')
             return
 
-        declare_map['@' + key] = value
+        declare_lvalue = key
+        declare_rvalue = value
+
+        declare_map['@' + key] = self.scope_resolver.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
 
         self.logger.info('set [{}] as [{}]'.format(key, value))
 
@@ -495,8 +503,8 @@ class ScriptParser(object):
 
                     self.logger.debug('external_param datetime format = {}, normalized to {}'.format(external_params[key], normalized_format))
                     if key not in self.external_params:
-                        self.logger.debug('use RunDate in config.ini as default input datatime')
-                        default_datetime = parser.parse(self.external_params['RunDate'])  # use RunDate as default datetime
+                        self.logger.debug('use TARGET_DATE [{}] in config.ini as datatime'.format(self.target_date_str))
+                        default_datetime = parser.parse(self.target_date_str)
                         self.external_params[key] = default_datetime.strftime(normalized_format)
 
                         self.logger.debug('set self.external_params[{}] to [{}]'.format(key, self.external_params[key]))

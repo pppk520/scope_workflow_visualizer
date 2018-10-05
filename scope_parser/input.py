@@ -14,7 +14,7 @@ class Input(object):
     USING = Keyword("USING")
     IMPORT = Keyword("IMPORT")
 
-    extract_data_type = oneOf("string int ulong long short byte decimal double")
+    extract_data_type = oneOf("string int ulong long short byte decimal double DateTime")
 
     ##################################
     # General
@@ -129,13 +129,12 @@ if __name__ == '__main__':
     i.debug()
 
     print(i.parse('''
-    RPMUpLiftMapping =
-        EXTRACT Description : string,
-                Tactic : string,
-                OptType : int,
-                RPMUpLift : double,
-                SpendLift : double
-        FROM @RPMUpLiftFile
-        USING DefaultTextExtractor(silent: true)
+HealthCheckAdoption_OneEntity = 
+    EXTRACT AdoptionDateTime : DateTime,
+            AccountId : int,
+            EntityId : long,
+            CheckPoint : string
+    FROM @EmptyFilePath
+    USING DefaultTextExtractor("-d", ",")
 '''))
 

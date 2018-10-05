@@ -332,6 +332,6 @@ if __name__ == '__main__':
     parse_script(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:/tmp/tt/mad',
-                 target_filenames=[],
+                 target_filenames=['BulkApiTraceLogExtractionStep1.script'],
                  add_sstream_link=True,
                  add_sstream_size=True)

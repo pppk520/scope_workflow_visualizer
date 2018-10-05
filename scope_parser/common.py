@@ -11,7 +11,7 @@ class Common(object):
 
     quoted_time = Combine('"' + Word(":" + nums) + '"')
     ext_quoted_string = quoted_time | quotedString | Word(nums)
-    param_str_cat = delimitedList(ext_quoted_string, delim='+')
+    param_str_cat = ext_quoted_string + ZeroOrMore('+' + ext_quoted_string)
 
     nullible = Group('(' + ident + '??' + ident + ')')
     expr_item_general = quotedString | Word(printables + ' ', excludeChars=':(),+-*/|') | nullible
