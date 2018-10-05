@@ -179,5 +179,13 @@ class TestScopeResolver(TestCase):
         result = ScopeResolver().resolve_declare_rvalue(None, s, {})
         self.assertEqual('aaa__/path/to/data/prod/pipelines/ImpressionShare/Common/2018/01/01/DSAMerge2018010100.ss?date=2018-01-01&hour=22', result)
 
+    def test_resolve_set_rvalue(self):
+        s = '''
+         @FeatureStreamForAccount.Replace(".ss", "_fakeForSanityCheck.ss")
+        '''
+
+        result = ScopeResolver().resolve_set_rvalue(s, {'@FeatureStreamForAccount': 'aa.ss'})
+        self.assertEqual('aa_fakeForSanityCheck.ss', result)
+
 
 

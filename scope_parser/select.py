@@ -263,7 +263,13 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-    EmptyManifest = SELECT COUNT() AS C FROM (EXTRACT A:string FROM @EmptyTxt USING DefaultTextExtractor)
+EM_RGUID =
+    SELECT EMNKW.*,
+           AuctionParticipants.RGUID
+    FROM EMNKW
+         INNER JOIN
+             AuctionParticipants
+         ON EMNKW.Query == AuctionParticipants.CleansedQuery && EMNKW.OrderId == AuctionParticipants.AdGroupId;
     '''))
 
 

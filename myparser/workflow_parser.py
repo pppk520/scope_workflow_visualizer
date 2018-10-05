@@ -101,7 +101,6 @@ class WorkflowParser(object):
 
         return interval_str[:interval_str.index(':')].lstrip('0') + 'H'
 
-
     def get_closest_process_name(self, process_key, workflow_obj):
         self.logger.debug('get_closest_process_name, process_key [{}]'.format(process_key))
 
@@ -172,7 +171,10 @@ class WorkflowParser(object):
 
             if d['master']:
                 self.logger.info('found master config [{}]'.format(filepath))
-                key = os.path.basename(filepath)
+                filename = os.path.basename(filepath)
+                folder_name = os.path.dirname(filepath)
+                key = folder_name + filename
+                self.logger.info('master config key = [{}]'.format(key))
 
                 if key in masters:
                     self.logger.info('only use the first occurrence of a master config')
@@ -415,15 +417,22 @@ class WorkflowParser(object):
         # reconstruct edges from nodes
         nodes = set()
         edges = set()
+        visited = set()
 
         while len(target_map) > 0:
             target_name, mode_list = target_map.popitem()
 
             the_node = nodes_map[target_name]
+
+            visited_key = '{}.{}'.format(the_node, mode_list)
+            if visited_key in visited:
+                continue
+            visited.add(visited_key)
+
             nodes.add(the_node)
 
             if 'down' in mode_list:
-                if not target_name in adj_map:
+                if target_name not in adj_map:
                     continue
 
                 for to_node in adj_map[target_name]:
@@ -436,7 +445,7 @@ class WorkflowParser(object):
                     edges.add(Edge(the_node, to_node))
 
             if 'up' in mode_list:
-                if not target_name in rev_map:
+                if target_name not in rev_map:
                     continue
 
                 for from_node in rev_map[target_name]:

@@ -170,7 +170,8 @@ class ScopeResolver(object):
 
         return False
 
-    def to_normalized_time_format(self, the_str):
+    @staticmethod
+    def to_normalized_time_format(the_str):
         return the_str.replace('yyyy', '%Y')\
                       .replace('MM', '%m')\
                       .replace('dd', '%d')\
@@ -195,6 +196,35 @@ class ScopeResolver(object):
             return datetime_obj + timedelta(int(found[0].replace(' ', ''))) # clean flexible SCOPE format " - 3"
 
         return datetime_obj
+
+    def do_run_replace(self, func_str, declare_map):
+        the_obj_name = func_str.split('.')[0]
+
+        value = the_obj_name
+        if the_obj_name in declare_map:
+            value = declare_map[the_obj_name]
+
+        match = re.search(r'\.Replace\("(.*?)".*,.*?"(.*)".*\)', func_str)
+        if match:
+            key = match.group(1)
+            replace_to = match.group(2)
+
+            return value.replace(key, replace_to)
+
+        return func_str
+
+    def do_run_trim(self, func_str, declare_map):
+        the_obj_name = func_str.split('.')[0]
+
+        value = the_obj_name
+        if the_obj_name in declare_map:
+            value = declare_map[the_obj_name]
+
+        match = re.search(r'\.Trim\("\)', func_str)
+        if match:
+            return value.strip()
+
+        return func_str
 
     def resolve_func(self, func_str, declare_map={}):
         self.logger.debug('resolve_func of {}'.format(func_str))
@@ -224,6 +254,10 @@ class ScopeResolver(object):
             if the_obj_name in declare_map:
                 datetime_obj = declare_map[the_obj_name]
                 result = self.process_to_string(datetime_obj, func_str)
+        elif 'Replace(' in func_str:
+            result = self.do_run_replace(func_str, declare_map)
+        elif 'Trim(' in func_str:
+            result = self.do_run_trim(func_str, declare_map)
 
         if 'ToString()' in func_str:
             # purely to string
@@ -456,6 +490,16 @@ class ScopeResolver(object):
 
         return False
 
+    def resolve_class_attr(self, s):
+        ''' Limited support for encountered type only
+        Add more if you need
+
+        :param s:
+        :return:
+        '''
+        if s == 'DateTime.Today':
+            return datetime.today()
+
     def search_inner_str_format(self, s):
         results = re.findall(r'.*?([sS]tring\.Format\(.*\))', s)
 
@@ -488,6 +532,12 @@ class ScopeResolver(object):
 
         return result
 
+    def resolve_set_rvalue(self, rvalue, declare_map):
+        # for SET operation, resolve current declare_map first
+#        self.scope_resolver.resolve_declare(declare_map)
+
+        return self.resolve_declare_rvalue(None, rvalue, declare_map)
+
     def resolve_declare_rvalue(self, declare_lvalue, declare_rvalue, declare_map):
         self.logger.debug('resolve_declare_rvalue: declare_lvalue [{}], declare_rvalue [{}]'.format(declare_lvalue, declare_rvalue))
 
@@ -509,6 +559,8 @@ class ScopeResolver(object):
             ret_declare_rvalue = self.dr.parse(declare_rvalue)
         except Exception as ex:
             self.logger.warning('Exception in resolve_declare_rvalue: {}'.format(ex))
+            self.logger.warning('declare_rvalue = {}'.format(declare_rvalue))
+
             return declare_rvalue
 
         format_str = ret_declare_rvalue['format_str']
@@ -536,8 +588,10 @@ class ScopeResolver(object):
                 result = format_items[0]
         elif type_ == 'nums':
             result = format_items[0]
-        elif type == 'boolean':
+        elif type_ == 'boolean':
             result = self.resolve_boolean(format_items[0])
+        elif type_ == 'class_attr':
+            result = self.resolve_class_attr(format_items[0])
 
         self.logger.debug('[resolve_declare_rvalue] result = ' + str(result))
 
@@ -570,10 +624,12 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     s = '''
-    string.Format("/path/to/data/prod/pipelines/ImpressionShare/Common"+"/%Y/%m/%d/DSAMerge%Y%m%d%h.ss?date={0}&hour={1}","2018-01-01",22/2*2)
+    string.Format(@"{0}/KeywordOpportunity/Suggestions/SuggestionsAfterRuleFilter/SuggestionsAfterRuleFilter_Stage1_{1:yyyy-MM-dd}.ss", @OPT_PATH, @dateObj)
     '''
 
-    declare_map = {'@BTERunDate': parser.parse('2018-01-01')}
+    declare_map = {
+        '@OPT_PATH': 'path/to',
+        '@dateObj': parser.parse('2018-01-01')}
 
     result = ScopeResolver().resolve_inner_str_format(s, declare_map)
     result = ScopeResolver().resolve_declare_rvalue(None, result, declare_map)

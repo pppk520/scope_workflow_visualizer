@@ -2,13 +2,52 @@ import click
 import os
 import logging
 import json
+import sys
+import multiprocessing as mp
 from myparser.script_parser import ScriptParser
 from myparser.workflow_parser import WorkflowParser
 from util.file_utility import FileUtility
 
+__log_level = logging.DEBUG
+
 @click.group()
 def cli():
     pass
+
+def parse_script_single(target_filename,
+                        workflow_parser,
+                        workflow_obj,
+                        script_fullpath_map,
+                        add_sstream_link,
+                        add_sstream_size,
+                        output_folder,
+                        external_params):
+    # each process needs to set log level
+    logging.basicConfig(level=__log_level)
+
+    wfp = workflow_parser
+    obj = workflow_obj
+
+    target_filename = os.path.basename(target_filename)  # make sure it's basename
+
+    try:
+        process_name = wfp.get_closest_process_name(target_filename, obj)
+        print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
+        param_map = wfp.get_params(obj, process_name)
+
+        sp = ScriptParser(b_add_sstream_link=add_sstream_link,
+                          b_add_sstream_size=add_sstream_size)
+
+        dest_filepath = os.path.join(output_folder, target_filename)
+        script_fullpath = script_fullpath_map[target_filename]
+
+        param_map.update(external_params)
+
+        # dest_filepath will be appended suffix like .dot.pdf
+        sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
+    except Exception as ex:
+        print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
+
 
 def parse_script(proj_folder,
                  workflow_folder,
@@ -26,23 +65,33 @@ def parse_script(proj_folder,
     for f in FileUtility.list_files_recursive(proj_folder, target_suffix='.script'):
         script_fullpath_map[os.path.basename(f)] = f
 
+    if len(target_filenames) == 0:
+        print('no specified target_filenames, add all scripts appear in workflows...')
+
+        for script_name in obj.script_process_map:
+            print('add script [{}]'.format(script_name))
+            target_filenames.append(script_name)
+
+    if not os.path.isdir(output_folder):
+        print('create folder [{}]'.format(output_folder))
+        os.makedirs(output_folder)
+
+    arguments_list = []
     for target_filename in target_filenames:
-        target_filename = os.path.basename(target_filename) # make sure it's basename
+        arguments = (target_filename,
+                     wfp,
+                     obj,
+                     script_fullpath_map,
+                     add_sstream_link,
+                     add_sstream_size,
+                     output_folder,
+                     external_params
+                     )
 
-        process_name = wfp.get_closest_process_name(target_filename, obj)
-        print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
-        param_map = wfp.get_params(obj, process_name)
+        arguments_list.append(arguments)
 
-        sp = ScriptParser(b_add_sstream_link=add_sstream_link,
-                          b_add_sstream_size=add_sstream_size)
-
-        dest_filepath = os.path.join(output_folder, target_filename)
-        script_fullpath = script_fullpath_map[target_filename]
-
-        param_map.update(external_params)
-
-        # dest_filepath will be appended suffix like .dot.pdf
-        sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
+    pool = mp.Pool(processes=10)
+    pool.starmap(parse_script_single, arguments_list)
 
 
 @cli.command()
@@ -71,6 +120,7 @@ def print_wf_params(workflow_folder, target_filename, exclude_keys=[]):
 
     process_name = wfp.get_closest_process_name(target_filename, obj)
     print(json.dumps(wfp.get_params(obj, process_name), indent=4))
+
 
 @click.argument('proj_folder', type=click.Path(exists=True))
 @click.argument('output_folder')
@@ -109,7 +159,6 @@ def to_workflow_dep_graph(proj_folder,
                               filter_type=filter_type)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
 #    cli()
 
 #    print_wf_params(r'D:\workspace\AdInsights\private\Backend\SOV', 'SOV3_StripeOutput.script')
@@ -127,10 +176,17 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
+    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
                  r'D:/tmp/tt',
                  target_filenames=[
+                     '1.MergeSources.script',
+#                     '2.QualtiyControlStep1.script',
+#                     '2.QualtiyControlStep2.script',
+#                     '3.AssignOptType.script',
+#                     '4.TrafficEstimation.script',
+#                     '5.FinalCapping.script',
 #                     '6.MPIProcessing.script',
 #                     '7.PKVGeneration_BMMO.script',
 #                     '7.PKVGeneration_BMO.script',
@@ -141,10 +197,11 @@ if __name__ == '__main__':
 #                     'KeywordOpt_CampaignTargetInfo.script',
 #                     'NKWOptMPIProcessing.script',
 #                     'BudgetOptMPIProcessing.script',
-                     'BudgetOptPKVGeneration.script'
+#                     'BudgetOptPKVGeneration.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''
 
 
     '''
@@ -264,4 +321,20 @@ if __name__ == '__main__':
                      'endDateStr': '2018-09-23',
 
                  })
+    '''
+
+    to_workflow_dep_graph(
+                 r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
+                 r'D:/tmp/tt',
+                 target_node_names=['AdInsightNormalizedRUI.script'],
+                 filter_type=None)
+
+
+    '''
+    parse_script(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
+                 r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
+                 r'D:/tmp/tt/mad',
+                 target_filenames=['DailyAdoptedKeywords.script'],
+                 add_sstream_link=True,
+                 add_sstream_size=True)
     '''

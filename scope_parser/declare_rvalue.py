@@ -8,6 +8,7 @@ class DeclareRvalue(object):
     comment = Common.comment
 
     ident = Common.ident
+    class_attr = ident + OneOrMore('.' + ident)
     func_chain = Common.func_chain
 
     keyword_string_format = Keyword('string.Format') | Keyword('String.Format')
@@ -23,7 +24,14 @@ class DeclareRvalue(object):
     string_format = keyword_string_format + '(' + format_str('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
     boolean_values = oneOf('true false')
 
-    rvalue = string_format('str_format') | param_str_cat('str_cat') | Word(nums + '.')('nums') | func_chain('func_chain') | param_str('param_str') | param('param') | boolean_values('boolean')
+    rvalue = string_format('str_format') | \
+             param_str_cat('str_cat') | \
+             Word(nums + '.')('nums') | \
+             func_chain('func_chain') | \
+             param_str('param_str') | \
+             param('param') | \
+             boolean_values('boolean') | \
+             Combine(class_attr)('class_attr')
 
     def debug(self):
         result = self.format_str.parseString('"/local/prod/pipelines/Opportunities/output/BudgetEnhancement/AIMTBondResult//2018/09/21" + "/BudgetOpt_Bond_PKV_Table_{0:yyyyMMdd}.ss"')
@@ -31,7 +39,6 @@ class DeclareRvalue(object):
         print('-' *20)
         print(json.dumps(result.asDict(), indent=4))
         print('-' *20)
-
 
     def parse(self, s):
         result = self.rvalue.parseString(s)
@@ -42,7 +49,7 @@ class DeclareRvalue(object):
 
         ret = {
             'format_str': None,
-            'format_items': None,
+            'format_items': [],
             'type': None
         }
 
@@ -55,8 +62,10 @@ class DeclareRvalue(object):
             else:
                 ret['format_str'] = format_str.lstrip('@')
 
-            ret['format_items'] = list(result['format_item'])
             ret['type'] = 'format_str'
+
+            if 'format_item' in result:
+                ret['format_items'] = list(result['format_item'])
         elif 'str_cat' in result:
             ret['format_items'] = list(result['str_cat'])
             ret['type'] = 'str_cat'
@@ -66,16 +75,7 @@ class DeclareRvalue(object):
             ret['format_items'] = [the_num,]
             ret['type'] = 'nums'
         elif 'func_chain' in result:
-            # dirty trick for str_cat params
-            match = re.match('(.*)\("(.*)"\)', result['func_chain'])
-            if match:
-                func_name = match.group(1)
-                params = '"' + match.group(2).replace('"', '') + '"'
-
-                ret['format_items'] = [func_name + '(' + params + ')', ]
-            else:
-                ret['format_items'] = [result['func_chain'],]
-
+            ret['format_items'] = [result['func_chain'], ]
             ret['type'] = 'func_chain'
         elif 'param_str' in result:
             ret['format_items'] = [result['param_str'], ]
@@ -86,6 +86,9 @@ class DeclareRvalue(object):
         elif 'boolean' in result:
             ret['format_items'] = [result['boolean'], ]
             ret['type'] = 'boolean'
+        elif 'class_attr' in result:
+            ret['format_items'] = [result['class_attr'], ]
+            ret['type'] = 'class_attr'
 
         return ret
 
@@ -93,4 +96,5 @@ if __name__ == '__main__':
     r = DeclareRvalue()
     r.debug()
 
-    print(r.parse('string.Format("{0}/{1:yyyy/MM}/BMMSummary_Bond_PKV_Table_{1:yyyy-MM-dd}.ss", "/local/prod/pipelines/Optimization/BMMSuggestion/PkvTables/", @PDATE.AddDays(+1))'))
+    print(r.parse('@OutputFolder.Trim()+@"/CookedBulkApiLogs/FilteredBulkApiLog_"+@TodayStr+".ss"'))
+    print(r.parse('@"/CookedBulkApiLogs/FilteredBulkApiLog_" + @OutputFolder.Trim() + @TodayStr+".ss"'))

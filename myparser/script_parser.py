@@ -4,6 +4,8 @@ import json
 import os
 import configparser
 
+from dateutil import parser
+
 from util.file_utility import FileUtility
 from util.datetime_utility import DatetimeUtility
 
@@ -24,6 +26,7 @@ from graph.node import Node
 from graph.edge import Edge
 from graph.graph_utility import GraphUtility
 from cosmos.sstream_utiltiy import SstreamUtility
+
 
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
@@ -70,15 +73,7 @@ class ScriptParser(object):
 
             self.external_params[key] = config['ExternalParam'][key]
 
-        # make it default to 5 days ago
-        default_date_str = DatetimeUtility.get_datetime_str(delta_days=-5, fmt_str='%Y-%m-%d')
-        if 'RunDate' not in self.external_params:
-            self.external_params['RunDate'] = default_date_str
-        if 'Date' not in self.external_params:
-            self.external_params['Date'] = default_date_str
-        if 'PROCESS_DATE' not in self.external_params:
-            self.external_params['PROCESS_DATE'] = default_date_str
-
+        self.target_date_str = config['ExternalParam']['TARGET_DATE']
 
     def remove_empty_lines(self, content):
         return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
@@ -122,9 +117,9 @@ class ScriptParser(object):
 
         def replace_matched(match):
             text = match.group()
-            return params.get(match.group(1), text)
+            return params.get(match.group(1), text).replace('""', '"')
 
-        return re_external_param.sub(replace_matched, content).replace('""', '"')
+        return re_external_param.sub(replace_matched, content)
 
     def find_latest_node(self, target_name, nodes):
         for node in nodes[::-1]:
@@ -185,11 +180,13 @@ class ScriptParser(object):
                 continue
 
             if 'LOOP' in line:
-                loop_on = True
                 var, loop_count = Loop().get_var_loop_count(line)
-                self.logger.debug('found LOOP, var = {}, loop_count = {}'.format(var, loop_count))
-                loop_content = []
-                continue
+                self.logger.debug('found keyword LOOP, var = {}, loop_count = {}'.format(var, loop_count))
+
+                if var is not None and loop_count is not None:
+                    loop_on = True
+                    loop_content = []
+                    continue
 
             result_lines.append(line)
 
@@ -295,8 +292,15 @@ class ScriptParser(object):
                 the_label = node.attr['label']
 
                 if self.b_add_sstream_size:
-                    self.logger.debug('trying to get stream size of [{}]'.format(href))
-                    the_label = '{} ({})'.format(the_label, self.ssu.get_stream_size(href))
+                    self.logger.info('trying to get stream size of [{}]'.format(href))
+
+                    stream_size = ''
+                    if 'tring.Format' not in href:
+                        stream_size = self.ssu.get_stream_size(href)
+                    else:
+                        self.logger.warning('skip not well-formed url [{}]'.format(href))
+
+                    the_label = '{} ({})'.format(the_label, stream_size)
 
                 if self.b_add_sstream_link:
                     the_label = '<{} <BR/> <FONT POINT-SIZE="4">{}</FONT>>'.format(the_label, href)
@@ -449,6 +453,9 @@ class ScriptParser(object):
         # case: "@@ExtParam@@" with @@ExtParam@@ = \"some_string\"
         declare_map['@' + key] = value.replace('""', '"')
 
+        # early resolve
+        declare_map['@' + key] = self.scope_resolver.resolve_declare_rvalue(None, declare_map['@' + key], declare_map)
+
         self.logger.info('declare [{}] as [{}]'.format(key, value))
 
     def process_set(self, part, declare_map):
@@ -458,7 +465,10 @@ class ScriptParser(object):
             self.logger.info('for now, we do not handle IF statement.')
             return
 
-        declare_map['@' + key] = value
+        declare_lvalue = key
+        declare_rvalue = value
+
+        declare_map['@' + key] = self.scope_resolver.resolve_declare_rvalue(declare_lvalue, declare_rvalue, declare_map)
 
         self.logger.info('set [{}] as [{}]'.format(key, value))
 
@@ -483,8 +493,22 @@ class ScriptParser(object):
         # keep date key because external params from config is probably yyyy-MM-dd format
         for key in external_params:
             if 'date' in key.lower() or 'hour' in key.lower():
-                if 'yyyy' in external_params[key] or 'mmdd' in external_params[key]:
-                    continue
+                if 'yyyy' in external_params[key] or 'mm' in external_params[key] or 'dd' in external_params[key]:
+                    normalized_format = ScopeResolver.to_normalized_time_format(external_params[key])
+                    normalized_format = normalized_format.replace('{', '')\
+                                                         .replace('}', '')\
+                                                         .replace('@', '')\
+                                                         .replace('"', '')
+
+
+                    self.logger.debug('external_param datetime format = {}, normalized to {}'.format(external_params[key], normalized_format))
+                    if key not in self.external_params:
+                        self.logger.debug('use TARGET_DATE [{}] in config.ini as datatime'.format(self.target_date_str))
+                        default_datetime = parser.parse(self.target_date_str)
+                        self.external_params[key] = default_datetime.strftime(normalized_format)
+
+                        self.logger.debug('set self.external_params[{}] to [{}]'.format(key, self.external_params[key]))
+                        continue
 
             self.external_params[key] = external_params[key]
             self.logger.debug('update external_param key [{}] to value [{}]'.format(key, self.external_params[key]))
