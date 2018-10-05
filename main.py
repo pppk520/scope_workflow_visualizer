@@ -48,6 +48,7 @@ def parse_script_single(target_filename,
     except Exception as ex:
         print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
 
+
 def parse_script(proj_folder,
                  workflow_folder,
                  output_folder,
@@ -92,6 +93,7 @@ def parse_script(proj_folder,
     pool = mp.Pool(processes=10)
     pool.starmap(parse_script_single, arguments_list)
 
+
 @cli.command()
 @click.argument('proj_folder')
 @click.argument('workflow_folder')
@@ -118,6 +120,7 @@ def print_wf_params(workflow_folder, target_filename, exclude_keys=[]):
 
     process_name = wfp.get_closest_process_name(target_filename, obj)
     print(json.dumps(wfp.get_params(obj, process_name), indent=4))
+
 
 @click.argument('proj_folder', type=click.Path(exists=True))
 @click.argument('output_folder')
@@ -320,18 +323,18 @@ if __name__ == '__main__':
                  })
     '''
 
-    '''
     to_workflow_dep_graph(
                  r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:/tmp/tt',
-                 target_node_names=[],
+                 target_node_names=['AdInsightNormalizedRUI.script'],
                  filter_type=None)
+
+
     '''
-
-
     parse_script(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:/tmp/tt/mad',
-                 target_filenames=['BulkApiTraceLogExtractionStep1.script'],
+                 target_filenames=['DailyAdoptedKeywords.script'],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''

@@ -40,7 +40,6 @@ class DeclareRvalue(object):
         print(json.dumps(result.asDict(), indent=4))
         print('-' *20)
 
-
     def parse(self, s):
         result = self.rvalue.parseString(s)
 
@@ -77,20 +76,6 @@ class DeclareRvalue(object):
             ret['type'] = 'nums'
         elif 'func_chain' in result:
             ret['format_items'] = [result['func_chain'], ]
-
-            # dirty trick for str str params,
-            # ex: "2018" + " " + "20" + ":00:00" => "2018" " " "20" ":00:00"
-            '''
-            match = re.match('(.*)\("(.*)"\)', result['func_chain'])
-            if match:
-                func_name = match.group(1)
-                params = '"' + match.group(2).replace('"', '') + '"'
-
-                ret['format_items'] = [func_name + '(' + params + ')', ]
-            else:
-                ret['format_items'] = [result['func_chain'],]
-            '''
-
             ret['type'] = 'func_chain'
         elif 'param_str' in result:
             ret['format_items'] = [result['param_str'], ]
@@ -112,3 +97,4 @@ if __name__ == '__main__':
     r.debug()
 
     print(r.parse('@OutputFolder.Trim()+@"/CookedBulkApiLogs/FilteredBulkApiLog_"+@TodayStr+".ss"'))
+    print(r.parse('@"/CookedBulkApiLogs/FilteredBulkApiLog_" + @OutputFolder.Trim() + @TodayStr+".ss"'))
