@@ -917,6 +917,25 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'EmptyManifest')
         self.assertCountEqual(result['sources'], ['EXTRACT_@EmptyTxt'])
 
+    def test_union_outside_select(self):
+        s = '''
+        AdInsightUsage =
+            (SELECT AdInsightUsage. *
+             FROM AdInsightUsage
+                  LEFT OUTER JOIN
+                      CookedPuLogSupportedV1Operations
+                  ON AdInsightUsage.OperationName == CookedPuLogSupportedV1Operations.OperationName
+             WHERE CookedPuLogSupportedV1Operations.OperationName == null 
+            )
+            UNION ALL
+            SELECT * FROM BTEBulkApiUsage
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'AdInsightUsage')
+        self.assertCountEqual(result['sources'], ['AdInsightUsage', 'CookedPuLogSupportedV1Operations', 'BTEBulkApiUsage'])
+
 
 
 

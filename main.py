@@ -323,18 +323,18 @@ if __name__ == '__main__':
                  })
     '''
 
+    '''
     to_workflow_dep_graph(
                  r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:/tmp/tt',
                  target_node_names=['AdInsightNormalizedRUI.script'],
                  filter_type=None)
-
-
     '''
+
+
     parse_script(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:/tmp/tt/mad',
-                 target_filenames=['DailyAdoptedKeywords.script'],
+                 target_filenames=['AdInsightNormalizedRUI.script'],
                  add_sstream_link=True,
                  add_sstream_size=True)
-    '''

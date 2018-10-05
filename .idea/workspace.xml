@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="92683f41-f921-43be-81b6-4a4ba6eb9a7b" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/myparser/workflow_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/workflow_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/declare_rvalue.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scope_parser/select.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/select.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/unit_tests/test_select.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/unit_tests/test_select.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -27,11 +28,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="609">
-              <caret line="158" selection-start-line="158" selection-end-line="158" />
+            <state relative-caret-position="661">
+              <caret line="340" lean-forward="true" selection-start-line="340" selection-end-line="340" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -48,11 +49,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="workflow_parser.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="workflow_parser.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myparser/workflow_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="429" selection-start-line="429" selection-end-line="429" />
+            <state relative-caret-position="446">
+              <caret line="609" lean-forward="true" selection-start-line="609" selection-end-line="609" />
               <folding>
                 <element signature="e#0#34#0" expanded="true" />
               </folding>
@@ -84,11 +85,23 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="common.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scope_parser/common.py">
+      <file leaf-file-name="select.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scope_parser/select.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-262">
-              <caret line="13" selection-start-line="13" selection-end-line="13" />
+            <state relative-caret-position="353">
+              <caret line="265" selection-start-line="265" selection-end-line="274" selection-end-column="33" />
+              <folding>
+                <element signature="e#0#23#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_select.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_select.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="652">
+              <caret line="939" lean-forward="true" selection-start-line="939" selection-end-line="939" />
             </state>
           </provider>
         </entry>
@@ -101,15 +114,6 @@
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="config.ini" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/config/config.ini">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="8" selection-start-line="8" selection-end-line="8" />
             </state>
           </provider>
         </entry>
@@ -134,11 +138,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>ViewedNormalizeCallCount</find>
-      <find>LogParsedFolder</find>
-      <find>if not</find>
-      <find>xternal_param datetime format</find>
-      <find>external_params</find>
       <find>DateTime.Today</find>
       <find>yyyy</find>
       <find>CurrentDate</find>
@@ -153,17 +152,22 @@
       <find>RunDateUTC</find>
       <find>BTE_CallCount_</find>
       <find>CallCountOutputPath</find>
-      <find>replace declare item</find>
+      <find />
       <find>Date</find>
-      <find>Exception in resolve_declare_rvalue</find>
-      <find>trying to get stream size of</find>
+      <find />
+      <find />
       <find>Replace</find>
       <find>FilteredBulkApiTraceLogPath</find>
       <find>func_</find>
-      <find>:Exception in resolve_declare_rvalue</find>
+      <find />
       <find>date</find>
       <find>parse_script</find>
       <find>script_to_graph</find>
+      <find>BTEBulkApiUsage</find>
+      <find />
+      <find>UNION</find>
+      <find>where</find>
+      <find>union_select</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -208,11 +212,9 @@
         <option value="$PROJECT_DIR$/tests/unit_tests/test_workflow_parser.py" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_declare.py" />
         <option value="$PROJECT_DIR$/scope_parser/output.py" />
-        <option value="$PROJECT_DIR$/tests/unit_tests/test_select.py" />
         <option value="$PROJECT_DIR$/scope_parser/declare.py" />
         <option value="$PROJECT_DIR$/scope_parser/loop.py" />
         <option value="$PROJECT_DIR$/cosmos/sstream_utiltiy.py" />
-        <option value="$PROJECT_DIR$/scope_parser/select.py" />
         <option value="$PROJECT_DIR$/scope_parser/reduce.py" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_set.py" />
         <option value="$PROJECT_DIR$/scope_parser/common.py" />
@@ -224,8 +226,10 @@
         <option value="$PROJECT_DIR$/tests/unit_tests/test_scope_resolver.py" />
         <option value="$PROJECT_DIR$/myparser/scope_resolver.py" />
         <option value="$PROJECT_DIR$/scope_parser/declare_rvalue.py" />
-        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/myparser/workflow_parser.py" />
+        <option value="$PROJECT_DIR$/scope_parser/select.py" />
+        <option value="$PROJECT_DIR$/tests/unit_tests/test_select.py" />
+        <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
@@ -380,18 +384,23 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="Unittests for test_scope_resolver.TestScopeResolver.test_resolve_set_rvalue" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+    <configuration name="select" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="BackendProjectParser" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/unit_tests" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scope_parser" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_scope_resolver.TestScopeResolver.test_resolve_set_rvalue&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scope_parser/select.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
     </configuration>
     <configuration name="Unittests in unit_tests" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <module name="BackendProjectParser" />
@@ -410,16 +419,16 @@
       <item itemvalue="Python.main" />
       <item itemvalue="Python tests.Unittests in unit_tests" />
       <item itemvalue="Python.declare_rvalue" />
-      <item itemvalue="Python tests.Unittests for test_scope_resolver.TestScopeResolver.test_resolve_set_rvalue" />
       <item itemvalue="Python.input" />
+      <item itemvalue="Python.select" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.main" />
-        <item itemvalue="Python.declare_rvalue" />
         <item itemvalue="Python tests.Unittests in unit_tests" />
+        <item itemvalue="Python.select" />
+        <item itemvalue="Python.declare_rvalue" />
         <item itemvalue="Python.input" />
-        <item itemvalue="Python tests.Unittests for test_scope_resolver.TestScopeResolver.test_resolve_set_rvalue" />
       </list>
     </recent_temporary>
   </component>
@@ -437,15 +446,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 11h 27m 36s.xml">
-      <configuration name="Unittests in unit_tests" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 11h 27m 58s.xml">
-      <configuration name="Unittests in unit_tests" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 11h 28m 23s.xml">
-      <configuration name="Unittests in unit_tests" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 11h 28m 28s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
@@ -467,18 +467,27 @@
     <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 14h 33m 38s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 15h 33m 45s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 15h 33m 57s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2018.10.05 at 15h 35m 07s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="ToolWindowManager">
     <frame x="2552" y="-8" width="2576" height="1416" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3289777" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3289777" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3289777" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -529,12 +538,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/workflow_parser.py</url>
-          <line>568</line>
+          <line>567</line>
           <option name="timeStamp" value="54" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myparser/workflow_parser.py</url>
-          <line>460</line>
+          <line>459</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>
       </breakpoints>
@@ -740,13 +749,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_select.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="564">
-          <caret line="919" lean-forward="true" selection-start-line="919" selection-end-line="919" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scope_parser/declare.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
@@ -801,16 +803,6 @@
           <caret line="100" column="50" selection-start-line="100" selection-start-column="50" selection-end-line="100" selection-end-column="50" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scope_parser/select.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5456">
-          <caret line="252" selection-start-line="252" selection-end-line="254" selection-end-column="23" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -924,22 +916,39 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
+    <entry file="file://$PROJECT_DIR$/myparser/workflow_parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="609">
-          <caret line="158" selection-start-line="158" selection-end-line="158" />
+        <state relative-caret-position="446">
+          <caret line="609" lean-forward="true" selection-start-line="609" selection-end-line="609" />
           <folding>
-            <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#0#34#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myparser/workflow_parser.py">
+    <entry file="file://$PROJECT_DIR$/scope_parser/select.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="429" selection-start-line="429" selection-end-line="429" />
+        <state relative-caret-position="353">
+          <caret line="265" selection-start-line="265" selection-end-line="274" selection-end-column="33" />
           <folding>
-            <element signature="e#0#34#0" expanded="true" />
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_select.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="652">
+          <caret line="939" lean-forward="true" selection-start-line="939" selection-end-line="939" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="661">
+          <caret line="340" lean-forward="true" selection-start-line="340" selection-end-line="340" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>

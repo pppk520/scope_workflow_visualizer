@@ -157,7 +157,7 @@ class Select(object):
                      Optional(select_stmt) +
                      Optional(having))
 
-    select_stmt = Optional('(') + select_stmt + Optional(')')
+    select_stmt = Optional('(') + select_stmt + Optional(')') + Optional(Group(union_select))('union')
 
     assign_select_stmt = (Combine(ident)("assign_var") + '=' + select_stmt).ignore(comment)
 
@@ -263,13 +263,16 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-EM_RGUID =
-    SELECT EMNKW.*,
-           AuctionParticipants.RGUID
-    FROM EMNKW
-         INNER JOIN
-             AuctionParticipants
-         ON EMNKW.Query == AuctionParticipants.CleansedQuery && EMNKW.OrderId == AuctionParticipants.AdGroupId;
+AdInsightUsage =
+    (SELECT AdInsightUsage. *
+     FROM AdInsightUsage
+          LEFT OUTER JOIN
+              CookedPuLogSupportedV1Operations
+          ON AdInsightUsage.OperationName == CookedPuLogSupportedV1Operations.OperationName
+     WHERE CookedPuLogSupportedV1Operations.OperationName == null 
+    )
+    UNION ALL
+    SELECT * FROM BTEBulkApiUsage
     '''))
 
 
