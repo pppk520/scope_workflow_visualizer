@@ -433,7 +433,7 @@ class ScopeResolver(object):
 
         while recur_max > 0:
             self.logger.debug('replace_declare_items of [{}], recur_max = {}'.format(s, recur_max))
-            items = re.findall(r'(@[^ ,/\)\@]+)', s)
+            items = re.findall(r'([^@]@[^ ,/\)\@]+)', s)
 
             if len(items) == 0:
                 break
@@ -630,7 +630,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     s = '''
-    string.Format(@"{0}/KeywordOpportunity/Suggestions/SuggestionsAfterRuleFilter/SuggestionsAfterRuleFilter_Stage1_{1:yyyy-MM-dd}.ss", @OPT_PATH, @dateObj)
+    IF("@@Dimensions@@".Contains("ListingId"), "", "agg");
     '''
 
     declare_map = {

@@ -936,6 +936,29 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'AdInsightUsage')
         self.assertCountEqual(result['sources'], ['AdInsightUsage', 'CookedPuLogSupportedV1Operations', 'BTEBulkApiUsage'])
 
+    def test_column_new_class_init(self):
+        s = '''
+        BidOpportunityBond=
+            SELECT 
+                BidResult.AccountId,
+                CampaignId,
+                OrderId,
+                OptType,
+                new BidOpportunityNode{
+                    AccountId = (int)BidResult.AccountId,
+                    CollectionOfOpportunityAtChildLevel = BidOpportunities,
+                    CurrencyId = CurrencyId ?? 0
+                    } AS BidOptNode,
+                AccountPartitioner.GetPartitionId(BidResult.AccountId, @RunDateTime) AS PartitionId
+            FROM BidOpportunityResult AS BidResult
+            LEFT OUTER JOIN AccountCurrencyId AS AcctCurrency
+            ON BidResult.AccountId == AcctCurrency.AccountId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'BidOpportunityBond')
+        self.assertCountEqual(result['sources'], ['BidOpportunityResult', 'AccountCurrencyId'])
 
 
 

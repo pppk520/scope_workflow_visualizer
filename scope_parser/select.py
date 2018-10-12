@@ -80,6 +80,7 @@ class Select(object):
     aggr_ident = Optional(cast) + (aggr_ident_over | aggr_ident_operator | aggr_ident_aggressive)
     distinct_ident = DISTINCT + ident_dot
     new_something = 'new' + func_chain
+    new_class_init = 'new' + ident_dot + Regex('{.*?}', re.MULTILINE | re.DOTALL)
     as_something = (AS + ident).setName('as_something')
 
     one_column_no_as = Optional(cast) + \
@@ -88,6 +89,7 @@ class Select(object):
                             ternary |
                             null_coal |
                             if_stmt |
+                            new_class_init |
                             new_something |
                             func_chain_not |
                             operator_ident |
@@ -165,7 +167,20 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.where_expression.parseString('''OptTypeId NOT IN(@GoogleImportOpportunity, @GoogleImportScheduledOpportunity)'''))
+        print(self.new_class_init.parseString('''
+new BidOpportunityNode{
+            AccountId = (int)BidResult.AccountId,
+            CampaignId = (long)CampaignId,
+            AdGroupId = (long)OrderId,
+            CampaignName = CampaignName,
+            AdGroupName = OrderName,
+            OptType = OptType,
+            AggregatedEstimation = AggregatedEstimation,
+            CollectionOfOpportunityAtChildLevel = BidOpportunities,
+            CurrencyId = CurrencyId ?? 0
+            }         
+        
+        '''))
 
 
     def parse_ternary(self, s):
@@ -263,19 +278,19 @@ if __name__ == '__main__':
 #    obj.debug()
 
     print(obj.parse('''
-ListingName = 
-    SELECT  DISTINCT 
-        (ulong)OrderItemId AS OrderItemId, 
-        Keyword 
-    FROM 
-    (
-        C2CModule.OrderItem(DataDate=@RunDate)
-    ) 
-    WHERE
-        OrderId.HasValue
-        && OrderItemId.HasValue 
-        && !String.IsNullOrEmpty(Keyword)
-;
+landscapeResult = 
+    SELECT 
+        listingBidTrafficRounded.ListingId, 
+        listingBidTrafficRounded.CreatedDtim,
+        listingBidTrafficRounded.AdGroupId,
+        listingBidTrafficRounded.CampaignId,
+        listingBidTrafficRounded.AccountId,
+        Landscape.GetBidLandscape(LatestBidUSCent ?? -1, new LandscapePointSelectionConfig())
+        .CompressCurve(LatestBidUSCent ?? -1, new CurveCompressionConfig()) AS Landscape
+    FROM listingBidTrafficRounded
+    LEFT OUTER JOIN latestBids 
+    ON listingBidTrafficRounded.ListingId == latestBids.AutoTargetId;
+
     '''))
 
 

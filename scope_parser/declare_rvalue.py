@@ -23,6 +23,7 @@ class DeclareRvalue(object):
     format_str = Combine(param_str_cat | param_str | param, adjacent=False)
     string_format = keyword_string_format + '(' + format_str('format_str') + ZeroOrMore(',' + format_item('format_item*')) + ')'
     boolean_values = oneOf('true false')
+    if_assignment = Regex('IF.*\((.*),(.*),(.*)\)')
 
     rvalue = string_format('str_format') | \
              param_str_cat('str_cat') | \
@@ -31,7 +32,8 @@ class DeclareRvalue(object):
              param_str('param_str') | \
              param('param') | \
              boolean_values('boolean') | \
-             Combine(class_attr)('class_attr')
+             Combine(class_attr)('class_attr') | \
+             if_assignment('if_assignment')
 
     def debug(self):
         result = self.format_str.parseString('"/local/prod/pipelines/Opportunities/output/BudgetEnhancement/AIMTBondResult//2018/09/21" + "/BudgetOpt_Bond_PKV_Table_{0:yyyyMMdd}.ss"')
@@ -89,6 +91,9 @@ class DeclareRvalue(object):
         elif 'class_attr' in result:
             ret['format_items'] = [result['class_attr'], ]
             ret['type'] = 'class_attr'
+        elif 'if_assignment' in result:
+            ret['format_items'] = ["", ]
+            ret['type'] = 'if_assignment'
 
         return ret
 

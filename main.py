@@ -109,7 +109,9 @@ def parse_script(proj_folder,
 
         arguments_list.append(arguments)
 
-    pool = mp.Pool(processes=10)
+    process_no = min(len(target_filenames), 10)
+
+    pool = mp.Pool(processes=process_no)
     pool.starmap(parse_script_single, arguments_list)
 
 
@@ -276,11 +278,12 @@ if __name__ == '__main__':
 
     parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
-                 r'D:/tmp/tt',
-                 target_script_folder=r'D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\BidOpportunity\ScopeScripts',
-                 target_filenames=[
-                     'BidOptDataPrepare.script',
-                 ],
+                 r'D:/tmp/tt/ekw',
+#                 target_script_folder=r'D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\BidOpportunity\ScopeScripts',
+                 target_script_folder=r'D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts',
+#                 target_filenames=[
+#                     'TrafficAggregation.script',
+#                 ],
                  add_sstream_link=True,
                  add_sstream_size=True,
                  master_key='ADC_BTE_Scope##workflows.config',
