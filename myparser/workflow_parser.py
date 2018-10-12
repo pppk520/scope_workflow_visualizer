@@ -172,8 +172,8 @@ class WorkflowParser(object):
             if d['master']:
                 self.logger.info('found master config [{}]'.format(filepath))
                 filename = os.path.basename(filepath)
-                folder_name = os.path.dirname(filepath)
-                key = folder_name + filename
+                folder_name = os.path.basename(os.path.dirname(filepath))
+                key = '{}##{}'.format(folder_name, filename)
                 self.logger.info('master config key = [{}]'.format(key))
 
                 if key in masters:
@@ -268,6 +268,7 @@ class WorkflowParser(object):
 
     def resolve_param(self, master_params, param_str):
         self.logger.debug('resolve_param of [{}]'.format(param_str))
+        self.logger.debug('master_params = [{}]'.format(master_params))
 
         for match in re.findall(r'\$\(.*?\)', param_str):
             param = match[2:-1]
@@ -280,15 +281,21 @@ class WorkflowParser(object):
 
         return param_str.replace('\\"', '"')
 
-    def get_params(self, workflow_obj, process_name):
+    def get_params(self, workflow_obj, process_name, master_key=None):
         obj = workflow_obj
 
-        if not process_name in obj.process_master_map:
+        if process_name not in obj.process_master_map:
             process_name = self.get_closest_process_name(process_name, obj)
 
-        master_key = obj.process_master_map[process_name]
+        # specify specific master_key
+        if not master_key:
+            master_key = obj.process_master_map[process_name]
+
         master_params = obj.masters[master_key]['parameters']
         job_params = obj.workflows[process_name]['ScopeJobParams']
+
+        self.logger.debug('master_key = {}'.format(master_key))
+        self.logger.debug('master_params = {}'.format(master_params))
 
         param_map = {}
 

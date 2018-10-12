@@ -220,9 +220,15 @@ class ScopeResolver(object):
         if the_obj_name in declare_map:
             value = declare_map[the_obj_name]
 
-        match = re.search(r'\.Trim\("\)', func_str)
+        match = re.match(r'.*\.TrimEnd\((.*)\)', func_str)
         if match:
-            return value.strip()
+            target_chars = match.group(1).replace("'", '').split(',')
+            return value.rstrip(target_chars)
+
+        match = re.match(r'.*\.Trim\((.*)\)', func_str)
+        if match:
+            target_chars = match.group(1).replace("'", '').split(',')
+            return value.strip(target_chars)
 
         return func_str
 
@@ -256,7 +262,7 @@ class ScopeResolver(object):
                 result = self.process_to_string(datetime_obj, func_str)
         elif 'Replace(' in func_str:
             result = self.do_run_replace(func_str, declare_map)
-        elif 'Trim(' in func_str:
+        elif 'Trim(' in func_str or 'TrimEnd(' in func_str:
             result = self.do_run_trim(func_str, declare_map)
 
         if 'ToString()' in func_str:

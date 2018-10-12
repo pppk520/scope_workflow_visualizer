@@ -21,7 +21,8 @@ def parse_script_single(target_filename,
                         add_sstream_link,
                         add_sstream_size,
                         output_folder,
-                        external_params):
+                        external_params,
+                        master_key=None):
     # each process needs to set log level
     logging.basicConfig(level=__log_level)
 
@@ -33,7 +34,9 @@ def parse_script_single(target_filename,
     try:
         process_name = wfp.get_closest_process_name(target_filename, obj)
         print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
-        param_map = wfp.get_params(obj, process_name)
+        param_map = wfp.get_params(obj, process_name, master_key=master_key)
+
+        print('param_map = {}'.format(param_map))
 
         sp = ScriptParser(b_add_sstream_link=add_sstream_link,
                           b_add_sstream_size=add_sstream_size)
@@ -52,11 +55,13 @@ def parse_script_single(target_filename,
 def parse_script(proj_folder,
                  workflow_folder,
                  output_folder,
+                 target_script_folder=None,
                  target_filenames=[],
                  add_sstream_link=False,
                  add_sstream_size=False,
                  exclude_keys=[],
-                 external_params={}):
+                 external_params={},
+                 master_key=None):
 
     wfp = WorkflowParser()
     obj = wfp.parse_folder(workflow_folder)
@@ -66,11 +71,24 @@ def parse_script(proj_folder,
         script_fullpath_map[os.path.basename(f)] = f
 
     if len(target_filenames) == 0:
-        print('no specified target_filenames, add all scripts appear in workflows...')
+        print('no specified target_filenames, check target_script_folder [{}]'.format(target_script_folder))
 
-        for script_name in obj.script_process_map:
-            print('add script [{}]'.format(script_name))
-            target_filenames.append(script_name)
+        if len(target_script_folder) is not None:
+            for f in FileUtility.list_files_recursive(target_script_folder, target_suffix='.script'):
+                target_filenames.append(os.path.basename(f))
+        else:
+            print('no specified target_filenames, add all scripts appear in workflows...')
+            for script_name in obj.script_process_map:
+                print('add script [{}]'.format(script_name))
+                target_filenames.append(script_name)
+
+    print('target files:')
+    for f in target_filenames:
+        print(f)
+
+    if len(target_filenames) == 0:
+        print('no target files, abort.')
+        return
 
     if not os.path.isdir(output_folder):
         print('create folder [{}]'.format(output_folder))
@@ -85,7 +103,8 @@ def parse_script(proj_folder,
                      add_sstream_link,
                      add_sstream_size,
                      output_folder,
-                     external_params
+                     external_params,
+                     master_key
                      )
 
         arguments_list.append(arguments)
@@ -114,12 +133,12 @@ def script_to_graph(proj_folder,
 @click.argument('workflow_folder', type=click.Path(exists=True))
 @click.argument('target_filename')
 @click.option('--exclude_keys', multiple=True, default=[])
-def print_wf_params(workflow_folder, target_filename, exclude_keys=[]):
+def print_wf_params(workflow_folder, target_filename, exclude_keys=[], master_key=None):
     wfp = WorkflowParser()
     obj = wfp.parse_folder(workflow_folder)
 
     process_name = wfp.get_closest_process_name(target_filename, obj)
-    print(json.dumps(wfp.get_params(obj, process_name), indent=4))
+    print(json.dumps(wfp.get_params(obj, process_name, master_key=master_key), indent=4))
 
 
 @click.argument('proj_folder', type=click.Path(exists=True))
@@ -160,8 +179,13 @@ def to_workflow_dep_graph(proj_folder,
 
 if __name__ == '__main__':
 #    cli()
+    logging.basicConfig(level=logging.DEBUG)
 
-#    print_wf_params(r'D:\workspace\AdInsights\private\Backend\SOV', 'SOV3_StripeOutput.script')
+    '''
+    print_wf_params(r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
+                    'BidOptMPIProcessing.script',
+                    master_key='ADC_BTE_Scope##workflows.config')
+    '''
 
     '''
     parse_script(r'D:/workspace/AdInsights/private/Backend/SOV',
@@ -243,23 +267,22 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
-    '''
     to_workflow_dep_graph(
                  r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tmp/tt',
-                 target_node_names=[])
-    '''
-
+                 target_node_names=['BidOptMPIProcessing.script'])
 
     '''
     parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
                  r'D:/tmp/tt',
-                 target_filenames=[
-                     'NKW3_TrafficEstimation.script',
-                 ],
+                 target_script_folder=r'D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\BidOpportunity\ScopeScripts',
+#                 target_filenames=[
+#                     'NKW3_TrafficEstimation.script',
+#                 ],
                  add_sstream_link=True,
-                 add_sstream_size=True)
+                 add_sstream_size=True,
+                 master_key='ADC_BTE_Scope##workflows.config')
     '''
 
     '''
@@ -331,10 +354,11 @@ if __name__ == '__main__':
                  filter_type=None)
     '''
 
-
+    '''
     parse_script(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
                  r'D:/tmp/tt/mad',
                  target_filenames=['AdInsightNormalizedRUI.script'],
                  add_sstream_link=True,
                  add_sstream_size=True)
+    '''
