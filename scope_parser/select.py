@@ -146,8 +146,8 @@ class Select(object):
                         from_extract("extract") |
                         table_name_list("tables"))
 
-    select_stmt <<= (SELECT + (column_name_list | '*')("columns") +
-                     Optional(DISTINCT) +
+    select_stmt <<= (SELECT + Optional(DISTINCT) +
+                     (column_name_list | '*')("columns") +
                      Optional(from_stmt)("from") +
                      ZeroOrMore(join_stmt | cross_join_stmt) +
                      Optional(cross_apply_stmt) +
@@ -260,19 +260,22 @@ class Select(object):
 
 if __name__ == '__main__':
     obj = Select()
-    obj.debug()
+#    obj.debug()
 
     print(obj.parse('''
-AdInsightUsage =
-    (SELECT AdInsightUsage. *
-     FROM AdInsightUsage
-          LEFT OUTER JOIN
-              CookedPuLogSupportedV1Operations
-          ON AdInsightUsage.OperationName == CookedPuLogSupportedV1Operations.OperationName
-     WHERE CookedPuLogSupportedV1Operations.OperationName == null 
-    )
-    UNION ALL
-    SELECT * FROM BTEBulkApiUsage
+ListingName = 
+    SELECT  DISTINCT 
+        (ulong)OrderItemId AS OrderItemId, 
+        Keyword 
+    FROM 
+    (
+        C2CModule.OrderItem(DataDate=@RunDate)
+    ) 
+    WHERE
+        OrderId.HasValue
+        && OrderItemId.HasValue 
+        && !String.IsNullOrEmpty(Keyword)
+;
     '''))
 
 

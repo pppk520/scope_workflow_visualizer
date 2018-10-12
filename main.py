@@ -267,23 +267,24 @@ if __name__ == '__main__':
                  add_sstream_size=True)
     '''
 
+    '''
     to_workflow_dep_graph(
                  r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tmp/tt',
                  target_node_names=['BidOptMPIProcessing.script'])
-
     '''
+
     parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
                  r'D:/tmp/tt',
                  target_script_folder=r'D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\BidOpportunity\ScopeScripts',
-#                 target_filenames=[
-#                     'NKW3_TrafficEstimation.script',
-#                 ],
+                 target_filenames=[
+                     'BidOptDataPrepare.script',
+                 ],
                  add_sstream_link=True,
                  add_sstream_size=True,
-                 master_key='ADC_BTE_Scope##workflows.config')
-    '''
+                 master_key='ADC_BTE_Scope##workflows.config',
+                 external_params={'MT_V2_PKVOutputPath': '/local/shared_data/AdvertiserEngagement/Metallica/prod/BidOpportunity/AIMTBondResult/'})
 
     '''
     to_workflow_dep_graph(
