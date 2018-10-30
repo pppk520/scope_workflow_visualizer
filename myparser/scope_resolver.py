@@ -447,9 +447,12 @@ class ScopeResolver(object):
             tmp = s
             for item in items:
                 if item.startswith('@@'):
-                    continue # ignore external params
+                    continue  # ignore external params
+
+                item = item.replace('(', '')
 
                 if item in declare_map:
+                    self.logger.debug('item {} in declare_map, value = [{}]'.format(item, declare_map[item]))
                     if self.is_int(declare_map[item]):
                         tmp = tmp.replace(item, str(declare_map[item]))
                     else:
@@ -464,8 +467,6 @@ class ScopeResolver(object):
                         self.logger.debug('replace declare item [{}] to [{}], type is [{}]'.format(item,
                                                                                                    tt,
                                                                                                    type(tt)))
-
-
                 else:
                     self.logger.debug('item [{}] is not in declare_map'.format(item))
 

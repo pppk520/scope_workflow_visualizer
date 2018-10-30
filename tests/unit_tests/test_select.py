@@ -960,6 +960,29 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'BidOpportunityBond')
         self.assertCountEqual(result['sources'], ['BidOpportunityResult', 'AccountCurrencyId'])
 
+    def test_column_func_complex(self):
+        s = '''
+        landscapeResult = 
+            SELECT 
+                listingBidTrafficRounded.ListingId, 
+                listingBidTrafficRounded.CreatedDtim,
+                listingBidTrafficRounded.AdGroupId,
+                listingBidTrafficRounded.CampaignId,
+                listingBidTrafficRounded.AccountId,
+                Landscape.GetBidLandscape(LatestBidUSCent ?? -1, new LandscapePointSelectionConfig())
+                .CompressCurve(LatestBidUSCent ?? -1, new CurveCompressionConfig()) AS Landscape
+            FROM listingBidTrafficRounded
+            LEFT OUTER JOIN latestBids 
+            ON listingBidTrafficRounded.ListingId == latestBids.AutoTargetId;
+
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'landscapeResult')
+        self.assertCountEqual(result['sources'], ['listingBidTrafficRounded', 'latestBids'])
+
+
 
 
 

@@ -48,6 +48,11 @@ class Select(object):
     # AdId??0UL AS AdId
     null_coal = ident_dot + '??' + value_str
 
+    # Landscape.GetBidLandscape(LatestBidUSCent ?? -1, new LandscapePointSelectionConfig()).CompressCurve(LatestBidUSCent ?? -1, new CurveCompressionConfig())
+    func_param_sp = null_coal | 'new' + func_chain
+    func_chain_sp = ident_dot + '(' + delimitedList(func_param_sp, delim=',') + ')'
+    func_chain_sp_chain = delimitedList(func_chain_sp, delim='.')
+
     # IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt
     # IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
     #if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
@@ -92,6 +97,7 @@ class Select(object):
                             new_class_init |
                             new_something |
                             func_chain_not |
+                            func_chain_sp_chain |
                             operator_ident |
                             column_name |
                             column_rval |
@@ -167,19 +173,8 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.new_class_init.parseString('''
-new BidOpportunityNode{
-            AccountId = (int)BidResult.AccountId,
-            CampaignId = (long)CampaignId,
-            AdGroupId = (long)OrderId,
-            CampaignName = CampaignName,
-            AdGroupName = OrderName,
-            OptType = OptType,
-            AggregatedEstimation = AggregatedEstimation,
-            CollectionOfOpportunityAtChildLevel = BidOpportunities,
-            CurrencyId = CurrencyId ?? 0
-            }         
-        
+        print(self.func_chain_sp_chain.parseString('''
+            Landscape.GetBidLandscape(LatestBidUSCent ?? -1, new LandscapePointSelectionConfig()).CompressCurve(LatestBidUSCent ?? -1, new CurveCompressionConfig())
         '''))
 
 
@@ -275,22 +270,22 @@ new BidOpportunityNode{
 
 if __name__ == '__main__':
     obj = Select()
-#    obj.debug()
+    obj.debug()
 
     print(obj.parse('''
-landscapeResult = 
-    SELECT 
-        listingBidTrafficRounded.ListingId, 
-        listingBidTrafficRounded.CreatedDtim,
-        listingBidTrafficRounded.AdGroupId,
-        listingBidTrafficRounded.CampaignId,
-        listingBidTrafficRounded.AccountId,
-        Landscape.GetBidLandscape(LatestBidUSCent ?? -1, new LandscapePointSelectionConfig())
-        .CompressCurve(LatestBidUSCent ?? -1, new CurveCompressionConfig()) AS Landscape
-    FROM listingBidTrafficRounded
-    LEFT OUTER JOIN latestBids 
-    ON listingBidTrafficRounded.ListingId == latestBids.AutoTargetId;
+RelevanceScore =
+    SELECT ListingId,
+           Keyword,
+           Math.Round(double.Parse(Score) / 10000, 4) AS RelevanceScore
+    FROM
+    (
+        PROCESS Features
+        PRODUCE ListingId,
+                Keyword,
+                Score
+        USING FastRankScorer("CohesionModelHeaderWithWblcid", "ListingId,Keyword", "AdIndex_MSDL_May_2011")
 
+    )
     '''))
 
 

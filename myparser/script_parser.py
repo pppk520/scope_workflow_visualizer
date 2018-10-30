@@ -74,6 +74,7 @@ class ScriptParser(object):
             self.external_params[key] = config['ExternalParam'][key]
 
         self.target_date_str = config['ExternalParam']['TARGET_DATE']
+        self.default_datetime = parser.parse(self.target_date_str)
 
     def remove_empty_lines(self, content):
         return "\n".join([ll.rstrip() for ll in content.splitlines() if ll.strip()])
@@ -282,6 +283,11 @@ class ScriptParser(object):
                 self.logger.info('remove query string of [{}]'.format(body_str))
                 body_str = body_str[:body_str.index('?')]
 
+                # query string supports %Y%m%d replacement,
+                # if there are %Y%m%d in url, use default datetime to replace it
+                if '%Y' in body_str or '%m' in body_str or '%d' in body_str:
+                    body_str =  self.default_datetime.strftime(body_str)
+
             # change node label to html format for different font size
             # ignore if already inserted href
             if not 'FONT' in node.attr['label']:
@@ -378,6 +384,7 @@ class ScriptParser(object):
         self.process_core(part, node_map, all_nodes, edges, self.input.parse(part))
 
     def process_process(self, part, node_map, all_nodes, edges):
+        self.logger.debug('process_process')
         self.process_core(part, node_map, all_nodes, edges, self.process.parse(part))
 
     def process_reduce(self, part, node_map, all_nodes, edges):
@@ -492,7 +499,7 @@ class ScriptParser(object):
 
         # keep date key because external params from config is probably yyyy-MM-dd format
         for key in external_params:
-            if 'date' in key.lower() or 'hour' in key.lower():
+            if 'date' in key.lower() or 'hour' in key.lower() or 'time' in key.lower():
                 if 'yyyy' in external_params[key] or 'mm' in external_params[key] or 'dd' in external_params[key]:
                     normalized_format = ScopeResolver.to_normalized_time_format(external_params[key])
                     normalized_format = normalized_format.replace('{', '')\
@@ -500,12 +507,12 @@ class ScriptParser(object):
                                                          .replace('@', '')\
                                                          .replace('"', '')
 
-
                     self.logger.debug('external_param datetime format = {}, normalized to {}'.format(external_params[key], normalized_format))
+
                     if key not in self.external_params:
                         self.logger.debug('use TARGET_DATE [{}] in config.ini as datatime'.format(self.target_date_str))
                         default_datetime = parser.parse(self.target_date_str)
-                        self.external_params[key] = default_datetime.strftime(normalized_format)
+                        self.external_params[key] = '"{}"'.format(default_datetime.strftime(normalized_format))
 
                         self.logger.debug('set self.external_params[{}] to [{}]'.format(key, self.external_params[key]))
                         continue
@@ -541,6 +548,25 @@ class ScriptParser(object):
         # save cosmos querying results
         self.ssu.refresh_cache()
 
+    def get_parse_type(self, part):
+        ''' Use the first occurred keyword as parsing type
+
+        :param part: the content part for parsing
+        :return: the keyword as parse type
+        '''
+        keywords = ['SELECT', 'PROCESS', 'OUTPUT', 'REDUCE', 'COMBINE', 'SSTREAM', 'EXTRACT', 'VIEW', 'IMPORT', 'USING']
+
+        first_keyword = ''
+        first_idx = 1000
+        for keyword in keywords:
+            idx = part.find(keyword)
+
+            if idx != -1 and idx < first_idx:
+                first_keyword = keyword
+                first_idx = idx
+
+        return first_keyword.strip()
+
     def parse_content(self, content, external_params={}):
         content = self.remove_comments(content)
         content = self.remove_if(content)
@@ -572,26 +598,34 @@ class ScriptParser(object):
             if '#DECLARE' in part:
                 # some files contain prefix unicode string
                 self.process_declare(part, declare_map)
+                continue
             elif '#SET' in part:
                 self.process_set(part, declare_map)
-            elif 'IMPORT' in part:
+                continue
+
+            parse_type = self.get_parse_type(part)
+            self.logger.debug('parse_type = {}'.format(parse_type))
+
+            if parse_type == 'IMPORT':
                 self.logger.info('not support IMPORT for now.')
-            elif 'OUTPUT' in part:
+            elif parse_type == 'OUTPUT':
                 self.process_output(part, node_map, all_nodes, edges)
-            elif 'REDUCE' in part:
+            elif parse_type == 'REDUCE':
                 self.process_reduce(part, node_map, all_nodes, edges)
-            elif 'COMBINE' in part:
+            elif parse_type == 'COMBINE':
                 self.process_combine(part, node_map, all_nodes, edges)
-            elif 'SELECT' in part:
+            elif parse_type == 'SELECT':
                 self.process_select(part, node_map, all_nodes, edges)
-            elif 'SSTREAM' in part:
+            elif parse_type == 'SSTREAM':
                 self.process_input_sstream(part, node_map, all_nodes, edges)
-            elif 'EXTRACT' in part:
+            elif parse_type == 'EXTRACT':
                 self.process_extract(part, node_map, all_nodes, edges)
-            elif 'VIEW' in part:
+            elif parse_type == 'VIEW':
                 self.process_view(part, node_map, all_nodes, edges)
-            elif 'PROCESS' in part:
+            elif parse_type == 'PROCESS':
                 self.process_process(part, node_map, all_nodes, edges)
+            elif parse_type == 'USING':
+                self.logger.info('not support USING for now.')
             else:
                 try:
                     self.process_input_module(part, node_map, all_nodes, edges)

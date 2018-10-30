@@ -73,7 +73,7 @@ def parse_script(proj_folder,
     if len(target_filenames) == 0:
         print('no specified target_filenames, check target_script_folder [{}]'.format(target_script_folder))
 
-        if len(target_script_folder) is not None:
+        if target_script_folder is not None:
             for f in FileUtility.list_files_recursive(target_script_folder, target_suffix='.script'):
                 target_filenames.append(os.path.basename(f))
         else:
@@ -110,6 +110,10 @@ def parse_script(proj_folder,
         arguments_list.append(arguments)
 
     process_no = min(len(target_filenames), 10)
+
+    if process_no == 1:
+        parse_script_single(*arguments_list[0])
+        return
 
     pool = mp.Pool(processes=process_no)
     pool.starmap(parse_script_single, arguments_list)
@@ -184,10 +188,30 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     '''
-    print_wf_params(r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
-                    'BidOptMPIProcessing.script',
-                    master_key='ADC_BTE_Scope##workflows.config')
+    print_wf_params(r'D:\tt_all\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
+                    '7.PKVGeneration_KWO.script',
+                    master_key='ADC_Opportunities_Scope##workflows.config')
     '''
+
+    '''
+    to_workflow_dep_graph(
+        r'D:/workspace/AdInsights/private/Backend/QualityScore',
+        r'D:/tmp/tt/quality_score',
+        target_folder_name='ADC.QS.Scope.V2'
+    )
+    '''
+
+    '''
+    parse_script(r'D:/workspace/AdInsights/private/Backend/QualityScore',
+                 r'D:/workspace/AdInsights/private/Backend/QualityScore',
+                 r'D:/tmp/tt/quality_score',
+                 target_filenames=[],
+                 target_script_folder='D:/workspace/AdInsights/private/Backend/QualityScore/Scope/QualityScore.V2',
+                 master_key='MasterConfig##Workflows_master.config',
+                 add_sstream_link=True,
+                 add_sstream_size=True)
+    '''
+
 
     '''
     parse_script(r'D:/workspace/AdInsights/private/Backend/SOV',
@@ -207,7 +231,7 @@ if __name__ == '__main__':
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
                  r'D:/tmp/tt',
                  target_filenames=[
-                     '1.MergeSources.script',
+#                     '1.MergeSources.script',
 #                     '2.QualtiyControlStep1.script',
 #                     '2.QualtiyControlStep2.script',
 #                     '3.AssignOptType.script',
@@ -223,7 +247,8 @@ if __name__ == '__main__':
 #                     'KeywordOpt_CampaignTargetInfo.script',
 #                     'NKWOptMPIProcessing.script',
 #                     'BudgetOptMPIProcessing.script',
-#                     'BudgetOptPKVGeneration.script'
+#                     'BudgetOptPKVGeneration.script',
+                     'SeasonalProposal_PostProcessing.script'
                  ],
                  add_sstream_link=True,
                  add_sstream_size=True)
@@ -276,6 +301,7 @@ if __name__ == '__main__':
                  target_node_names=['BidOptMPIProcessing.script'])
     '''
 
+    '''
     parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
                  r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
                  r'D:/tmp/tt/ekw',
@@ -288,6 +314,7 @@ if __name__ == '__main__':
                  add_sstream_size=True,
                  master_key='ADC_BTE_Scope##workflows.config',
                  external_params={'MT_V2_PKVOutputPath': '/local/shared_data/AdvertiserEngagement/Metallica/prod/BidOpportunity/AIMTBondResult/'})
+    '''
 
     '''
     to_workflow_dep_graph(
