@@ -22,7 +22,10 @@ class Reduce(object):
     presort = Optional(PRESORT + delimitedList(ident + Optional(oneOf('DESC ASC'))))
     produce = Optional(PRODUCE + delimitedList(ident))
     using = Optional(USING + (func | func_ptr)('using'))
-    reduce_stmt = Combine(ident)('assign_var') + '=' + REDUCE + (Combine(ident)('source') | select_stmt('select_stmt')) + on + produce + presort + using
+    reduce_stmt = Combine(ident)('assign_var') + '=' + \
+                  REDUCE + (Combine(ident)('source') | select_stmt('select_stmt')) + \
+                  Each([on, Optional(produce), Optional(presort)]) + \
+                  using
 
     def debug(self):
         print(self.using.parseString('USING GroupingReducer("SuggKW", "3")'))
@@ -57,27 +60,10 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-KWOSuggestions_NoneChinese_Others =
-    REDUCE
-    (
-        SELECT AccountId,
-               OrderId,
-               SuggKW,
-               SuggMatchTypeId,
-               TrackId,
-               TrafficId,
-               KeyTerm,
-               BMMKeyword,
-               OptTypes,
-               Score,
-               LCID_C2C,
-               bChinese
-        FROM KWOSuggestions_NoneChinese
-        WHERE Theme == "Keyword Like" OR Theme == ""
-    )
-    ON OrderId
-    USING GroupingReducer("SuggKW", "3")
-    PRESORT Score DESC
+CampaignTarget = REDUCE CampaignTarget
+                 PRESORT CurrentGeoLevel ASC
+                 ON CampaignId
+                 USING CampaignTargetReducer()
         '''))
 
 

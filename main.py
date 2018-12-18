@@ -36,8 +36,6 @@ def parse_script_single(target_filename,
         print('target_filename = [{}], closest process_name = [{}]'.format(target_filename, process_name))
         param_map = wfp.get_params(obj, process_name, master_key=master_key)
 
-        print('param_map = {}'.format(param_map))
-
         sp = ScriptParser(b_add_sstream_link=add_sstream_link,
                           b_add_sstream_size=add_sstream_size)
 
@@ -47,6 +45,7 @@ def parse_script_single(target_filename,
         param_map.update(external_params)
 
         # dest_filepath will be appended suffix like .dot.pdf
+        print('parse_file [{}]'.format(script_fullpath))
         sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
     except Exception as ex:
         print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
@@ -213,18 +212,14 @@ if __name__ == '__main__':
     '''
 
 
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/SOV',
-                 r'D:/workspace/AdInsights/private/Backend/SOV',
+    parse_script(r'D:/workspace/AdInsights/private/Backend/Opportunities',
+                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
                  r'D:/tmp/tt',
-                 target_filenames=[
-#                     'SOV3_StripeOutput.script',
-                     'SOV_BSC_Final.script',
-#                     'EligibleRGuids.script'
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
+#                 target_script_folder=r'D:/workspace/AdInsights/private/Backend/Opportunities/Scope/LocationBidAdjustment/LocationBidAdjustment',
+                 target_filenames=['BidAdjustmentOptGenerate.script'],
+                 add_sstream_link=False,
+                 add_sstream_size=False,
+                 external_params={'PROCESS_DATE': '2018-12-12'})
 
     '''
     parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',

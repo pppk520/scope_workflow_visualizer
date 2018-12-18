@@ -98,4 +98,19 @@ class TestReduce(TestCase):
         self.assertCountEqual(result['sources'], ['Suggestions'])
         self.assertTrue(result['using'] == 'Utils.TopNReducer')
 
+    def test_any_order(self):
+        s = '''
+        CampaignTarget = REDUCE CampaignTarget
+                         PRESORT CurrentGeoLevel ASC
+                         ON CampaignId
+                         USING CampaignTargetReducer()
+        '''
+
+        result = Reduce().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'CampaignTarget')
+        self.assertCountEqual(result['sources'], ['CampaignTarget'])
+        self.assertTrue(result['using'] == 'CampaignTargetReducer')
+
+
 

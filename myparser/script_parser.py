@@ -451,6 +451,7 @@ class ScriptParser(object):
 
     def process_declare(self, part, declare_map):
         key, value = self.declare.parse(part)
+        self.logger.debug('process_declare key [{}], value [{}]'.format(key, value))
 
         # ignore MAP for now
         if 'MAP' in value:
