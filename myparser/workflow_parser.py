@@ -10,6 +10,7 @@ from graph.node import Node
 from graph.edge import Edge
 from graph.graph_utility import GraphUtility
 
+
 class WorkflowObj(object):
     def __init__(self):
         self.masters = {}  # config_filename -> master config dict
@@ -23,6 +24,7 @@ class WorkflowObj(object):
         self.group_master_map = {}   # group name -> master config name
         self.script_process_map = {} # script name -> process_name
         self.event_interval_map = {}  # event_name -> interval
+
 
 class WorkflowParser(object):
     logger = logging.getLogger(__name__)
@@ -300,7 +302,7 @@ class WorkflowParser(object):
         param_map = {}
 
         for item in job_params:
-            if not '-params' in item:
+            if '-params' not in item:
                 continue
 
             _, target = item.split()
@@ -313,7 +315,8 @@ class WorkflowParser(object):
                 targets = [target,]
 
             for target in targets:
-                key, value = target.split('=')
+                key = target[:target.index('=')]
+                value = target[target.index('=') + 1:]
                 param_map[key] = self.resolve_param(master_params, value.strip())
 
         return param_map
@@ -323,7 +326,6 @@ class WorkflowParser(object):
 
         for key in param_map:
             print('{} = {}'.format(key, param_map[key]))
-
 
     def normalize_event_name(self, event_name: str):
         match = re.match(r'([dD]\:)?([^/]*)(/.*)?', event_name)

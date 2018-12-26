@@ -11,6 +11,8 @@ class Combine(object):
     WITH = Keyword("WITH")
 
     ident = Common.ident
+    ident_at = Common.ident_at
+    sstream_ident = '(' + 'SSTREAM' + (ident_at | ident) + ')'
     produce_schema = delimitedList(ident)
     func = Common.func
     func_ptr = Common.func_ptr
@@ -19,11 +21,13 @@ class Combine(object):
     as_something = Select.as_something
     where_expression = Select.where_expression
 
+    combine_source = ident | sstream_ident
+
     using = Optional(USING + (func | func_ptr)('using'))
     combine_with = COMBINE + \
-                   Combine(Group(ident))('source_1') + Optional(as_something) + \
+                   Combine(combine_source)('source_1') + Optional(as_something) + \
                    WITH + \
-                   Combine(Group(ident))('source_2') + Optional(as_something) + \
+                   Combine(combine_source)('source_2') + Optional(as_something) + \
                    ON + where_expression + \
                    USING + (func | func_ptr)('using')
 
@@ -59,10 +63,10 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-SuggestionsWithScore =
-COMBINE Suggestions AS L WITH OrderTermBag AS R
-ON L.OrderId == R.OrderId
-USING SuggestionTfCombiner("TFIDF");
+OrderBiddingKW =
+    COMBINE OrderBiddingKW AS L WITH (SSTREAM@OrderTFScoreFile) AS R
+    ON L.OrderId == R.OrderId
+    USING SuggestionTfCombiner("TFIDF");
 
         '''))
 

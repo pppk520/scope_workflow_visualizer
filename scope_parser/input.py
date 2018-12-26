@@ -40,7 +40,7 @@ class Input(object):
     # Different Input Categories
     ##################################
     parentheses_func_param = '(' + func_param + ')'
-    streamset_type = oneOf("__datetime __hour __day __year __serialnum")
+    streamset_type = oneOf("__datetime __hour __day __year __serialnum __date")
     list_values = delimitedList(value_str)
     streamset_range = streamset_type + '=' + Group('[' + list_values + ']' + Optional(parentheses_func_param))
 
@@ -59,11 +59,11 @@ class Input(object):
     import_as = IMPORT + quotedString('from_source') + "AS" + Combine(ident)('assign_var') + Optional(params)
 
     def debug(self):
-        print(self.param_assign_list.parseString('''
-        KeywordAdvertiser = OrderSuggKW_CrossLCID,
-        CampaignLocationTarget = NKWData.CampaignLocationTarget,
-        LowTrafficKw = NKWData.LowTrafficKw,
-        LowTrafficAdGroup = NKWData.LowTrafficAdGroup
+        print(self.streamset_range.parseString('''__date=[@AvailStartDate]'''))
+        print(self.streamset.parseString('''
+        STREAMSET @AuctionInsightPath
+        PATTERN "FinalOutput/Daily/%Y%m/AvailableAgg_%Y%m%d.txt"
+        RANGE __date=[@AvailStartDate,@AvailEndDate]
         '''))
 
     def parse_sstream(self, s):
@@ -89,8 +89,13 @@ class Input(object):
              'sources': set()}
 
         if 'EXTRACT' in s:
-            ret = self.assign_extract.parseString(s)
-            d['sources'].add('EXTRACT_' + ret['from_source'])
+            try:
+                ret = self.assign_extract.parseString(s)
+                d['sources'].add('EXTRACT_' + ret['from_source'])
+            except:
+                # no assign case
+                ret = self.extract.parseString(s)
+                d['sources'].add('EXTRACT_' + ret['from_source'])
         elif 'SSTREAM' in s:
             if 'STREAMSET' in s:
                 ret = self.assign_sstream_streamset.parseString(s)
@@ -119,7 +124,8 @@ class Input(object):
             else:
                 raise NotImplementedError('unsupported input type?')
 
-        d['assign_var'] = ret['assign_var']
+        if 'assign_var' in ret:
+            d['assign_var'] = ret['assign_var']
 
         return d
 
@@ -129,12 +135,13 @@ if __name__ == '__main__':
     i.debug()
 
     print(i.parse('''
-HealthCheckAdoption_OneEntity = 
-    EXTRACT AdoptionDateTime : DateTime,
-            AccountId : int,
-            EntityId : long,
-            CheckPoint : string
-    FROM @EmptyFilePath
-    USING DefaultTextExtractor("-d", ",")
+EXTRACT Key : string,
+        value : string,
+        __date
+FROM 
+STREAMSET @AuctionInsightPath
+PATTERN "FinalOutput/Daily/%Y%m/AvailableAgg_%Y%m%d.txt"
+RANGE __date=[@AvailStartDate,@AvailEndDate]
+USING DefaultTextExtractor
 '''))
 

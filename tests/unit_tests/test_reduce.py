@@ -112,5 +112,26 @@ class TestReduce(TestCase):
         self.assertCountEqual(result['sources'], ['CampaignTarget'])
         self.assertTrue(result['using'] == 'CampaignTargetReducer')
 
+    def test_full(self):
+        s = '''
+            BudgetLandscape=
+                REDUCE BudgetLandscape
+                ON AccountId,CampaignId
+                PRESORT Index ASC
+                PRODUCE
+                    SugApproach
+                    ,EstimatedCost
+                    ,EstimatedConversions
+                    ,EstimatedSov
+                    ,Comment   
+                USING BudgetSuggestionsLib.BudgetPointConstraintReducer
+        '''
+
+        result = Reduce().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'BudgetLandscape')
+        self.assertCountEqual(result['sources'], ['BudgetLandscape'])
+        self.assertTrue(result['using'] == 'BudgetSuggestionsLib.BudgetPointConstraintReducer')
+
 
 

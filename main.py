@@ -1,18 +1,23 @@
 import click
 import os
 import logging
+import traceback
 import json
 import sys
 import multiprocessing as mp
 from myparser.script_parser import ScriptParser
 from myparser.workflow_parser import WorkflowParser
 from util.file_utility import FileUtility
+from datetime import datetime
+from util.datetime_utility import DatetimeUtility
 
 __log_level = logging.DEBUG
+
 
 @click.group()
 def cli():
     pass
+
 
 def parse_script_single(target_filename,
                         workflow_parser,
@@ -22,7 +27,8 @@ def parse_script_single(target_filename,
                         add_sstream_size,
                         output_folder,
                         external_params,
-                        master_key=None):
+                        master_key=None,
+                        target_date_str=None):
     # each process needs to set log level
     logging.basicConfig(level=__log_level)
 
@@ -42,6 +48,13 @@ def parse_script_single(target_filename,
         dest_filepath = os.path.join(output_folder, target_filename)
         script_fullpath = script_fullpath_map[target_filename]
 
+        if target_date_str:
+            datetime_obj = datetime.strptime(target_date_str, '%Y-%m-%d')
+
+            for key in param_map:
+                # replace {yyyy-MM-dd}
+                param_map[key] = DatetimeUtility.replace_ymd(param_map[key], datetime_obj)
+
         param_map.update(external_params)
 
         # dest_filepath will be appended suffix like .dot.pdf
@@ -49,6 +62,8 @@ def parse_script_single(target_filename,
         sp.parse_file(script_fullpath, external_params=param_map, dest_filepath=dest_filepath)
     except Exception as ex:
         print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
+        print(traceback.format_exc())
+
 
 
 def parse_script(proj_folder,
@@ -60,7 +75,11 @@ def parse_script(proj_folder,
                  add_sstream_size=False,
                  exclude_keys=[],
                  external_params={},
-                 master_key=None):
+                 master_key=None,
+                 target_date_str=None):
+
+    print('proj_folder [{}]'.format(proj_folder))
+    print('workflow_folder [{}]'.format(workflow_folder))
 
     wfp = WorkflowParser()
     obj = wfp.parse_folder(workflow_folder)
@@ -103,7 +122,8 @@ def parse_script(proj_folder,
                      add_sstream_size,
                      output_folder,
                      external_params,
-                     master_key
+                     master_key,
+                     target_date_str
                      )
 
         arguments_list.append(arguments)
@@ -177,214 +197,55 @@ def to_workflow_dep_graph(proj_folder,
 
             target_node_names.append(os.path.basename(f))
 
+    FileUtility.mkdir_p(output_folder)
     wfp.to_workflow_dep_graph(obj,
                               dest_filepath=dest_filepath,
                               target_node_names=target_node_names,
                               filter_type=filter_type)
 
+
+def all_in_one(dwc_wf_folder, out_folder, target_wf_folders=[], target_filenames=[], pdf_only=True):
+    target_date_str = DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d')
+
+    for wf_folder in os.listdir(dwc_wf_folder):
+        if target_wf_folders and wf_folder not in target_wf_folders:
+            print('wf_folder [{}] not in target list [{}]'.format(wf_folder, target_wf_folders))
+            continue
+
+        wf_folder_path = os.path.join(dwc_wf_folder, wf_folder)
+        print('wf_folder_path [{}]'.format(wf_folder_path))
+
+        out_sub_folder = os.path.join(out_folder, wf_folder)
+
+#        if os.path.exists(out_sub_folder):
+#            print('skip processed folder [{}]'.format(out_sub_folder))
+#            continue
+
+        to_workflow_dep_graph(wf_folder_path, out_sub_folder)
+
+        out_script_folder = os.path.join(out_sub_folder, 'script_graph')
+        parse_script(wf_folder_path,
+                     wf_folder_path,
+                     out_script_folder,
+                     target_filenames=target_filenames[:],
+                     add_sstream_link=False,
+                     add_sstream_size=False,
+                     target_date_str=target_date_str)
+
+        FileUtility.delete_files_except_ext(out_sub_folder, '.pdf')
+        FileUtility.delete_files_except_ext(out_script_folder, '.pdf')
+
+
 if __name__ == '__main__':
 #    cli()
     logging.basicConfig(level=logging.DEBUG)
 
-    '''
-    print_wf_params(r'D:\tt_all\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
-                    '7.PKVGeneration_KWO.script',
-                    master_key='ADC_Opportunities_Scope##workflows.config')
-    '''
+    all_in_one(r'D:\tt_all\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+               r'D:/tmp/tt_all_in_one')
 
-    '''
-    to_workflow_dep_graph(
-        r'D:/workspace/AdInsights/private/Backend/QualityScore',
-        r'D:/tmp/tt/quality_score',
-        target_folder_name='ADC.QS.Scope.V2'
-    )
-    '''
+#    all_in_one(r'D:\tt_all\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+#               r'D:/tmp/tt_all_in_one',
+#               target_wf_folders=['ADC_Opportunities_Scope'],
+#               target_filenames=['5.FinalCapping.script']
+#               target_wf_folders=['UCM_Scope', 'AIM_Scope', 'ADC_TopMover_Scope'])
 
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/QualityScore',
-                 r'D:/workspace/AdInsights/private/Backend/QualityScore',
-                 r'D:/tmp/tt/quality_score',
-                 target_filenames=[],
-                 target_script_folder='D:/workspace/AdInsights/private/Backend/QualityScore/Scope/QualityScore.V2',
-                 master_key='MasterConfig##Workflows_master.config',
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
-
-
-    parse_script(r'D:/workspace/AdInsights/private/Backend/Opportunities',
-                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
-                 r'D:/tmp/tt',
-#                 target_script_folder=r'D:/workspace/AdInsights/private/Backend/Opportunities/Scope/LocationBidAdjustment/LocationBidAdjustment',
-                 target_filenames=['BidAdjustmentOptGenerate.script'],
-                 add_sstream_link=False,
-                 add_sstream_size=False,
-                 external_params={'PROCESS_DATE': '2018-12-12'})
-
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
-                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
-                 r'D:/tmp/tt',
-                 target_filenames=[
-#                     '1.MergeSources.script',
-#                     '2.QualtiyControlStep1.script',
-#                     '2.QualtiyControlStep2.script',
-#                     '3.AssignOptType.script',
-#                     '4.TrafficEstimation.script',
-#                     '5.FinalCapping.script',
-#                     '6.MPIProcessing.script',
-#                     '7.PKVGeneration_BMMO.script',
-#                     '7.PKVGeneration_BMO.script',
-#                     '7.PKVGeneration_BMOEX.script',
-#                     '7.PKVGeneration_KWO.script',
-#                     'MPIPrepare.script',
-#                     'CampaignTargetingInfo.script',
-#                     'KeywordOpt_CampaignTargetInfo.script',
-#                     'NKWOptMPIProcessing.script',
-#                     'BudgetOptMPIProcessing.script',
-#                     'BudgetOptPKVGeneration.script',
-                     'SeasonalProposal_PostProcessing.script'
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
-
-
-    '''
-    to_workflow_dep_graph(
-                 r'D:/workspace/AdInsights/private/Backend\Opportunities',
-                 r'D:/tmp/tt',
-                 target_folder_name='BudgetSuggestions'
-    )
-    '''
-
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/FeatureAdoption',
-                 r'D:/tmp/tt',
-                 target_filenames=[
-                     'SiteLinkOpportunity.script'
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
-
-    '''
-    to_workflow_dep_graph(
-                 r'D:/workspace/AdInsights/private/Backend/UCM',
-                 r'D:/tmp/tt',
-                 target_node_names=[])
-    '''
-
-    # it uses external parameters, use cloudbuild result because it resolves external params
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
-                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
-                 r'D:/tmp/tt',
-                 target_filenames=[
-                     'BidOptMPIPreProcessing.script',
-                     'BidOptMPIProcessing.script',
-                     'BidOptAggregation.script'
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
-
-    '''
-    to_workflow_dep_graph(
-                 r'D:/workspace/AdInsights/private/Backend/BTE',
-                 r'D:/tmp/tt',
-                 target_node_names=['BidOptMPIProcessing.script'])
-    '''
-
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/BTE',
-                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_BTE_Scope',
-                 r'D:/tmp/tt/ekw',
-#                 target_script_folder=r'D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\BidOpportunity\ScopeScripts',
-                 target_script_folder=r'D:\workspace\AdInsights\private\Backend\BTE\Src\BTELibrary\EKW\ScopeScripts',
-#                 target_filenames=[
-#                     'TrafficAggregation.script',
-#                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True,
-                 master_key='ADC_BTE_Scope##workflows.config',
-                 external_params={'MT_V2_PKVOutputPath': '/local/shared_data/AdvertiserEngagement/Metallica/prod/BidOpportunity/AIMTBondResult/'})
-    '''
-
-    '''
-    to_workflow_dep_graph(
-                 r'D:/workspace/AdInsights/private/Backend/SOV',
-                 r'D:/tmp/tt',
-#                 target_node_names=['SOV3_StripeOutput.script'],
-#                 filter_type='SCRIPT')
-                 filter_type=None)
-    '''
-
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend\Opportunities',
-                 r'D:/tt_all/retail/amd64/Backend/DWC/DwcService/WorkflowGroups/ADC_Opportunities_Scope',
-                 r'D:/tmp/tt',
-                 target_filenames=[
-                     'BudgetOptMPIProcessing.script',
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
-
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/AdvertiserIntelligence',
-                 r'D:/workspace/AdInsights/private/Backend/AdvertiserIntelligence',
-                 r'D:/tmp/tt',
-                 target_filenames=[
-#                     'CommonFeatureExtractor.script',
-                     'FeatureExtractor.script'
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
-
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/FeatureAdoption',
-                 r'D:/workspace/AdInsights/private/Backend/FeatureAdoption',
-                 r'D:/tmp/tt',
-                 target_filenames=[
-                    'Account_AccountLevelAdoption.script',
-                    'Account_AggregatedAdoption.script',
-                    'Account_FeatureAdoption.script'
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''
-
-    '''
-    parse_script(r'D:/workspace/AdInsights/private/Backend/AdvertiserIntelligence',
-                 r'D:/workspace/AdInsights/private/Backend/AdvertiserIntelligence',
-                 r'D:/tmp/tt',
-                 target_filenames=[
-                    'PosViewCntAnalyze.script',
-                 ],
-                 add_sstream_link=True,
-                 add_sstream_size=True,
-                 external_params={
-                     'startDateStr': '2018-09-21',
-                     'endDateStr': '2018-09-23',
-
-                 })
-    '''
-
-    '''
-    to_workflow_dep_graph(
-                 r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
-                 r'D:/tmp/tt',
-                 target_node_names=['AdInsightNormalizedRUI.script'],
-                 filter_type=None)
-    '''
-
-    '''
-    parse_script(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
-                 r'D:\workspace\AdInsights\private\Backend\AdInsightMad\DWCMeasurement\Deployment\DwcService\WorkflowGroups',
-                 r'D:/tmp/tt/mad',
-                 target_filenames=['AdInsightNormalizedRUI.script'],
-                 add_sstream_link=True,
-                 add_sstream_size=True)
-    '''

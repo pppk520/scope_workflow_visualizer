@@ -273,19 +273,27 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-RelevanceScore =
-    SELECT ListingId,
-           Keyword,
-           Math.Round(double.Parse(Score) / 10000, 4) AS RelevanceScore
-    FROM
-    (
-        PROCESS Features
-        PRODUCE ListingId,
-                Keyword,
-                Score
-        USING FastRankScorer("CohesionModelHeaderWithWblcid", "ListingId,Keyword", "AdIndex_MSDL_May_2011")
-
-    )
+YouPerformancePass =
+    SELECT AccountId,
+           CampaignId,
+           OrderId,
+           YouOrderItemId,
+           DeviceTypeId,
+           AuctionCnt,
+           ImpressionCnt,
+           TopCnt,
+           OverrideAuctionCnt,
+           OverrideAuctionWon,
+           OverrideTotalPosition,
+           OverrideImpressionCnt
+    FROM GoodYouPerformance
+         LEFT SEMIJOIN
+         (
+         SELECT *
+         FROM PerfThreshold
+         WHERE OverrideImpressionCnt >= @ImpressionThreshold//listing level, >=25 impression/day/campaign timezone
+              ) AS T
+         ON GoodYouPerformance.YouOrderItemId == T.YouOrderItemId;
     '''))
 
 

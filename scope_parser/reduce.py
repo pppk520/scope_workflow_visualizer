@@ -18,14 +18,14 @@ class Reduce(object):
 
     select_stmt = Select.select_stmt
 
-    on = Optional(ON + delimitedList(ident))
-    presort = Optional(PRESORT + delimitedList(ident + Optional(oneOf('DESC ASC'))))
-    produce = Optional(PRODUCE + delimitedList(ident))
-    using = Optional(USING + (func | func_ptr)('using'))
+    on = ON + delimitedList(ident)('on')
+    presort = PRESORT + delimitedList(ident + Optional(oneOf('DESC ASC')))('presort')
+    produce = PRODUCE + delimitedList(ident)('produce')
+    using = USING + (func | func_ptr)('using')
     reduce_stmt = Combine(ident)('assign_var') + '=' + \
                   REDUCE + (Combine(ident)('source') | select_stmt('select_stmt')) + \
-                  Each([on, Optional(produce), Optional(presort)]) + \
-                  using
+                  Each([on, Optional(produce), Optional(presort), Optional(using)])
+
 
     def debug(self):
         print(self.using.parseString('USING GroupingReducer("SuggKW", "3")'))
@@ -57,13 +57,52 @@ class Reduce(object):
 
 if __name__ == '__main__':
     obj = Reduce()
-    obj.debug()
+#    obj.debug()
 
     print(obj.parse('''
-CampaignTarget = REDUCE CampaignTarget
-                 PRESORT CurrentGeoLevel ASC
-                 ON CampaignId
-                 USING CampaignTargetReducer()
+BudgetLandscape=
+    REDUCE BudgetLandscape
+    ON AccountId,CampaignId
+    PRESORT Index ASC
+    PRODUCE
+        SugApproach
+        ,AccountId
+		,OptType
+		,CampaignId
+		,OptId
+		,LoadTime
+		,CreationDate
+		,ExpiryDate
+		,OriginalBudgetType
+        ,CurrencyId
+		,OriginalBudget
+		,RecommendedBudget
+		,ProjectedClicksOriginalBudget
+		,ProjectedClicksRecommendedBudget
+		,ProjectedMaxClicks
+		,ProjectedImpressionsOriginalBudget
+		,ProjectedImpressionsRecommendedBudget
+		,ProjectedMaxImpressions
+		,ProjectedCostOriginalBudget
+		,ProjectedCostRecommendedBudget
+		,ProjectedMaxCost
+        ,ConversionStatus
+        ,ConversionRate
+        ,ProjectedConversionsOriginalBudget
+        ,ProjectedConversionsRecommendedBudget
+        ,ProjectedMaxConversions
+		,EstDailySpendRate
+		,Score
+		,PipelineId
+		,AlgoId
+        ,EstimatedBudget
+        ,EstimatedClicks
+        ,EstimatedImpressions
+        ,EstimatedCost
+        ,EstimatedConversions
+        ,EstimatedSov
+        ,Comment   
+    USING BudgetSuggestionsLib.BudgetPointConstraintReducer
         '''))
 
 
