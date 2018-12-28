@@ -78,4 +78,16 @@ class TestOutput(TestCase):
         self.assertTrue(result['path'] == '@Output_FilteredBy_SpecialRuleForCustomerFilter')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
+    def test_stream_from_select_top(self):
+        s = '''
+        OUTPUT (SELECT TOP 1 *) TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING SchemaOutputter
+        '''
+
+        result = Output().parse(s)
+
+        self.assertTrue(result['ident'] == None)
+        self.assertTrue(result['path'] == '@OutputFile')
+        self.assertTrue(result['stream_type'] is None)
+
+
 

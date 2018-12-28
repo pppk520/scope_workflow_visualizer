@@ -108,6 +108,10 @@ class ScriptParser(object):
         # after substitution it will be {block_1} {block_2}
         content = re.sub(r'#ELSE', '', content)
 
+        # remaining #IF, left from nested #IF
+        content = re.sub(r'#IF.*?\n', '', content)
+        content = re.sub(r'#ENDIF.*?\n', '', content)
+
         return content
 
 
@@ -137,6 +141,11 @@ class ScriptParser(object):
 
             node_map[node_name] = Node(node_name)
 
+    def get_target_declare_int(self, content, target_key):
+        match = re.search('#DECLARE[ \t]+{}[ \t]+int[ \t]+=[ \t]+(\d)+.*;'.format(target_key), content)
+        if match:
+            return int(match.group(1))
+
     def expand_loop(self, content):
         ''' Assumption: end bracelet '}' of LOOP is isolated in single line
         If not, should use stack to process char by char
@@ -152,7 +161,7 @@ class ScriptParser(object):
         result_lines = []
 
         loop_on = False
-        var = None
+        loop_var = None
         loop_count = 0
         loop_content = []
 
@@ -166,7 +175,7 @@ class ScriptParser(object):
                     if self.is_int(loop_count):
                         for i in range(int(loop_count)):
                             for content_line in loop_content:
-                                result_lines.append(content_line.replace('@@{}@@'.format(var), str(i)))
+                                result_lines.append(content_line.replace('@@{}@@'.format(loop_var), str(i)))
                     else:
                         result_lines.extend(loop_content)
 
@@ -185,7 +194,12 @@ class ScriptParser(object):
                 self.logger.debug('found keyword LOOP, var = {}, loop_count = {}'.format(var, loop_count))
 
                 if var is not None and loop_count is not None:
+                    if loop_count.startswith('@'):
+                        # declare
+                        loop_count = self.get_target_declare_int(content, loop_count[1:].strip())
+
                     loop_on = True
+                    loop_var = var
                     loop_content = []
                     continue
 
@@ -462,9 +476,10 @@ class ScriptParser(object):
         declare_map['@' + key] = value.replace('""', '"')
 
         # early resolve
-        declare_map['@' + key] = self.scope_resolver.resolve_declare_rvalue(None, declare_map['@' + key], declare_map)
+        result = self.scope_resolver.resolve_declare_rvalue(None, declare_map['@' + key], declare_map)
+        declare_map['@' + key] = result
 
-        self.logger.info('declare [{}] as [{}]'.format(key, value))
+        self.logger.info('declare [{}] as [{}]'.format(key, result))
 
     def process_set(self, part, declare_map):
         key, value = self.set.parse(part)
@@ -656,37 +671,115 @@ class ScriptParser(object):
         self.logger.info('output .dot file to [{}]'.format(dot_output_file))
 
         self.logger.info('render graphviz file')
-        gu.dot_to_graphviz(dot_output_file)
-
+        try:
+            gu.dot_to_graphviz(dot_output_file, format='pdf')
+        except Exception as ex:
+            self.logger.warning('failed converting to pdf, try svg')
+            gu.dot_to_graphviz(dot_output_file, format='svg')
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     result = ScriptParser().expand_loop('''
-        #DECLARE Date5 string = string.Format("{0:yyyyMMdd}", @EndDate_Comp.AddDays(-1));
-        #DECLARE Date6 string = string.Format("{0:yyyyMMdd}", @EndDate_Comp);
-        
-        LOOP(a, 2){
-            Hour@@a@@ = SELECT @Date0 AS DateKey, string.Format("@@a@@") AS HourKey, 1 AS Tag FROM EmptyFile;
-        }
-            
-        Full0 = SELECT * FROM Hour23
-        LOOP(b, 3)
-        {
-            UNION ALL
-            SELECT * FROM Hour@@b@@
-        };
-        
-        LOOP(a, 2){
-            Hour@@a@@ = SELECT @Date1 AS DateKey, string.Format("@@a@@") AS HourKey, 1 AS Tag FROM EmptyFile;
-        }
-            
-        LOOP(b, @KK)
-        {
-            UNION ALL
-            SELECT * FROM Hour@@b@@
-        };
+LOOP(n,5)
+{
+PointsWithId_@@n@@ =
+    SELECT PId,
+           vector,
+           Id,
+		   NormalizedKeyword
+    FROM PointsWithId
+    WHERE PId == @@n@@;
+
+//output OrderVec
+IdVec = SELECT Id AS id, vector FROM PointsWithId_@@n@@;
+#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/Output1", @OutputPath, @dateObj);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY;
+#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/OutputHeader1", @OutputPath, @dateObj);
+OUTPUT (SELECT TOP 1 *) TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING SchemaOutputter;
+
+IdKey = SELECT Id AS id, "0" AS partId, NormalizedKeyword FROM PointsWithId_@@n@@;
+#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/Output2", @OutputPath, @dateObj);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY;
+#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/OutputHeader2", @OutputPath, @dateObj);
+OUTPUT (SELECT TOP 1 *) TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING SchemaOutputter;
+
+NGS_@@n@@ =
+    REDUCE PointsWithId_@@n@@
+    ON PId
+    USING NGSTrainerReducer()
+    PRESORT Id;
+#SET OutputFile = string.Format("{0}/part@@n@@/NGSBuild_model.ss", @Output);
+OUTPUT
+TO SSTREAM @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY;
+
+//output DataPoints.bin
+OutPointsWithId_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "DataPoints_Part0.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part0.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+OutPointsWithId_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "DataPoints_Part1.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part1.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+OutPointsWithId_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "DataPoints_Part2.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part2.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+OutPointsWithId_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "DataPoints_Part3.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part3.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+
+//output KdTree.bin
+OutKdTree_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "KdTree_Part0.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/KdTree_Part0.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+OutKdTree_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "KdTree_Part1.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/KdTree_Part1.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+OutKdTree_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "KdTree_Part2.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/KdTree_Part2.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+
+//output NGraph.bin
+OutNGraph_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "NGraph_Part0.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/NGraph_Part0.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+OutNGraph_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "NGraph_Part1.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/NGraph_Part1.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+OutNGraph_@@n@@ = 
+    SELECT *
+    FROM NGS_@@n@@
+    WHERE FileName == "NGraph_Part2.bin";
+#SET OutputFile = string.Format("{0}/part@@n@@/NGraph_Part2.bin", @Output);
+OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
+}
 
     ''')
 

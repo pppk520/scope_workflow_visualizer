@@ -73,8 +73,5 @@ if __name__ == '__main__':
     obj = Output()
 
     print(obj.parse('''
-OUTPUT AccountFeatureAdoption 
-TO SSTREAM @AdExtensionAccountLevelAdoptionFile
-	HASH CLUSTERED BY AccountId, FeatureTypeId
-    WITH STREAMEXPIRY @MeasurementStreamExpiry
+OUTPUT (SELECT TOP 1 *) TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING SchemaOutputter
     '''))

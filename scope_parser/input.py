@@ -14,7 +14,7 @@ class Input(object):
     USING = Keyword("USING")
     IMPORT = Keyword("IMPORT")
 
-    extract_data_type = oneOf("string int ulong long short byte decimal double DateTime")
+    extract_data_type = oneOf("string int ulong long short byte decimal double DateTime sbyte")
 
     ##################################
     # General
@@ -132,16 +132,14 @@ class Input(object):
 
 if __name__ == '__main__':
     i = Input()
-    i.debug()
+#    i.debug()
 
     print(i.parse('''
-EXTRACT Key : string,
-        value : string,
-        __date
-FROM 
-STREAMSET @AuctionInsightPath
-PATTERN "FinalOutput/Daily/%Y%m/AvailableAgg_%Y%m%d.txt"
-RANGE __date=[@AvailStartDate,@AvailEndDate]
-USING DefaultTextExtractor
+	DominantResult = 
+		EXTRACT Query,
+				SeedKeyword
+		FROM    @EmptyFile
+		USING DefaultTextExtractor
+
 '''))
 

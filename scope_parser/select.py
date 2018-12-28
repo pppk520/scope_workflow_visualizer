@@ -48,6 +48,9 @@ class Select(object):
     # AdId??0UL AS AdId
     null_coal = ident_dot + '??' + value_str
 
+    # TOP N
+    top_n = Keyword('TOP') + Word(nums)
+
     # Landscape.GetBidLandscape(LatestBidUSCent ?? -1, new LandscapePointSelectionConfig()).CompressCurve(LatestBidUSCent ?? -1, new CurveCompressionConfig())
     func_param_sp = null_coal | 'new' + func_chain
     func_chain_sp = ident_dot + '(' + delimitedList(func_param_sp, delim=',') + ')'
@@ -154,7 +157,9 @@ class Select(object):
                         from_extract("extract") |
                         table_name_list("tables"))
 
-    select_stmt <<= (SELECT + Optional(DISTINCT) +
+    select_stmt <<= (SELECT +
+                     Optional(DISTINCT) +
+                     Optional(top_n) +
                      (column_name_list | '*')("columns") +
                      Optional(from_stmt)("from") +
                      ZeroOrMore(join_stmt | cross_join_stmt) +

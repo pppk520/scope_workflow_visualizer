@@ -24,14 +24,14 @@ class FileUtility(object):
         os.remove(filepath)
 
     @staticmethod
-    def delete_files_except_ext(folder, keep_ext):
+    def delete_files_except_exts(folder, keep_exts):
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
 
             if not os.path.isfile(filepath):
                 continue
 
-            if os.path.splitext(f)[1] != keep_ext:
+            if os.path.splitext(f)[1] not in keep_exts:
                 FileUtility.delete_file(filepath)
 
     @staticmethod

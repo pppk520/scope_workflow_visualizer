@@ -13,7 +13,6 @@ from util.datetime_utility import DatetimeUtility
 
 __log_level = logging.DEBUG
 
-
 @click.group()
 def cli():
     pass
@@ -63,6 +62,8 @@ def parse_script_single(target_filename,
     except Exception as ex:
         print('[WARNING] Failed parse file [{}]: {}'.format(target_filename, ex))
         print(traceback.format_exc())
+
+        return '{}: {}'.format(target_filename, ex)
 
 
 
@@ -131,12 +132,12 @@ def parse_script(proj_folder,
     process_no = min(len(target_filenames), 10)
 
     if process_no == 1:
-        parse_script_single(*arguments_list[0])
-        return
+        exe_results = [parse_script_single(*arguments_list[0]),]
+    else:
+        pool = mp.Pool(processes=process_no)
+        exe_results = pool.starmap(parse_script_single, arguments_list)
 
-    pool = mp.Pool(processes=process_no)
-    pool.starmap(parse_script_single, arguments_list)
-
+    return exe_results
 
 @cli.command()
 @click.argument('proj_folder')
@@ -204,8 +205,13 @@ def to_workflow_dep_graph(proj_folder,
                               filter_type=filter_type)
 
 
-def all_in_one(dwc_wf_folder, out_folder, target_wf_folders=[], target_filenames=[], pdf_only=True):
+def all_in_one(dwc_wf_folder, out_folder, target_wf_folders=[], target_filenames=[], keep_exts=['.pdf', '.svg'], error_log_filename=None):
     target_date_str = DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d')
+
+    error_fp = None
+    if error_log_filename:
+        filepath = os.path.join(out_folder, error_log_filename)
+        error_fp = open(filepath, 'w+')
 
     for wf_folder in os.listdir(dwc_wf_folder):
         if target_wf_folders and wf_folder not in target_wf_folders:
@@ -224,28 +230,41 @@ def all_in_one(dwc_wf_folder, out_folder, target_wf_folders=[], target_filenames
         to_workflow_dep_graph(wf_folder_path, out_sub_folder)
 
         out_script_folder = os.path.join(out_sub_folder, 'script_graph')
-        parse_script(wf_folder_path,
-                     wf_folder_path,
-                     out_script_folder,
-                     target_filenames=target_filenames[:],
-                     add_sstream_link=False,
-                     add_sstream_size=False,
-                     target_date_str=target_date_str)
+        results = parse_script(wf_folder_path,
+                               wf_folder_path,
+                               out_script_folder,
+                               target_filenames=target_filenames[:],
+                               add_sstream_link=False,
+                               add_sstream_size=False,
+                               target_date_str=target_date_str)
 
-        FileUtility.delete_files_except_ext(out_sub_folder, '.pdf')
-        FileUtility.delete_files_except_ext(out_script_folder, '.pdf')
+        for result in results:
+            # not None means error
+            if result:
+                print('error processing file [{}]'.format(result))
+
+                if error_fp:
+                    error_fp.write('{}/{}\n'.format(wf_folder_path, result))
+
+        if keep_exts:
+            FileUtility.delete_files_except_exts(out_sub_folder, keep_exts)
+            FileUtility.delete_files_except_exts(out_script_folder, keep_exts)
+
+    if error_fp:
+        error_fp.close()
 
 
 if __name__ == '__main__':
 #    cli()
-    logging.basicConfig(level=logging.DEBUG)
 
-    all_in_one(r'D:\tt_all\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
-               r'D:/tmp/tt_all_in_one')
+    all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+               r'D:/tmp/tt_all_in_one_2018-12-27',
+               error_log_filename='errors.txt')
 
-#    all_in_one(r'D:\tt_all\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
-#               r'D:/tmp/tt_all_in_one',
-#               target_wf_folders=['ADC_Opportunities_Scope'],
-#               target_filenames=['5.FinalCapping.script']
-#               target_wf_folders=['UCM_Scope', 'AIM_Scope', 'ADC_TopMover_Scope'])
-
+    '''
+    all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+               r'D:/tmp/tt_all_in_one_2018-12-27',
+               target_wf_folders=['ADC_Opportunities_Scope'],
+               target_filenames=['0.Source_DSA_NGSBuild.script'],
+               keep_exts=None)
+    '''

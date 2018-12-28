@@ -434,7 +434,7 @@ class ScopeResolver(object):
         while recur_max > 0:
             self.logger.debug('replace_declare_items of [{}], recur_max = {}'.format(s, recur_max))
 #            items = re.findall(r'([^@]@[^ ,/\)\@]+)', s)
-            items = re.findall(r'([^@]*@[^ ,/\)\@]+)', s)
+            items = re.findall(r'([^@]?@[^ ,/\)\@]+)', s)
 
             self.logger.debug('items = [{}]'.format(items))
             if len(items) == 0:
@@ -451,7 +451,7 @@ class ScopeResolver(object):
                 if item.startswith('@@'):
                     continue  # ignore external params
 
-                item = item.replace('(', '')
+                item = item.replace('(', '').strip()
 
                 if item in declare_map:
                     self.logger.debug('item {} in declare_map, value = [{}]'.format(item, declare_map[item]))
@@ -492,6 +492,20 @@ class ScopeResolver(object):
             s = '"{}"'.format(s.replace('"', ''))
 
         return re.sub(r'@(".*?")', '\g<1>', s)
+
+    def replace_uncaught_external_params(self, s, declare_map):
+        '''
+        #DECLARE ReportLevel int = 0;
+        #IF(NOT "@@ReportLevel@@".Contains("ReportLevel"))
+            #SET ReportLevel = int.Parse("@@ReportLevel@@");
+        #ENDIF
+        '''
+
+        match = re.search('@@(.*)@@', s)
+        if match and '@' + match.group(1) in declare_map:
+            return s.replace(match.group(0), '@{}'.format(match.group(1)))
+
+        return s
 
     def resolve_boolean(self, s):
         if s == 'true':
@@ -551,6 +565,8 @@ class ScopeResolver(object):
         self.logger.debug('resolve_declare_rvalue: declare_lvalue [{}], declare_rvalue [{}]'.format(declare_lvalue, declare_rvalue))
 
         try:
+            declare_rvalue = self.replace_uncaught_external_params(declare_rvalue, declare_map)
+
             # replace local reference of @"strings"
             declare_rvalue = self.replace_ref_strings(declare_rvalue)
 
