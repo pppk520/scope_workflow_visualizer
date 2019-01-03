@@ -205,7 +205,14 @@ def to_workflow_dep_graph(proj_folder,
                               filter_type=filter_type)
 
 
-def all_in_one(dwc_wf_folder, out_folder, target_wf_folders=[], target_filenames=[], keep_exts=['.pdf', '.svg'], error_log_filename=None):
+def all_in_one(dwc_wf_folder,
+               out_folder,
+               target_wf_folders=[],
+               target_filenames=[],
+               keep_exts=['.pdf', '.svg'],
+               error_log_filename=None,
+               add_sstream_link=False,
+               add_sstream_size=False):
     target_date_str = DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d')
 
     error_fp = None
@@ -234,8 +241,8 @@ def all_in_one(dwc_wf_folder, out_folder, target_wf_folders=[], target_filenames
                                wf_folder_path,
                                out_script_folder,
                                target_filenames=target_filenames[:],
-                               add_sstream_link=False,
-                               add_sstream_size=False,
+                               add_sstream_link=add_sstream_link,
+                               add_sstream_size=add_sstream_size,
                                target_date_str=target_date_str)
 
         for result in results:
@@ -257,14 +264,17 @@ def all_in_one(dwc_wf_folder, out_folder, target_wf_folders=[], target_filenames
 if __name__ == '__main__':
 #    cli()
 
+    '''
     all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
                r'D:/tmp/tt_all_in_one_2018-12-27',
                error_log_filename='errors.txt')
-
     '''
+
     all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
                r'D:/tmp/tt_all_in_one_2018-12-27',
-               target_wf_folders=['ADC_Opportunities_Scope'],
-               target_filenames=['0.Source_DSA_NGSBuild.script'],
-               keep_exts=None)
-    '''
+               target_wf_folders=['ADC_BTE_Scope'],
+#               target_filenames=['BidForPosition.script'],
+#               add_sstream_link=True,
+#               add_sstream_size=True,
+               )
+#               keep_exts=None)

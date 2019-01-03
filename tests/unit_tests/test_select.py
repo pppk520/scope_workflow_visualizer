@@ -983,6 +983,29 @@ KWCandidatesWithLocationTarget =
         self.assertCountEqual(result['sources'], ['listingBidTrafficRounded', 'latestBids'])
 
 
+    def test_column_list_new_class(self):
+        s = '''
+        Impressions =
+            SELECT RGUID,
+                   SUM(AmountChargedUSDMonthlyExchangeRt * ValidClicks * 100) AS Cost,
+                   LIST(new AdListing {
+                   ListingId = ListingId,
+                   ActualBid = (uint) (ActualBidAmtUSD * 100 + 0.5m),
+                   CPC = (double) (IF(PagePosition.StartsWith("ML"), CPC_ML, CPC_SB) * ActualBidAmtUSD * 100 / ActualBid), // CPC converted from auction currency to USD
+                   }) AS AdListings
+            FROM Monetization
+            WHERE ALL(
+                  CustomerId > 0, AdType > 0, MatchTypeId IN(1, 2, 3, 4), BiddedMatchTypeId IN(1, 2, 3),
+                  NOT string.IsNullOrEmpty(PagePosition)
+                  );        
+        
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'Impressions')
+        self.assertCountEqual(result['sources'], ['Monetization'])
+
 
 
 

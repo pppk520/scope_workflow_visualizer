@@ -89,6 +89,7 @@ class Select(object):
     distinct_ident = DISTINCT + ident_dot
     new_something = 'new' + func_chain
     new_class_init = 'new' + ident_dot + Regex('{.*?}', re.MULTILINE | re.DOTALL)
+    list_of_new_class_init = 'LIST' + '(' + new_class_init + ')'
     as_something = (AS + ident).setName('as_something')
 
     one_column_no_as = Optional(cast) + \
@@ -99,6 +100,7 @@ class Select(object):
                             if_stmt |
                             new_class_init |
                             new_something |
+                            list_of_new_class_init |
                             func_chain_not |
                             func_chain_sp_chain |
                             operator_ident |
@@ -133,7 +135,7 @@ class Select(object):
     )
     where_expression << where_condition + ZeroOrMore((and_ | or_ | '&&' | '|') + where_expression)
 
-    join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER FULL HASH'))) + JOIN)
+    join = Group(Optional(OneOrMore(oneOf('LEFT RIGHT OUTER INNER FULL HASH BROADCASTRIGHT'))) + JOIN)
     join_stmt = join + table_name("join_table_name*") + Optional(AS + ident) + ON + where_expression
     cross_join_stmt = CROSS_JOIN + table_name("join_table_name*")
     cross_apply_stmt = CROSS_APPLY + (func_expr("cross_apply_func") | table_name) + Optional(AS + ident)
@@ -278,27 +280,40 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-YouPerformancePass =
-    SELECT AccountId,
-           CampaignId,
-           OrderId,
-           YouOrderItemId,
-           DeviceTypeId,
-           AuctionCnt,
-           ImpressionCnt,
-           TopCnt,
-           OverrideAuctionCnt,
-           OverrideAuctionWon,
-           OverrideTotalPosition,
-           OverrideImpressionCnt
-    FROM GoodYouPerformance
-         LEFT SEMIJOIN
-         (
-         SELECT *
-         FROM PerfThreshold
-         WHERE OverrideImpressionCnt >= @ImpressionThreshold//listing level, >=25 impression/day/campaign timezone
-              ) AS T
-         ON GoodYouPerformance.YouOrderItemId == T.YouOrderItemId;
+Impressions =
+    SELECT RGUID,
+           SUM(AmountChargedUSDMonthlyExchangeRt * ValidClicks * 100) AS Cost,
+           LIST(new AdListing {
+           ListingId = ListingId,
+           ActualBid = (uint) (ActualBidAmtUSD * 100 + 0.5m),
+           AdjustedBid = (uint) (ActualBidAmtUSD * 100 + 0.5m),
+           AdId = AdId,
+           AdTypeIdInt = AdType,
+           CampaignId = CampaignId,
+           AdGroupId = AdGroupId,
+           AccountId = (uint) AccountId,
+           CustomerId = (uint) CustomerId,
+           CountryId = (CountryCode == null || CountryCode.Length < 2? 0 : (CountryCode[0]<< 8) | CountryCode[1]),
+           MatchTypeId = (uint) MatchTypeId,
+           BiddedMatchTypeId = (uint) BiddedMatchTypeId,
+           NormalizedKeyword = NormalizedKeyword,
+           Bid = (uint) (BaseBidUSD * 100 + 0.5m),
+           PClick = PClick,
+           Rankscore = RankScore,
+           PagePositionStr = PagePosition,
+           IsFraud = (ValidImpressions == 0),
+           Clicks = ValidClicks,
+           CPC = (double) (IF(PagePosition.StartsWith("ML"), CPC_ML, CPC_SB) * ActualBidAmtUSD * 100 / ActualBid), // CPC converted from auction currency to USD
+           CurrencyId = AdvertiserAccountPreferredCurrencyId,
+           UsingDefaultBid = UsingDefaultBid
+           }) AS AdListings
+    FROM Monetization
+    WHERE ALL(
+          ListingId > 0, AdId > 0, CampaignId > 0, AdGroupId > 0, AccountId > 0,
+          CustomerId > 0, AdType > 0, MatchTypeId IN(1, 2, 3, 4), BiddedMatchTypeId IN(1, 2, 3),
+          ActualBid > 0, ActualBidAmtUSD > 0, PClick > 0, LCID > 0, BaseBidUSD > 0,
+          NOT string.IsNullOrEmpty(PagePosition)
+          );
     '''))
 
 

@@ -213,7 +213,7 @@ class ScriptParser(object):
         content = re.sub(re_dh_1, '', content)
 
         #[LOWDISTINCTNESS(MatchTypeId)]
-        re_dh_2 = re.compile(r'\[LOWDISTINCTNESS\(.*\)\]')
+        re_dh_2 = re.compile(r'\[LOWDISTINCTNESS[ ]*\(.*\)\]')
         content = re.sub(re_dh_2, '', content)
 
         #[PARTITION=(PARTITIONCOUNT=2000)]
