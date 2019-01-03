@@ -9,7 +9,7 @@ class Select(object):
     SELECT = Keyword("SELECT")
     FROM = Keyword("FROM")
     WHERE = Keyword("WHERE")
-    JOIN = Keyword("JOIN") | Keyword("SEMIJOIN")
+    JOIN = Keyword("JOIN") | Keyword("SEMIJOIN") | Keyword("PAIR JOIN")
     CROSS_JOIN = Keyword("CROSS JOIN")
     CROSS_APPLY = Keyword("CROSS APPLY")
     AS = Keyword("AS")
@@ -280,40 +280,17 @@ if __name__ == '__main__':
     obj.debug()
 
     print(obj.parse('''
-Impressions =
-    SELECT RGUID,
-           SUM(AmountChargedUSDMonthlyExchangeRt * ValidClicks * 100) AS Cost,
-           LIST(new AdListing {
-           ListingId = ListingId,
-           ActualBid = (uint) (ActualBidAmtUSD * 100 + 0.5m),
-           AdjustedBid = (uint) (ActualBidAmtUSD * 100 + 0.5m),
-           AdId = AdId,
-           AdTypeIdInt = AdType,
-           CampaignId = CampaignId,
-           AdGroupId = AdGroupId,
-           AccountId = (uint) AccountId,
-           CustomerId = (uint) CustomerId,
-           CountryId = (CountryCode == null || CountryCode.Length < 2? 0 : (CountryCode[0]<< 8) | CountryCode[1]),
-           MatchTypeId = (uint) MatchTypeId,
-           BiddedMatchTypeId = (uint) BiddedMatchTypeId,
-           NormalizedKeyword = NormalizedKeyword,
-           Bid = (uint) (BaseBidUSD * 100 + 0.5m),
-           PClick = PClick,
-           Rankscore = RankScore,
-           PagePositionStr = PagePosition,
-           IsFraud = (ValidImpressions == 0),
-           Clicks = ValidClicks,
-           CPC = (double) (IF(PagePosition.StartsWith("ML"), CPC_ML, CPC_SB) * ActualBidAmtUSD * 100 / ActualBid), // CPC converted from auction currency to USD
-           CurrencyId = AdvertiserAccountPreferredCurrencyId,
-           UsingDefaultBid = UsingDefaultBid
-           }) AS AdListings
-    FROM Monetization
-    WHERE ALL(
-          ListingId > 0, AdId > 0, CampaignId > 0, AdGroupId > 0, AccountId > 0,
-          CustomerId > 0, AdType > 0, MatchTypeId IN(1, 2, 3, 4), BiddedMatchTypeId IN(1, 2, 3),
-          ActualBid > 0, ActualBidAmtUSD > 0, PClick > 0, LCID > 0, BaseBidUSD > 0,
-          NOT string.IsNullOrEmpty(PagePosition)
-          );
+MergedSourceExp_INTL = 
+	SELECT Domain,
+		   kw2 AS Keyword,
+		   (long)TrackId AS TrackId,
+		   Score*score AS Score,
+		   Language,
+		   Location
+	FROM MergedSourceExp_INTL AS L 
+		 INNER PAIR JOIN 
+			 MSM_INTL AS R 
+		 ON L.SeedKW == R.kw1 AND L.Language == R.Language AND L.Location == R.Location;
     '''))
 
 

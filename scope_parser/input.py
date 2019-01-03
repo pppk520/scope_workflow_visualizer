@@ -135,11 +135,13 @@ if __name__ == '__main__':
 #    i.debug()
 
     print(i.parse('''
-	DominantResult = 
-		EXTRACT Query,
-				SeedKeyword
-		FROM    @EmptyFile
-		USING DefaultTextExtractor
 
+ 
+Monetization_PageView =
+    MonetizationModules.MonetizationPageView(
+        INPUT_BASE = "/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/CommonDataFeed",
+        START_DATETIME_UTC = @StartDatetimeObj,
+        END_DATETIME_UTC = @EndDatetimeObj
+    )
 '''))
 

@@ -1007,6 +1007,24 @@ KWCandidatesWithLocationTarget =
         self.assertCountEqual(result['sources'], ['Monetization'])
 
 
+    def test_inner_pair_join(self):
+        s = '''
+        MergedSourceExp_INTL = 
+            SELECT Domain,
+                   kw2 AS Keyword,
+                   (long)TrackId AS TrackId,
+                   Score*score AS Score,
+                   Language,
+                   Location
+            FROM MergedSourceExp_INTL AS L 
+                 INNER PAIR JOIN 
+                     MSM_INTL AS R 
+                 ON L.SeedKW == R.kw1 AND L.Language == R.Language AND L.Location == R.Location;
+        '''
 
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'MergedSourceExp_INTL')
+        self.assertCountEqual(result['sources'], ['MergedSourceExp_INTL', 'MSM_INTL'])
 
 

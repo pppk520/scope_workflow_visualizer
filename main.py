@@ -218,6 +218,12 @@ def all_in_one(dwc_wf_folder,
     error_fp = None
     if error_log_filename:
         filepath = os.path.join(out_folder, error_log_filename)
+
+        if os.path.exists(filepath):
+            # backup
+            print('backup existing error log file {}'.format(filepath))
+            os.rename(filepath, '{}.{}'.format(filepath, DatetimeUtility.get_datetime(0, '%Y-%m-%d_%H%M%S')))
+
         error_fp = open(filepath, 'w+')
 
     for wf_folder in os.listdir(dwc_wf_folder):
@@ -264,17 +270,17 @@ def all_in_one(dwc_wf_folder,
 if __name__ == '__main__':
 #    cli()
 
-    '''
     all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
                r'D:/tmp/tt_all_in_one_2018-12-27',
                error_log_filename='errors.txt')
-    '''
 
+    '''
     all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
                r'D:/tmp/tt_all_in_one_2018-12-27',
-               target_wf_folders=['ADC_BTE_Scope'],
-#               target_filenames=['BidForPosition.script'],
+               target_wf_folders=['ADC_KSPBackend_Scope'],
+               target_filenames=['1.MergeSources.script'],
 #               add_sstream_link=True,
 #               add_sstream_size=True,
                )
 #               keep_exts=None)
+    '''

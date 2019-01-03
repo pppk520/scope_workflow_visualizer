@@ -122,9 +122,9 @@ class ScriptParser(object):
 
         def replace_matched(match):
             text = match.group()
-            return params.get(match.group(1), text).replace('""', '"')
+            return params.get(match.group(1), text)
 
-        return re_external_param.sub(replace_matched, content)
+        return re_external_param.sub(replace_matched, content).replace('""', '"')
 
     def find_latest_node(self, target_name, nodes):
         for node in nodes[::-1]:
