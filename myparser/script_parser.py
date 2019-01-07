@@ -271,7 +271,14 @@ class ScriptParser(object):
         except ValueError:
             return False
 
-    def add_sstream_info(self, nodes, declare_map):
+    def add_sstream_info(self, nodes, declare_map, url=False, using=False):
+        if url:
+            self.add_sstream_info_url(nodes, declare_map)
+
+        if using:
+            self.add_sstream_info_using(nodes)
+
+    def add_sstream_info_url(self, nodes, declare_map):
         for node in nodes:
             param = ''
 
@@ -328,9 +335,10 @@ class ScriptParser(object):
 
                 node.attr['label'] = the_label
 
+    def add_sstream_info_using(self, nodes):
         # for highlight PROCESS/REDUCE ... USING
         for node in nodes:
-            if 'using' in node.attr and not 'FONT' in node.attr['label']:
+            if 'using' in node.attr and 'FONT' not in node.attr['label']:
                 label = '<{} <BR/> <FONT POINT-SIZE="8">-- {} --</FONT>>'.format(node.attr['label'], node.attr['using'])
                 node.attr['label'] = label
 
@@ -657,7 +665,10 @@ class ScriptParser(object):
         self.change_node_color(all_nodes)
 
         if self.b_add_sstream_link or self.b_add_sstream_size:
-            self.add_sstream_info(all_nodes, declare_map)
+            self.add_sstream_info(all_nodes, declare_map, url=True)
+
+        # always add using info
+        self.add_sstream_info(all_nodes, declare_map, using=True)
 
         return all_nodes, edges
 

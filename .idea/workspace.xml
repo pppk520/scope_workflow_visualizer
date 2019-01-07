@@ -4,9 +4,7 @@
     <list default="true" id="92683f41-f921-43be-81b6-4a4ba6eb9a7b" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/myparser/script_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/myparser/script_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/input.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/input.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scope_parser/select.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/select.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/unit_tests/test_select.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/unit_tests/test_select.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scope_parser/reduce.py" beforeDir="false" afterPath="$PROJECT_DIR$/scope_parser/reduce.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -20,20 +18,11 @@
       <file leaf-file-name="script_parser.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="639">
-              <caret line="788" lean-forward="true" selection-start-line="788" selection-end-line="788" />
+            <state relative-caret-position="702">
+              <caret line="677" column="31" selection-start-line="677" selection-start-column="31" selection-end-line="677" selection-end-column="31" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="output.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scope_parser/output.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="666">
-              <caret line="77" lean-forward="true" selection-start-line="77" selection-end-line="77" />
             </state>
           </provider>
         </entry>
@@ -59,11 +48,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="411">
-              <caret line="225" lean-forward="true" selection-start-line="225" selection-end-line="225" />
+            <state relative-caret-position="595">
+              <caret line="283" column="17" lean-forward="true" selection-start-line="283" selection-start-column="17" selection-end-line="283" selection-end-column="17" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -110,11 +99,23 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_select.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_select.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_select.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="666">
-              <caret line="1027" selection-start-line="1027" selection-end-line="1027" />
+            <state relative-caret-position="560">
+              <caret line="1024" column="31" selection-start-line="1024" selection-start-column="31" selection-end-line="1024" selection-end-column="31" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="reduce.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scope_parser/reduce.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="688">
+              <caret line="66" column="66" selection-start-line="66" selection-start-column="66" selection-end-line="66" selection-end-column="66" />
+              <folding>
+                <element signature="e#0#11#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -130,8 +131,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>ReportLevel</find>
-      <find>external</find>
       <find>pdf_only</find>
       <find>declare_map</find>
       <find>remove</find>
@@ -160,6 +159,8 @@
       <find>target_date_str</find>
       <find>INNER</find>
       <find>rename</find>
+      <find>using</find>
+      <find>add_sstream_info</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -205,7 +206,6 @@
         <option value="$PROJECT_DIR$/tt.py" />
         <option value="$PROJECT_DIR$/config/config.ini" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_reduce.py" />
-        <option value="$PROJECT_DIR$/scope_parser/reduce.py" />
         <option value="$PROJECT_DIR$/util/datetime_utility.py" />
         <option value="$PROJECT_DIR$/myparser/workflow_parser.py" />
         <option value="$PROJECT_DIR$/scope_parser/common.py" />
@@ -218,18 +218,19 @@
         <option value="$PROJECT_DIR$/tests/unit_tests/test_output.py" />
         <option value="$PROJECT_DIR$/scope_parser/input.py" />
         <option value="$PROJECT_DIR$/scope_parser/input.py" />
-        <option value="$PROJECT_DIR$/myparser/script_parser.py" />
         <option value="$PROJECT_DIR$/scope_parser/select.py" />
-        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/tests/unit_tests/test_select.py" />
+        <option value="$PROJECT_DIR$/scope_parser/reduce.py" />
+        <option value="$PROJECT_DIR$/myparser/script_parser.py" />
+        <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="2501" />
-    <option name="y" value="226" />
+    <option name="x" value="2552" />
+    <option name="y" value="-8" />
     <option name="width" value="2576" />
-    <option name="height" value="1416" />
+    <option name="height" value="1456" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -358,6 +359,24 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
+    <configuration name="reduce" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="BackendProjectParser" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scope_parser" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scope_parser/reduce.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
     <configuration name="select" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="BackendProjectParser" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -376,19 +395,6 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="Unittests for test_output.TestOutput.test_stream_from_select_top" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
-      <module name="BackendProjectParser" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/unit_tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_output.TestOutput.test_stream_from_select_top&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-    </configuration>
     <configuration name="Unittests in unit_tests" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <module name="BackendProjectParser" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -405,17 +411,17 @@
     <list>
       <item itemvalue="Python.main" />
       <item itemvalue="Python tests.Unittests in unit_tests" />
-      <item itemvalue="Python tests.Unittests for test_output.TestOutput.test_stream_from_select_top" />
       <item itemvalue="Python.select" />
       <item itemvalue="Python.input" />
+      <item itemvalue="Python.reduce" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python tests.Unittests in unit_tests" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.reduce" />
         <item itemvalue="Python.select" />
         <item itemvalue="Python.input" />
-        <item itemvalue="Python tests.Unittests for test_output.TestOutput.test_stream_from_select_top" />
       </list>
     </recent_temporary>
   </component>
@@ -433,9 +439,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_for_test_combine_TestCombine_test_combine_on - 2018.12.26 at 16h 33m 41s.xml">
-      <configuration name="Unittests for test_combine.TestCombine.test_combine_on" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_unit_tests - 2018.12.26 at 16h 36m 21s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
@@ -463,16 +466,19 @@
     <history-entry file="Unittests_in_unit_tests - 2019.01.03 at 17h 35m 48s.xml">
       <configuration name="Unittests in unit_tests" configurationId="tests" />
     </history-entry>
+    <history-entry file="Unittests_in_unit_tests - 2019.01.03 at 17h 47m 40s.xml">
+      <configuration name="Unittests in unit_tests" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="ToolWindowManager">
     <frame x="2552" y="-8" width="2576" height="1416" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3289777" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3289777" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3289777" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -763,16 +769,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scope_parser/reduce.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="446">
-          <caret line="44" column="1" selection-start-line="44" selection-start-column="1" selection-end-line="44" selection-end-column="1" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36-32/Lib/unittest/case.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="275">
@@ -884,32 +880,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="639">
-          <caret line="788" lean-forward="true" selection-start-line="788" selection-end-line="788" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/util/datetime_utility.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="594">
           <caret line="27" lean-forward="true" selection-start-line="27" selection-end-line="27" />
           <folding>
             <element signature="e#0#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="411">
-          <caret line="225" lean-forward="true" selection-start-line="225" selection-end-line="225" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -926,8 +902,38 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tests/unit_tests/test_select.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="666">
-          <caret line="1027" selection-start-line="1027" selection-end-line="1027" />
+        <state relative-caret-position="560">
+          <caret line="1024" column="31" selection-start-line="1024" selection-start-column="31" selection-end-line="1024" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scope_parser/reduce.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="688">
+          <caret line="66" column="66" selection-start-line="66" selection-start-column="66" selection-end-line="66" selection-end-column="66" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/myparser/script_parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="702">
+          <caret line="677" column="31" selection-start-line="677" selection-start-column="31" selection-end-line="677" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="595">
+          <caret line="283" column="17" lean-forward="true" selection-start-line="283" selection-start-column="17" selection-end-line="283" selection-end-column="17" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

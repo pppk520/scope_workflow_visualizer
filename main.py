@@ -277,10 +277,11 @@ if __name__ == '__main__':
     '''
     all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
                r'D:/tmp/tt_all_in_one_2018-12-27',
-               target_wf_folders=['ADC_KSPBackend_Scope'],
-               target_filenames=['1.MergeSources.script'],
+               target_wf_folders=['ADC_BTE_Scope'],
+               target_filenames=['BidOptMPIPreProcessing.script'],
 #               add_sstream_link=True,
 #               add_sstream_size=True,
-               )
-#               keep_exts=None)
+#               )
+#               )
+               keep_exts=None)
     '''

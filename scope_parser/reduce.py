@@ -60,49 +60,11 @@ if __name__ == '__main__':
 #    obj.debug()
 
     print(obj.parse('''
-BudgetLandscape=
-    REDUCE BudgetLandscape
-    ON AccountId,CampaignId
-    PRESORT Index ASC
-    PRODUCE
-        SugApproach
-        ,AccountId
-		,OptType
-		,CampaignId
-		,OptId
-		,LoadTime
-		,CreationDate
-		,ExpiryDate
-		,OriginalBudgetType
-        ,CurrencyId
-		,OriginalBudget
-		,RecommendedBudget
-		,ProjectedClicksOriginalBudget
-		,ProjectedClicksRecommendedBudget
-		,ProjectedMaxClicks
-		,ProjectedImpressionsOriginalBudget
-		,ProjectedImpressionsRecommendedBudget
-		,ProjectedMaxImpressions
-		,ProjectedCostOriginalBudget
-		,ProjectedCostRecommendedBudget
-		,ProjectedMaxCost
-        ,ConversionStatus
-        ,ConversionRate
-        ,ProjectedConversionsOriginalBudget
-        ,ProjectedConversionsRecommendedBudget
-        ,ProjectedMaxConversions
-		,EstDailySpendRate
-		,Score
-		,PipelineId
-		,AlgoId
-        ,EstimatedBudget
-        ,EstimatedClicks
-        ,EstimatedImpressions
-        ,EstimatedCost
-        ,EstimatedConversions
-        ,EstimatedSov
-        ,Comment   
-    USING BudgetSuggestionsLib.BudgetPointConstraintReducer
+ForCannibaCappingRdcr = 
+    REDUCE ForCannibaCappingRdcr
+    USING CannibaCappingRdcr("0.2")
+    ON AccountId
+    PRESORT DeltaClicks DESC, DeltaImpressions DESC, ChildId DESC;
         '''))
 
 
