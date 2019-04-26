@@ -31,7 +31,7 @@ from cosmos.sstream_utiltiy import SstreamUtility
 class ScriptParser(object):
     logger = logging.getLogger(__name__)
 
-    def __init__(self, b_add_sstream_link=True, b_add_sstream_size=True):
+    def __init__(self, b_add_sstream_link=False, b_add_sstream_size=False):
         self.vars = {}
 
         self.declare = Declare()
@@ -53,11 +53,18 @@ class ScriptParser(object):
         self.sstream_link_suffix = ""
         self.external_params = {}
 
-        # read config from ini file
-        config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
-        self.read_configs(config_filepath)
+        self.sstream_link_prefix = ""
+        self.sstream_link_suffix = ""
+        self.target_date_str = ""
+        self.default_datetime = DatetimeUtility.get_datetime()
 
-        self.ssu = SstreamUtility("d:/workspace/dummydummy.ini") # specify your auth file path
+        # without sstream_link requirement, no need to read name/pass from config
+        if b_add_sstream_size:
+            # read config from ini file
+            config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
+            self.read_configs(config_filepath)
+
+            self.ssu = SstreamUtility("d:/workspace/dummydummy.ini") # specify your auth file path
 
     def read_configs(self, filepath):
         config = configparser.ConfigParser()
@@ -570,7 +577,8 @@ class ScriptParser(object):
             self.to_graph(dest_filepath, final_nodes, final_edges)
 
         # save cosmos querying results
-        self.ssu.refresh_cache()
+        if self.b_add_sstream_size:
+            self.ssu.refresh_cache()
 
     def get_parse_type(self, part):
         ''' Use the first occurred keyword as parsing type

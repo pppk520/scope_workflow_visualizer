@@ -7,6 +7,11 @@ Implemented with:
 * [pyparsing](http://infohost.nmt.edu/tcc/help/pubs/pyparsing/web/index.html)
 * [graphviz](https://www.graphviz.org/)
 
+### Packages
+```
+$ pip install -r requirements.txt
+```
+
 ### Example
 The following SCOPE script 
 
