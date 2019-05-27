@@ -596,13 +596,14 @@ class ScriptParser(object):
             if idx != -1 and idx < first_idx:
                 first_keyword = keyword
                 first_idx = idx
+                break
 
         return first_keyword.strip()
 
     def parse_content(self, content, external_params={}):
         content = self.remove_comments(content)
         content = self.remove_if(content)
-        content = self.remove_if(content) # for nested if
+        content = self.remove_if(content)  # for nested if
         content = self.resolve_external_params(content, self.external_params)
         content = self.expand_loop(content)
         content = self.remove_data_hint(content)
@@ -700,108 +701,6 @@ class ScriptParser(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    result = ScriptParser().expand_loop('''
-LOOP(n,5)
-{
-PointsWithId_@@n@@ =
-    SELECT PId,
-           vector,
-           Id,
-		   NormalizedKeyword
-    FROM PointsWithId
-    WHERE PId == @@n@@;
+    ScriptParser().parse_file(r"C:\Users\poteng\Downloads\SOV3_StripeOutput.script", external_params={"Date": "2019-01-01", "hour": "12"}, dest_filepath=r"C:\Users\poteng\Downloads\SOV3_StripeOutput.script.pdf")
 
-//output OrderVec
-IdVec = SELECT Id AS id, vector FROM PointsWithId_@@n@@;
-#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/Output1", @OutputPath, @dateObj);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY;
-#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/OutputHeader1", @OutputPath, @dateObj);
-OUTPUT (SELECT TOP 1 *) TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING SchemaOutputter;
-
-IdKey = SELECT Id AS id, "0" AS partId, NormalizedKeyword FROM PointsWithId_@@n@@;
-#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/Output2", @OutputPath, @dateObj);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY;
-#SET OutputFile = string.Format("{0}/KeywordVec/{1:yyyy-MM-dd}/part@@n@@/OutputHeader2", @OutputPath, @dateObj);
-OUTPUT (SELECT TOP 1 *) TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING SchemaOutputter;
-
-NGS_@@n@@ =
-    REDUCE PointsWithId_@@n@@
-    ON PId
-    USING NGSTrainerReducer()
-    PRESORT Id;
-#SET OutputFile = string.Format("{0}/part@@n@@/NGSBuild_model.ss", @Output);
-OUTPUT
-TO SSTREAM @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY;
-
-//output DataPoints.bin
-OutPointsWithId_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "DataPoints_Part0.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part0.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-OutPointsWithId_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "DataPoints_Part1.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part1.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-OutPointsWithId_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "DataPoints_Part2.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part2.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-OutPointsWithId_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "DataPoints_Part3.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/DataPoints_Part3.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-
-//output KdTree.bin
-OutKdTree_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "KdTree_Part0.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/KdTree_Part0.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-OutKdTree_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "KdTree_Part1.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/KdTree_Part1.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-OutKdTree_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "KdTree_Part2.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/KdTree_Part2.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-
-//output NGraph.bin
-OutNGraph_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "NGraph_Part0.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/NGraph_Part0.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-OutNGraph_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "NGraph_Part1.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/NGraph_Part1.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-OutNGraph_@@n@@ = 
-    SELECT *
-    FROM NGS_@@n@@
-    WHERE FileName == "NGraph_Part2.bin";
-#SET OutputFile = string.Format("{0}/part@@n@@/NGraph_Part2.bin", @Output);
-OUTPUT TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING BinaryOutputter();
-}
-
-    ''')
-
-
-    print(result)
 

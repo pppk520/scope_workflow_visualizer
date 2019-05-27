@@ -31,5 +31,18 @@ class TestCombine(TestCase):
         self.assertCountEqual(result['sources'], ['OrderBiddingKW', '(SSTREAM@OrderTFScoreFile)'])
         self.assertTrue(result['using'] == 'SuggestionTfCombiner')
 
+    def test_combine_presort_no_on(self):
+        s = '''
+        NafJoinPvAndC2c =
+            COMBINE NafJoinPv PRESORT CampaignId WITH Mapping PRESORT CampaignId
+            USING NafMappingCombiner;
+            '''
+
+        result = Combine().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'NafJoinPvAndC2c')
+        self.assertCountEqual(result['sources'], ['NafJoinPv', 'Mapping'])
+        self.assertTrue(result['using'] == 'NafMappingCombiner')
+
 
 

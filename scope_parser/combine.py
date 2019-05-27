@@ -9,6 +9,7 @@ class Combine(object):
     USING = Keyword("USING")
     ON = Keyword("ON")
     WITH = Keyword("WITH")
+    PRESORT = Keyword("PRESORT")
 
     ident = Common.ident
     ident_at = Common.ident_at
@@ -26,9 +27,11 @@ class Combine(object):
     using = Optional(USING + (func | func_ptr)('using'))
     combine_with = COMBINE + \
                    Combine(combine_source)('source_1') + Optional(as_something) + \
+                   Optional(PRESORT + ident) + \
                    WITH + \
                    Combine(combine_source)('source_2') + Optional(as_something) + \
-                   ON + where_expression + \
+                   Optional(PRESORT + ident) + \
+                   Optional(ON + where_expression) + \
                    USING + (func | func_ptr)('using')
 
     assing_combine = Combine(ident)('assign_var') + '=' + combine_with
