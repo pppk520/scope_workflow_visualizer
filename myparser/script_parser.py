@@ -227,6 +227,10 @@ class ScriptParser(object):
         re_dh_3 = re.compile(r'\[.+?=\(.+=.+\)\]')
         content = re.sub(re_dh_3, '', content)
 
+        #[Privacy.xxx]
+        re_dh_4 = re.compile(r'\[Privacy\..+?]')
+        content = re.sub(re_dh_4, '', content)
+
         return content
 
     def remove_split_reserved_char(self, content):
@@ -526,7 +530,7 @@ class ScriptParser(object):
 
     def parse_file(self, filepath, external_params={}, dest_filepath=None):
         self.logger.info('parse_file [{}]'.format(filepath))
-        self.logger.debug('external_params = {}'.format(external_params))
+        self.logger.debug('file [{}], external_params = {}'.format(filepath, external_params))
 
         # keep date key because external params from config is probably yyyy-MM-dd format
         for key in external_params:
@@ -701,6 +705,14 @@ class ScriptParser(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    ScriptParser().parse_file(r"C:\Users\poteng\Downloads\SOV3_StripeOutput.script", external_params={"Date": "2019-01-01", "hour": "12"}, dest_filepath=r"C:\Users\poteng\Downloads\SOV3_StripeOutput.script.pdf")
+    ScriptParser().parse_file(r"D:\tmp\tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\AIM_Opportunity_Scope\Scripts\PayloadGeneration.script",
+                              external_params={'TargetDate': '"2019-05-24"', 'StreamExpiry': '"730"',
+                                               'AudienceCampaignDll': '"$(AudienceCampaignDll)"',
+                                               'C2C_MASTER_VIEW': '"/shares/adCenter.BICore.upload/prod/C2C/Views/MasterView/C2CMasterView.view"',
+                                               'CommonDataLayerBasePath': '"/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/CommonDataFeed"',
+                                               'AudienceInsightsFeedBasePath': '"/shares/adPlatform.AudienceIntelligence.Scoring.Prod/AudienceInsightsFeed"',
+                                               'InputBase': '"/shares/bingads.algo.prod.adinsights/data/prod/pipelines/AIM/AudienceCampaignOpportunity"',
+                                               'OutputBase': '"/local/prod/pipelines/AIM/AudienceCampaignOpportunity"'},
+                              dest_filepath=r"D:\tmp\tt.script.pdf")
 
 

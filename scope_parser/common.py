@@ -7,7 +7,7 @@ class Common(object):
     ident_at = '@' + ident
     ident_dot = delimitedList(ident, delim='.', combine=True)
     ident_float_suffix = '.' + Word(nums) + Optional('F')
-    ident_val = Combine(Word('- ' + nums) + Optional(ident_float_suffix | 'UL'))
+    ident_val = Combine(Word('- ' + nums) + Optional(ident_float_suffix | 'UL' | 'M'))
     value_str = Combine(Group(Optional(oneOf('@@ @')) + (ident_val | quotedString | ident) + Optional('@@')))
 
     quoted_time = Combine('"' + Word(":" + nums) + '"')

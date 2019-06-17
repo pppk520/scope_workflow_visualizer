@@ -277,20 +277,34 @@ class Select(object):
 
 if __name__ == '__main__':
     obj = Select()
-    obj.debug()
+    #obj.debug()
 
     print(obj.parse('''
-MergedSourceExp_INTL = 
-	SELECT Domain,
-		   kw2 AS Keyword,
-		   (long)TrackId AS TrackId,
-		   Score*score AS Score,
-		   Language,
-		   Location
-	FROM MergedSourceExp_INTL AS L 
-		 INNER PAIR JOIN 
-			 MSM_INTL AS R 
-		 ON L.SeedKW == R.kw1 AND L.Language == R.Language AND L.Location == R.Location;
+EligibleOrder =
+    SELECT C.CustomerId,
+           C.AccountId,
+           C.CampaignId,
+           C.CampaignName,
+           C.TimeZoneId,
+           C.CurrencyId,
+           O.AdGroupId,
+           K.KeywordOrderName AS AdGroupName,
+           C.DailyBudgetUSD,
+           CAS.SpendUSD,                            
+           AAS.SpendUSD ?? 0M AS AdGroupSpendUSD    
+    FROM OrderStatus AS O
+         INNER JOIN
+             Campaigns AS C
+         ON O.CampaignId == C.CampaignId
+         INNER JOIN
+             CampaignAggregatedSpend AS CAS
+         ON O.CampaignId == CAS.CampaignId
+         LEFT JOIN
+             AdGroupAggregatedSpend AS AAS
+         ON O.AdGroupId == AAS.AdGroupId
+         INNER JOIN
+             KeywordOrder AS K
+         ON O.AdGroupId == K.KeywordOrderId;
     '''))
 
 

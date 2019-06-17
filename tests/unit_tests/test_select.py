@@ -574,6 +574,22 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'Campaigns')
         self.assertCountEqual(result['sources'], ['Campaigns', 'CampaignSpending'])
 
+    def test_column_double_question_mark_M(self):
+        s = '''
+        Campaigns = 
+            SELECT A.*,
+                   B.SpendUSD ?? 0M AS SpendUSD
+            FROM Campaigns AS A
+            LEFT OUTER JOIN CampaignSpending AS B
+            ON A.CampaignId == B.CampaignId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'Campaigns')
+        self.assertCountEqual(result['sources'], ['Campaigns', 'CampaignSpending'])
+
+
     def test_union_select(self):
         s = '''
         BlockRules_Customer =
@@ -1006,6 +1022,26 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'Impressions')
         self.assertCountEqual(result['sources'], ['Monetization'])
 
+
+    def test_inner_pair_join(self):
+        s = '''
+        MergedSourceExp_INTL = 
+            SELECT Domain,
+                   kw2 AS Keyword,
+                   (long)TrackId AS TrackId,
+                   Score*score AS Score,
+                   Language,
+                   Location
+            FROM MergedSourceExp_INTL AS L 
+                 INNER PAIR JOIN 
+                     MSM_INTL AS R 
+                 ON L.SeedKW == R.kw1 AND L.Language == R.Language AND L.Location == R.Location;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'MergedSourceExp_INTL')
+        self.assertCountEqual(result['sources'], ['MergedSourceExp_INTL', 'MSM_INTL'])
 
     def test_inner_pair_join(self):
         s = '''

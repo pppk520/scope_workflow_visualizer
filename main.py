@@ -17,7 +17,6 @@ __log_level = logging.DEBUG
 def cli():
     pass
 
-
 def parse_script_single(target_filename,
                         workflow_parser,
                         workflow_obj,
@@ -215,6 +214,8 @@ def all_in_one(dwc_wf_folder,
                add_sstream_size=False):
     target_date_str = DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d')
 
+    FileUtility.mkdir_p(out_folder)
+
     error_fp = None
     if error_log_filename:
         filepath = os.path.join(out_folder, error_log_filename)
@@ -270,18 +271,13 @@ def all_in_one(dwc_wf_folder,
 if __name__ == '__main__':
 #    cli()
 
-    all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
-               r'D:/tmp/tt_all_in_one_2018-12-27',
+    all_in_one(r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+               r'D:/tmp/tt_all_in_one_2019-05-30',
                error_log_filename='errors.txt')
 
     '''
-    all_in_one(r'D:\tt_all_2018-12-27\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
-               r'D:/tmp/tt_all_in_one_2018-12-27',
-               target_wf_folders=['ADC_BTE_Scope'],
-               target_filenames=['BidOptMPIPreProcessing.script'],
-#               add_sstream_link=True,
-#               add_sstream_size=True,
-#               )
-#               )
-               keep_exts=None)
+    results = parse_script(r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\AIM_Opportunity_Scope',
+                           r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\AIM_Opportunity_Scope',
+                           r'D:\tmp/tt_tt',
+                           target_date_str=DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d'))
     '''
