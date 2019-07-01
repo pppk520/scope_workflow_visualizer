@@ -9,7 +9,7 @@ class Select(object):
     SELECT = Keyword("SELECT")
     FROM = Keyword("FROM")
     WHERE = Keyword("WHERE")
-    JOIN = Keyword("JOIN") | Keyword("SEMIJOIN") | Keyword("PAIR JOIN")
+    JOIN = Keyword("JOIN") | Keyword("SEMIJOIN") | Keyword("PAIR JOIN") | Keyword("ANTISEMIJOIN")
     CROSS_JOIN = Keyword("CROSS JOIN")
     CROSS_APPLY = Keyword("CROSS APPLY")
     AS = Keyword("AS")
@@ -280,31 +280,10 @@ if __name__ == '__main__':
     #obj.debug()
 
     print(obj.parse('''
-EligibleOrder =
-    SELECT C.CustomerId,
-           C.AccountId,
-           C.CampaignId,
-           C.CampaignName,
-           C.TimeZoneId,
-           C.CurrencyId,
-           O.AdGroupId,
-           K.KeywordOrderName AS AdGroupName,
-           C.DailyBudgetUSD,
-           CAS.SpendUSD,                            
-           AAS.SpendUSD ?? 0M AS AdGroupSpendUSD    
-    FROM OrderStatus AS O
-         INNER JOIN
-             Campaigns AS C
-         ON O.CampaignId == C.CampaignId
-         INNER JOIN
-             CampaignAggregatedSpend AS CAS
-         ON O.CampaignId == CAS.CampaignId
-         LEFT JOIN
-             AdGroupAggregatedSpend AS AAS
-         ON O.AdGroupId == AAS.AdGroupId
-         INNER JOIN
-             KeywordOrder AS K
-         ON O.AdGroupId == K.KeywordOrderId;
-    '''))
+CampaignAuctionWon_Search = 
+    SELECT *
+    FROM CampaignAuctionWon_Search AS L
+        LEFT ANTISEMIJOIN AggregatorAccount AS R
+        ON L.AccountId == R.AccountId;    '''))
 
 

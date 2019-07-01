@@ -276,8 +276,9 @@ if __name__ == '__main__':
                error_log_filename='errors.txt')
 
     '''
-    results = parse_script(r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\AIM_Opportunity_Scope',
-                           r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\AIM_Opportunity_Scope',
+    results = parse_script(r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
+                           r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
                            r'D:\tmp/tt_tt',
-                           target_date_str=DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d'))
+                           target_date_str=DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d'),
+                           target_filenames=['CampaignPerfDailyHourAgg.script'])
     '''

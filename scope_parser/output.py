@@ -15,7 +15,8 @@ class Output(object):
     CLUSTERED_BY = Keyword("CLUSTERED BY")
     SORTED_BY = Keyword("SORTED BY")
 
-    ident = Common.ident
+    ident_dot = Common.ident + OneOrMore("." + Common.ident)
+    ident = ident_dot | Common.ident
     value_str = Common.value_str
     func = Common.func
 
@@ -73,5 +74,5 @@ if __name__ == '__main__':
     obj = Output()
 
     print(obj.parse('''
-OUTPUT (SELECT TOP 1 *) TO @OutputFile WITH STREAMEXPIRY @STREAM_EXPIRY USING SchemaOutputter
+OUTPUT Results_SearchPerf.LostToBudgetRatio TO SSTREAM @RatioOfAuctionLostToBudget_Search CLUSTERED BY CampaignId WITH STREAMEXPIRY "30"
     '''))

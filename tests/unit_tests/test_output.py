@@ -89,5 +89,16 @@ class TestOutput(TestCase):
         self.assertTrue(result['path'] == '@OutputFile')
         self.assertTrue(result['stream_type'] is None)
 
+    def test_ident_dot(self):
+        s = '''
+        OUTPUT Results_SearchPerf.LostToBudgetRatio TO SSTREAM @RatioOfAuctionLostToBudget_Search CLUSTERED BY CampaignId WITH STREAMEXPIRY "30"
+        '''
+
+        result = Output().parse(s)
+
+        self.assertTrue(result['ident'] == 'Results_SearchPerf')
+        self.assertTrue(result['path'] == '@RatioOfAuctionLostToBudget_Search')
+        self.assertTrue(result['stream_type'] == 'SSTREAM')
+
 
 

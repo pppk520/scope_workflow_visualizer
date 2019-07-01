@@ -95,28 +95,33 @@ class ScopeResolver(object):
         the_data = None
         datetime_obj = None
 
-        the_obj_name = format_item.split('.')[0]
-        if the_obj_name in declare_map:
-            datetime_obj = declare_map[the_obj_name]
+        try:
 
-        if 'DateTime.ParseExact' in format_item:
-            datetime_obj = self.resolve_datetime_parseexact(format_item, declare_map)
-            self.logger.debug('parsed datetime_obj = {}'.format(datetime_obj))
-        elif 'DateTime.Parse' in format_item:
-            datetime_obj = self.resolve_datetime_parse(format_item, declare_map)
-            self.logger.debug('parsed datetime_obj = {}'.format(datetime_obj))
+            the_obj_name = format_item.split('.')[0]
+            if the_obj_name in declare_map:
+                datetime_obj = declare_map[the_obj_name]
 
-        if 'AddDays' in format_item:
-            datetime_obj = self.process_add_days(datetime_obj, format_item)
+            if 'DateTime.ParseExact' in format_item:
+                datetime_obj = self.resolve_datetime_parseexact(format_item, declare_map)
+                self.logger.debug('parsed datetime_obj = {}'.format(datetime_obj))
+            elif 'DateTime.Parse' in format_item:
+                datetime_obj = self.resolve_datetime_parse(format_item, declare_map)
+                self.logger.debug('parsed datetime_obj = {}'.format(datetime_obj))
 
-        if 'ToString' in format_item:
-            if datetime_obj:
-                the_data = self.process_to_string(datetime_obj, format_item)
+            if 'AddDays' in format_item:
+                datetime_obj = self.process_add_days(datetime_obj, format_item)
 
-        if not the_data:
-            the_data = datetime_obj
+            if 'ToString' in format_item:
+                if datetime_obj:
+                    the_data = self.process_to_string(datetime_obj, format_item)
 
-        return the_data, datetime_obj
+            if not the_data:
+                the_data = datetime_obj
+
+            return the_data, datetime_obj
+        except Exception as ex:
+            self.logger.warning("Exception occurs while resolving dates of [{}]: {}, use default datetime_obj instead", format_item, ex)
+            return the_data, datetime.now()
 
     def resolve_basic(self, format_items, declare_map):
         ret = []
@@ -183,7 +188,11 @@ class ScopeResolver(object):
         found = re.findall('ToString\((.*?)\)', func_str)
         if found:
             if self.is_time_format(found[0]):
-                return the_obj.strftime(self.to_normalized_time_format(found[0]))
+                try:
+                    return the_obj.strftime(self.to_normalized_time_format(found[0]))
+                except Exception as ex:
+                    logging.warning("failed doing strftime of [{}]: {}, fall back to try any date instead.".format(the_obj, ex))
+                    return datetime.now().strftime(self.to_normalized_time_format(found[0]))
 
             return str(the_obj)
 

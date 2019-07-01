@@ -590,7 +590,7 @@ class ScriptParser(object):
         :param part: the content part for parsing
         :return: the keyword as parse type
         '''
-        keywords = ['SELECT', 'PROCESS', 'OUTPUT', 'REDUCE', 'COMBINE', 'SSTREAM', 'EXTRACT', 'VIEW', 'IMPORT', 'USING']
+        keywords = ['OUTPUT', 'SELECT', 'PROCESS', 'REDUCE', 'COMBINE', 'SSTREAM', 'EXTRACT', 'VIEW', 'IMPORT', 'USING']
 
         first_keyword = ''
         first_idx = 1000
