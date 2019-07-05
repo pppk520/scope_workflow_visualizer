@@ -1063,4 +1063,21 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] == 'MergedSourceExp_INTL')
         self.assertCountEqual(result['sources'], ['MergedSourceExp_INTL', 'MSM_INTL'])
 
+    def test_on_all(self):
+        s = '''
+        SELECT P.* ,
+               B.Budget
+        FROM campaignDailyPerf_Of_Last15days AS P
+        INNER JOIN campaignDailyBudget_Of_Last15days AS B
+        ON  ALL (
+                    P.CampaignId == B.CampaignId,
+                    P.DateKey == B.DateKey
+                )        
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] is None)
+        self.assertCountEqual(result['sources'], ['campaignDailyPerf_Of_Last15days', 'campaignDailyBudget_Of_Last15days'])
+
 
