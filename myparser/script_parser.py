@@ -392,13 +392,20 @@ class ScriptParser(object):
         d = self.output.parse(part)
         self.logger.debug(d)
 
-        source_name = d['ident']
-        from_node = node_map.get(source_name, node_map['last_node'])
         to_node = Node(d['path'], attr={'type': 'output',
                                         'style': 'filled',
                                         'fillcolor': 'tomato'})
 
-        edges.append(Edge(from_node, to_node))
+        source_names = d['idents']
+
+        if not source_names:
+            from_node = node_map['last_node']
+            edges.append(Edge(from_node, to_node))
+        else:
+            for source_name in source_names:
+                from_node = node_map.get(source_name, node_map['last_node'])
+                edges.append(Edge(from_node, to_node))
+
         all_nodes.append(to_node)
 
     def process_extract(self, part, node_map, all_nodes, edges):

@@ -280,5 +280,5 @@ if __name__ == '__main__':
                            r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
                            r'D:\tmp/tt_tt',
                            target_date_str=DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d'),
-                           target_filenames=['CampaignPerfDailyHourAgg.script'])
+                           target_filenames=['BudgetSugg_ForwardApp.script'])
     '''

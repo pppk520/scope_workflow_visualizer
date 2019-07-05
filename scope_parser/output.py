@@ -43,7 +43,7 @@ class Output(object):
     def parse(self, s):
         # specific output for our purpose
         ret = {
-            'ident': None,
+            'idents': set(),
             'path': None,
             'stream_type': None,
             'attributes': set()
@@ -56,9 +56,9 @@ class Output(object):
 #        print('-' *20)
 
         if 'ident' in data:
-            ret['ident'] = data['ident'][0]
+            ret['idents'].add(data['ident'][0])
         elif 'table_name' in data:
-            ret['ident'] = data['table_name'] # directly from SELECT statement
+            ret['idents'].add(data['table_name'])  # directly from SELECT statement
 
         ret['path'] = data['path']
 
@@ -68,11 +68,27 @@ class Output(object):
         if 'partition' in data:
             ret['attributes'].add('PARTITION')
 
+        node = data
+        while 'union' in node:
+            ret['idents'].add(node['union'][0]['table_name'])
+            node = node['union']
+
         return ret
 
 if __name__ == '__main__':
     obj = Output()
 
     print(obj.parse('''
-OUTPUT Results_SearchPerf.LostToBudgetRatio TO SSTREAM @RatioOfAuctionLostToBudget_Search CLUSTERED BY CampaignId WITH STREAMEXPIRY "30"
+OUTPUT
+(
+    SELECT * FROM BudgetLandscape_Backward
+    UNION ALL
+    SELECT * FROM BudgetLandscape_Forward
+    UNION ALL
+    SELECT * FROM KKK
+)
+TO SSTREAM @OutputBudgetLandscape
+CLUSTERED BY CampaignId
+WITH STREAMEXPIRY @StreamExpiry;
+
     '''))

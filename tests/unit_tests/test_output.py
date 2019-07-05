@@ -9,7 +9,7 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] == 'data')
+        self.assertCountEqual(result['idents'], ['data'])
         self.assertTrue(result['path'] == '"/local/tt.ss"')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
@@ -20,7 +20,7 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] == 'AuctionMonetizationValidate')
+        self.assertCountEqual(result['idents'], ['AuctionMonetizationValidate'])
         self.assertTrue(result['path'] == '@PubilsherBumpedAuction')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
@@ -33,7 +33,7 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] is None)
+        self.assertCountEqual(result['idents'], [])
         self.assertTrue(result['path'] == '"@@TopAdvReport@@"')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
@@ -47,7 +47,7 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] == 'IS_ORDERITEM')
+        self.assertCountEqual(result['idents'], ['IS_ORDERITEM'])
         self.assertTrue(result['path'] == '@ImpressionShareReportOrderItem')
         self.assertTrue(result['stream_type'] is None)
         self.assertCountEqual(result['attributes'], ['PARTITION'])
@@ -63,7 +63,8 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] == 'BIOrderItem')
+
+        self.assertCountEqual(result['idents'], ['BIOrderItem'])
         self.assertTrue(result['path'] == '@BIContact')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
@@ -74,7 +75,7 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] == 'Suggestions')
+        self.assertCountEqual(result['idents'], ['Suggestions'])
         self.assertTrue(result['path'] == '@Output_FilteredBy_SpecialRuleForCustomerFilter')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
@@ -85,7 +86,7 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] == None)
+        self.assertCountEqual(result['idents'], [])
         self.assertTrue(result['path'] == '@OutputFile')
         self.assertTrue(result['stream_type'] is None)
 
@@ -96,8 +97,29 @@ class TestOutput(TestCase):
 
         result = Output().parse(s)
 
-        self.assertTrue(result['ident'] == 'Results_SearchPerf')
+        self.assertCountEqual(result['idents'], ['Results_SearchPerf'])
         self.assertTrue(result['path'] == '@RatioOfAuctionLostToBudget_Search')
+        self.assertTrue(result['stream_type'] == 'SSTREAM')
+
+    def test_select_union(self):
+        s = '''
+        OUTPUT
+        (
+            SELECT * FROM BudgetLandscape_Backward
+            UNION ALL
+            SELECT * FROM BudgetLandscape_Forward
+            UNION ALL
+            SELECT * FROM KKK
+        )
+        TO SSTREAM @OutputBudgetLandscape
+        CLUSTERED BY CampaignId
+        WITH STREAMEXPIRY @StreamExpiry;
+        '''
+
+        result = Output().parse(s)
+
+        self.assertCountEqual(result['idents'], ['BudgetLandscape_Backward', 'BudgetLandscape_Forward'])
+        self.assertTrue(result['path'] == '@OutputBudgetLandscape')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
 
