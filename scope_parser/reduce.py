@@ -60,11 +60,32 @@ if __name__ == '__main__':
 #    obj.debug()
 
     print(obj.parse('''
-ForCannibaCappingRdcr = 
-    REDUCE ForCannibaCappingRdcr
-    USING CannibaCappingRdcr("0.2")
+Suggestions_WithoutAdGroup_Others =
+    REDUCE
+    (
+        SELECT AccountId,
+               OrderId,
+               SuggKW,
+               SuggMatchTypeId,
+               BMMKeyword,
+               Score,
+               SuggBid,
+               CampaignId,
+               Impressions,
+               Clicks,
+               TotalCost,
+               AveragePosition,
+               FinalSuggKW,
+               Events,
+               SRPV,
+               distance,
+               MarketPlaceRevenueGain,
+               IsNewAdGroup
+        FROM Suggestions_WithoutAdGroup
+        WHERE Theme == "Keyword Like" OR Theme == ""
+    )
     ON AccountId
-    PRESORT DeltaClicks DESC, DeltaImpressions DESC, ChildId DESC;
+    USING GroupingReducer("SuggKW", "3")
         '''))
 
 

@@ -64,11 +64,11 @@ class ScriptParser(object):
             config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
             self.read_configs(config_filepath)
 
-            self.ssu = SstreamUtility("d:/workspace/dummydummy.ini") # specify your auth file path
+            self.ssu = SstreamUtility("d:/workspace/dummydummy.ini")  # specify your auth file path
 
     def read_configs(self, filepath):
         config = configparser.ConfigParser()
-        config.optionxform = str # reserve case
+        config.optionxform = str  # reserve case
         config.read(filepath)
 
         self.sstream_link_prefix = config['ScriptParser']['sstream_link_prefix']
@@ -121,7 +121,6 @@ class ScriptParser(object):
 
         return content
 
-
     def resolve_external_params(self, content, params={}):
         self.logger.debug('params = {}'.format(params))
 
@@ -131,7 +130,11 @@ class ScriptParser(object):
             text = match.group()
             return params.get(match.group(1), text)
 
-        return re_external_param.sub(replace_matched, content).replace('""', '"')
+        content = re_external_param.sub(replace_matched, content)
+        content = re.sub(r'("")([\w]+)', r'"2', content)
+        content = re.sub(r'([\w]+)("")', r'1"', content)
+
+        return content.replace('"""', '""')
 
     def find_latest_node(self, target_name, nodes):
         for node in nodes[::-1]:
@@ -215,19 +218,19 @@ class ScriptParser(object):
         return '\n'.join(result_lines)
 
     def remove_data_hint(self, content):
-        #[ROWCOUNT=100]
+        # [ROWCOUNT=100]
         re_dh_1 = re.compile(r'\[.+?=[ ]?\d+?\]')
         content = re.sub(re_dh_1, '', content)
 
-        #[LOWDISTINCTNESS(MatchTypeId)]
+        # [LOWDISTINCTNESS(MatchTypeId)]
         re_dh_2 = re.compile(r'\[LOWDISTINCTNESS[ ]*\(.*\)\]')
         content = re.sub(re_dh_2, '', content)
 
-        #[PARTITION=(PARTITIONCOUNT=2000)]
+        # [PARTITION=(PARTITIONCOUNT=2000)]
         re_dh_3 = re.compile(r'\[.+?=\(.+=.+\)\]')
         content = re.sub(re_dh_3, '', content)
 
-        #[Privacy.xxx]
+        # [Privacy.xxx]
         re_dh_4 = re.compile(r'\[Privacy\..+?]')
         content = re.sub(re_dh_4, '', content)
 
@@ -306,7 +309,8 @@ class ScriptParser(object):
                 continue
 
             if not param in declare_map:
-                self.logger.info('param [{}] not in declare_map, probably local reference. Ignore for now.'.format(param))
+                self.logger.info(
+                    'param [{}] not in declare_map, probably local reference. Ignore for now.'.format(param))
                 continue
 
             body_str = declare_map[param]
@@ -318,7 +322,7 @@ class ScriptParser(object):
                 # query string supports %Y%m%d replacement,
                 # if there are %Y%m%d in url, use default datetime to replace it
                 if '%Y' in body_str or '%m' in body_str or '%d' in body_str:
-                    body_str =  self.default_datetime.strftime(body_str)
+                    body_str = self.default_datetime.strftime(body_str)
 
             # change node label to html format for different font size
             # ignore if already inserted href
@@ -544,12 +548,14 @@ class ScriptParser(object):
             if 'date' in key.lower() or 'hour' in key.lower() or 'time' in key.lower():
                 if 'yyyy' in external_params[key] or 'mm' in external_params[key] or 'dd' in external_params[key]:
                     normalized_format = ScopeResolver.to_normalized_time_format(external_params[key])
-                    normalized_format = normalized_format.replace('{', '')\
-                                                         .replace('}', '')\
-                                                         .replace('@', '')\
-                                                         .replace('"', '')
+                    normalized_format = normalized_format.replace('{', '') \
+                        .replace('}', '') \
+                        .replace('@', '') \
+                        .replace('"', '')
 
-                    self.logger.debug('external_param datetime format = {}, normalized to {}'.format(external_params[key], normalized_format))
+                    self.logger.debug(
+                        'external_param datetime format = {}, normalized to {}'.format(external_params[key],
+                                                                                       normalized_format))
 
                     if key not in self.external_params:
                         self.logger.debug('use TARGET_DATE [{}] in config.ini as datatime'.format(self.target_date_str))
@@ -597,7 +603,7 @@ class ScriptParser(object):
         :param part: the content part for parsing
         :return: the keyword as parse type
         '''
-        keywords = ['OUTPUT', 'SELECT', 'PROCESS', 'REDUCE', 'COMBINE', 'SSTREAM', 'EXTRACT', 'VIEW', 'IMPORT', 'USING']
+        keywords = ['OUTPUT', 'REDUCE', 'SELECT', 'PROCESS', 'COMBINE', 'SSTREAM', 'EXTRACT', 'VIEW', 'IMPORT', 'USING']
 
         first_keyword = ''
         first_idx = 1000
@@ -627,8 +633,8 @@ class ScriptParser(object):
 
         node_map = {'last_node': None}
         edges = []
-        all_nodes = [] # add node to networkx ourself, missing nodes in edges will be added automatically
-                       # and the id of auto-added nodes are not controllable
+        all_nodes = []  # add node to networkx ourself, missing nodes in edges will be added automatically
+        # and the id of auto-added nodes are not controllable
 
         for part in parts:
             self.logger.debug('-' * 20)
@@ -712,14 +718,13 @@ class ScriptParser(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    ScriptParser().parse_file(r"D:\tmp\tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\AIM_Opportunity_Scope\Scripts\PayloadGeneration.script",
-                              external_params={'TargetDate': '"2019-05-24"', 'StreamExpiry': '"730"',
-                                               'AudienceCampaignDll': '"$(AudienceCampaignDll)"',
-                                               'C2C_MASTER_VIEW': '"/shares/adCenter.BICore.upload/prod/C2C/Views/MasterView/C2CMasterView.view"',
-                                               'CommonDataLayerBasePath': '"/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/CommonDataFeed"',
-                                               'AudienceInsightsFeedBasePath': '"/shares/adPlatform.AudienceIntelligence.Scoring.Prod/AudienceInsightsFeed"',
-                                               'InputBase': '"/shares/bingads.algo.prod.adinsights/data/prod/pipelines/AIM/AudienceCampaignOpportunity"',
-                                               'OutputBase': '"/local/prod/pipelines/AIM/AudienceCampaignOpportunity"'},
-                              dest_filepath=r"D:\tmp\tt.script.pdf")
-
-
+    ScriptParser().parse_file(
+        r"D:\tmp\tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\AIM_Opportunity_Scope\Scripts\PayloadGeneration.script",
+        external_params={'TargetDate': '"2019-05-24"', 'StreamExpiry': '"730"',
+                         'AudienceCampaignDll': '"$(AudienceCampaignDll)"',
+                         'C2C_MASTER_VIEW': '"/shares/adCenter.BICore.upload/prod/C2C/Views/MasterView/C2CMasterView.view"',
+                         'CommonDataLayerBasePath': '"/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/CommonDataFeed"',
+                         'AudienceInsightsFeedBasePath': '"/shares/adPlatform.AudienceIntelligence.Scoring.Prod/AudienceInsightsFeed"',
+                         'InputBase': '"/shares/bingads.algo.prod.adinsights/data/prod/pipelines/AIM/AudienceCampaignOpportunity"',
+                         'OutputBase': '"/local/prod/pipelines/AIM/AudienceCampaignOpportunity"'},
+        dest_filepath=r"D:\tmp\tt.script.pdf")

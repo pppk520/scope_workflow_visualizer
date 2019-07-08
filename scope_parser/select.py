@@ -282,14 +282,26 @@ if __name__ == '__main__':
     #obj.debug()
 
     print(obj.parse('''
-        SELECT P.* ,
-               B.Budget
-        FROM campaignDailyPerf_Of_Last15days AS P
-        INNER JOIN campaignDailyBudget_Of_Last15days AS B
-        ON  ALL (
-                    P.CampaignId == B.CampaignId,
-                    P.DateKey == B.DateKey
-                )
+        SELECT AccountId,
+               OrderId,
+               SuggKW,
+               SuggMatchTypeId,
+               BMMKeyword,
+               Score,
+               SuggBid,
+               CampaignId,
+               Impressions,
+               Clicks,
+               TotalCost,
+               AveragePosition,
+               FinalSuggKW,
+               Events,
+               SRPV,
+               distance,
+               MarketPlaceRevenueGain,
+               IsNewAdGroup
+        FROM Suggestions_WithoutAdGroup
+        WHERE Theme == "Keyword Like" OR Theme == "
 '''))
 
 
