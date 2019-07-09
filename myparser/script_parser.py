@@ -58,13 +58,12 @@ class ScriptParser(object):
         self.target_date_str = ""
         self.default_datetime = DatetimeUtility.get_datetime()
 
-        # without sstream_link requirement, no need to read name/pass from config
         if b_add_sstream_size:
-            # read config from ini file
-            config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
-            self.read_configs(config_filepath)
-
             self.ssu = SstreamUtility("d:/workspace/dummydummy.ini")  # specify your auth file path
+
+        # read fallback configs from ini file
+        config_filepath = os.path.join(os.path.dirname(__file__), os.pardir, 'config', 'config.ini')
+        self.read_configs(config_filepath)
 
     def read_configs(self, filepath):
         config = configparser.ConfigParser()
@@ -603,19 +602,15 @@ class ScriptParser(object):
         :param part: the content part for parsing
         :return: the keyword as parse type
         '''
-        keywords = ['OUTPUT', 'REDUCE', 'SELECT', 'PROCESS', 'COMBINE', 'SSTREAM', 'EXTRACT', 'VIEW', 'IMPORT', 'USING']
+        keywords = {'OUTPUT', 'REDUCE', 'SELECT', 'PROCESS', 'COMBINE', 'SSTREAM', 'EXTRACT', 'VIEW', 'IMPORT', 'USING'}
 
-        first_keyword = ''
-        first_idx = 1000
-        for keyword in keywords:
-            idx = part.find(keyword)
+        for word in part.split():
+            word = word.strip()
 
-            if idx != -1 and idx < first_idx:
-                first_keyword = keyword
-                first_idx = idx
-                break
+            if word in keywords:
+                return word
 
-        return first_keyword.strip()
+        return None
 
     def parse_content(self, content, external_params={}):
         content = self.remove_comments(content)
