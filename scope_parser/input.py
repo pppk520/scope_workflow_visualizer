@@ -58,6 +58,8 @@ class Input(object):
     assign_view = Combine(ident)('assign_var') + '=' + view('view')
     import_as = IMPORT + quotedString('from_source') + "AS" + Combine(ident)('assign_var') + Optional(params)
 
+    implicit_view = assign_view | view
+
     def debug(self):
         print(self.streamset_range.parseString('''__date=[@AvailStartDate]'''))
         print(self.streamset.parseString('''
@@ -104,7 +106,7 @@ class Input(object):
                 ret = self.assign_sstream.parseString(s)
                 d['sources'].add('SSTREAM_' + ret['from_source'])
         elif 'VIEW' in s:
-            ret = self.assign_view.parseString(s)
+            ret = self.implicit_view.parseString(s)
             d['sources'].add('VIEW_' + ret['from_source'])
         elif 'IMPORT' in s:
             ret = self.import_as.parseString(s)
@@ -135,13 +137,14 @@ if __name__ == '__main__':
 #    i.debug()
 
     print(i.parse('''
-
- 
-Monetization_PageView =
-    MonetizationModules.MonetizationPageView(
-        INPUT_BASE = "/shares/bingads.algo.prod.adinsights/data/shared_data/AdvertiserEngagement/Metallica/prod/CommonDataFeed",
-        START_DATETIME_UTC = @StartDatetimeObj,
-        END_DATETIME_UTC = @EndDatetimeObj
+VIEW @OrderItemViewScript
+    PARAMS 
+    ( RequestStartDateUTC = "aa",
+      RequestStartHourUTC = "11",
+      RequestEndDateUTC = "bb",
+      RequestEndHourUTC = "12",
+      DataSubSet = @"ALL",  
+      LoadDlls = "true"  
     )
 '''))
 

@@ -211,7 +211,8 @@ def all_in_one(dwc_wf_folder,
                keep_exts=['.pdf', '.svg'],
                error_log_filename=None,
                add_sstream_link=False,
-               add_sstream_size=False):
+               add_sstream_size=False,
+               script_root_folder=None):
     target_date_str = DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d')
 
     FileUtility.mkdir_p(out_folder)
@@ -241,28 +242,38 @@ def all_in_one(dwc_wf_folder,
 #            print('skip processed folder [{}]'.format(out_sub_folder))
 #            continue
 
-        to_workflow_dep_graph(wf_folder_path, out_sub_folder)
+        try:
+            to_workflow_dep_graph(wf_folder_path, out_sub_folder)
 
-        out_script_folder = os.path.join(out_sub_folder, 'script_graph')
-        results = parse_script(wf_folder_path,
-                               wf_folder_path,
-                               out_script_folder,
-                               target_filenames=target_filenames[:],
-                               add_sstream_link=add_sstream_link,
-                               add_sstream_size=add_sstream_size,
-                               target_date_str=target_date_str)
+            out_script_folder = os.path.join(out_sub_folder, 'script_graph')
+            script_folder = wf_folder_path
 
-        for result in results:
-            # not None means error
-            if result:
-                print('error processing file [{}]'.format(result))
+            # explicitly specified
+            if script_root_folder:
+                script_folder = script_root_folder
 
-                if error_fp:
-                    error_fp.write('{}/{}\n'.format(wf_folder_path, result))
+            results = parse_script(script_folder,
+                                   wf_folder_path,
+                                   out_script_folder,
+                                   target_filenames=target_filenames[:],
+                                   add_sstream_link=add_sstream_link,
+                                   add_sstream_size=add_sstream_size,
+                                   target_date_str=target_date_str)
 
-        if keep_exts:
-            FileUtility.delete_files_except_exts(out_sub_folder, keep_exts)
-            FileUtility.delete_files_except_exts(out_script_folder, keep_exts)
+            for result in results:
+                # not None means error
+                if result:
+                    print('error processing file [{}]'.format(result))
+
+                    if error_fp:
+                        error_fp.write('{}/{}\n'.format(wf_folder_path, result))
+
+            if keep_exts:
+                FileUtility.delete_files_except_exts(out_sub_folder, keep_exts)
+                FileUtility.delete_files_except_exts(out_script_folder, keep_exts)
+        except Exception as ex:
+            print("Exception: {}".format(ex))
+
 
     if error_fp:
         error_fp.close()
@@ -280,5 +291,14 @@ if __name__ == '__main__':
                            r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
                            r'D:\tmp/tt_tt',
                            target_date_str=DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d'),
-                           target_filenames=['0.Source_SeasonalProposal_NGSBuild.script'])
+                           target_filenames=['BudgetSugg_End.script'])
+    '''
+
+    '''
+    # measurement
+    all_in_one(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\Measurement\WorkflowConfig',
+               r'D:/tmp/tt_tt_measurement',
+               script_root_folder=r'D:\workspace\AdInsights\private\Backend\AdInsightMad\Measurement',  # different from DWC drop, script is not in the same workgroup folder
+               error_log_filename='errors.txt',
+               target_filenames=['SOV_Coverage_Intl.script'])
     '''

@@ -22,10 +22,14 @@ class Reduce(object):
     presort = PRESORT + delimitedList(ident + Optional(oneOf('DESC ASC')))('presort')
     produce = PRODUCE + delimitedList(ident)('produce')
     using = USING + (func | func_ptr)('using')
-    reduce_stmt = Combine(ident)('assign_var') + '=' + \
-                  REDUCE + (Combine(ident)('source') | select_stmt('select_stmt')) + \
-                  Each([on, Optional(produce), Optional(presort), Optional(using)])
+    recude_each = Each([on, Optional(produce), Optional(presort), Optional(using)])
 
+    reduce_explicit = REDUCE + (Combine(ident)('source') | select_stmt('select_stmt')) + recude_each
+    reduce_implicit = REDUCE + recude_each
+    reduce = reduce_explicit | reduce_implicit
+
+    assign_reduce = Combine(ident)('assign_var') + '=' + reduce
+    reduce_stmt = assign_reduce | reduce
 
     def debug(self):
         print(self.using.parseString('USING GroupingReducer("SuggKW", "3")'))
@@ -44,12 +48,16 @@ class Reduce(object):
 #        print(json.dumps(d.asDict(), indent=4))
 #        print('-' *20)
 
-        ret['assign_var'] = d['assign_var']
+        if 'assign_var' in d:
+            ret['assign_var'] = d['assign_var']
 
         if 'source' in d:
             ret['sources'].add(d['source'])
+        elif 'table_name' in d:
+            ret['sources'].add(d['table_name'])  # from SELECT statement
         else:
-            ret['sources'].add(d['table_name']) # directly from SELECT statement
+            # implicit reduce
+            pass
 
         ret['using'] = d['using'][0]
 
@@ -60,32 +68,7 @@ if __name__ == '__main__':
 #    obj.debug()
 
     print(obj.parse('''
-Suggestions_WithoutAdGroup_Others =
-    REDUCE
-    (
-        SELECT AccountId,
-               OrderId,
-               SuggKW,
-               SuggMatchTypeId,
-               BMMKeyword,
-               Score,
-               SuggBid,
-               CampaignId,
-               Impressions,
-               Clicks,
-               TotalCost,
-               AveragePosition,
-               FinalSuggKW,
-               Events,
-               SRPV,
-               distance,
-               MarketPlaceRevenueGain,
-               IsNewAdGroup
-        FROM Suggestions_WithoutAdGroup
-        WHERE Theme == "Keyword Like" OR Theme == ""
-    )
-    ON AccountId
-    USING GroupingReducer("SuggKW", "3")
+REDUCE ON OrderItemId USING PassThroughReducer;
         '''))
 
 

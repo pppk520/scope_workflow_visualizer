@@ -122,5 +122,16 @@ class TestOutput(TestCase):
         self.assertTrue(result['path'] == '@OutputBudgetLandscape')
         self.assertTrue(result['stream_type'] == 'SSTREAM')
 
+    def test_using_to(self):
+        s = '''
+        OUTPUT BudgetSuggestionsAll USING A.B.Opportunities("aa", "bb") TO @BudgetRecsAllPath
+                WITH STREAMEXPIRY @STREAM_EXPIRY
+        '''
+
+        result = Output().parse(s)
+
+        self.assertCountEqual(result['idents'], ['BudgetSuggestionsAll'])
+        self.assertTrue(result['path'] == '@BudgetRecsAllPath')
+
 
 

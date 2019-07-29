@@ -30,7 +30,7 @@ class Output(object):
 
     simple_where = Group(WHERE + ident + oneOf("== != >= <= > <") + (oneOf("true false") | value_str))
 
-    output_sstream = OUTPUT + (((ident('ident') | select_stmt) + TO) | TO) + Optional(SSTREAM)('sstream') + value_str('path') + \
+    output_sstream = OUTPUT + (((ident('ident') | select_stmt) + Optional(using) + TO) | Optional(using) + TO) + Optional(SSTREAM)('sstream') + value_str('path') + \
                      Optional(clustered_by) + \
                      Optional(sorted_by) + \
                      Optional(partitioned_by)('partition') + \
@@ -79,16 +79,6 @@ if __name__ == '__main__':
     obj = Output()
 
     print(obj.parse('''
-OUTPUT
-(
-    SELECT * FROM BudgetLandscape_Backward
-    UNION ALL
-    SELECT * FROM BudgetLandscape_Forward
-    UNION ALL
-    SELECT * FROM KKK
-)
-TO SSTREAM @OutputBudgetLandscape
-CLUSTERED BY CampaignId
-WITH STREAMEXPIRY @StreamExpiry;
-
+OUTPUT BudgetSuggestionsAll USING A.B.Opportunities("aa", "bb") TO @BudgetRecsAllPath
+		WITH STREAMEXPIRY @STREAM_EXPIRY
     '''))

@@ -366,6 +366,12 @@ class ScriptParser(object):
             if '_' not in node.name:
                 continue
 
+            if node.name == 'SCOPE_IMPLICIT':
+                node.attr['type'] = 'input'
+                node.attr['style'] = 'filled'
+                node.attr['fillcolor'] = 'gray'
+                continue
+
             input_type = node.name.split('_')[0]
 
             if input_type not in ['SSTREAM', 'SSTREAM<STREAMSET>', 'EXTRACT', 'MODULE', 'VIEW', 'FUNC']:
@@ -483,7 +489,11 @@ class ScriptParser(object):
             node_map[node_name] = new_node  # update
             to_node = new_node
         else:
-            to_node = node_map['last_node']
+            if not node_map['last_node']:
+                new_node = Node("SCOPE_IMPLICIT")
+                to_node = new_node
+            else:
+                to_node = node_map['last_node']
 
         for from_node in from_nodes:
             edges.append(Edge(from_node, to_node))
