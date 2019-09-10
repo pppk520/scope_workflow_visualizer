@@ -233,6 +233,12 @@ class ScriptParser(object):
         re_dh_4 = re.compile(r'\[Privacy\..+?]')
         content = re.sub(re_dh_4, '', content)
 
+        # [ PARTITION(BiddedKeyword) ]
+        # [ STAGEBOUNDARYONOUTPUT ]
+        # [ PARTITION(Query, DeviceTypeId) ]
+        re_dh_5 = re.compile(r'\[[ ]*[a-zA-Z\(\), ]+[ ]*\]')
+        content = re.sub(re_dh_5, '', content)
+
         return content
 
     def remove_split_reserved_char(self, content):

@@ -204,6 +204,27 @@ def to_workflow_dep_graph(proj_folder,
                               filter_type=filter_type)
 
 
+def generate_workflow_dep_graph(dwc_wf_folder,
+                                out_folder,
+                                target_wf_folders=[],
+                                target_node_names=[]):
+    FileUtility.mkdir_p(out_folder)
+    for wf_folder in os.listdir(dwc_wf_folder):
+        if target_wf_folders and wf_folder not in target_wf_folders:
+            print('wf_folder [{}] not in target list [{}]'.format(wf_folder, target_wf_folders))
+            continue
+
+        wf_folder_path = os.path.join(dwc_wf_folder, wf_folder)
+        print('wf_folder_path [{}]'.format(wf_folder_path))
+
+        out_sub_folder = os.path.join(out_folder, wf_folder)
+
+        try:
+            to_workflow_dep_graph(wf_folder_path, out_sub_folder, target_node_names=target_node_names)
+        except Exception as ex:
+            print("Exception: {}".format(ex))
+
+
 def all_in_one(dwc_wf_folder,
                out_folder,
                target_wf_folders=[],
@@ -282,20 +303,45 @@ def all_in_one(dwc_wf_folder,
 if __name__ == '__main__':
 #    cli()
 
-    all_in_one(r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
-               r'D:/tmp/tt_all_in_one_2019-05-30',
+
+    #-------------------------------------------------
+    # All working workflows
+    #-------------------------------------------------
+    '''
+    all_in_one(r'D:\tmp/tt_all_2019-09-09\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+               r'D:/tmp/tt_all_in_one_2019-09-09',
                error_log_filename='errors.txt')
+    '''
+
+    # -------------------------------------------------
+    # Specific workflow Dependency Graph
+    # -------------------------------------------------
+    generate_workflow_dep_graph(r'D:\tmp/tt_all_2019-09-09\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+                                r'D:/tmp/tt_all_in_one_2019-09-09_Budget',
+                                target_wf_folders=['ADC_Opportunities_Scope'],
+                                target_node_names=['BudgetOptPKVGeneration.script'])
+
+    # -------------------------------------------------
+    # Specific Script
+    # -------------------------------------------------
+    '''
+    all_in_one(r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups',
+               r'D:/tmp/tt_all_in_one_2019-05-30_budget_tt',
+               target_wf_folders=['ADC_Opportunities_Scope'],
+               target_filenames=['BudgetSugg_LostToBudgt.script'],
+               error_log_filename='errors.txt')
+    '''
 
     '''
-    results = parse_script(r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
-                           r'D:\tmp/tt_all_2019-05-30\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope',
-                           r'D:\tmp/tt_tt',
+    results = parse_script(r'D:\workspace\AdInsights\private\BudgetForecast\BudgetForecastScope',
+                           r'D:\workspace\AdInsights\private\BudgetForecast\Workflows',
+                           r'D:\tmp/tt_tt_forecast',
                            target_date_str=DatetimeUtility.get_datetime(-6, fmt_str='%Y-%m-%d'),
-                           target_filenames=['BudgetSugg_End.script'])
+                           target_filenames=[])
     '''
 
-    '''
     # measurement
+    '''
     all_in_one(r'D:\workspace\AdInsights\private\Backend\AdInsightMad\Measurement\WorkflowConfig',
                r'D:/tmp/tt_tt_measurement',
                script_root_folder=r'D:\workspace\AdInsights\private\Backend\AdInsightMad\Measurement',  # different from DWC drop, script is not in the same workgroup folder

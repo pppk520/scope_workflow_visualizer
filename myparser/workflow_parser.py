@@ -611,10 +611,10 @@ if __name__ == '__main__':
 
     import json
 
-    proj_name = 'Opportunities'
+    proj_name = 'UCM'
     exclude_keys = []
 #    target_node_names = ['5.FinalCapping.script', 'MPIPrepare.script', '6.MPIProcessing0.script']
-    target_node_names = ['MPIPrepare.script']
+#    target_node_names = ['MPIPrepare.script']
 #    target_node_names = []
 
 #    proj_name = 'BTE'
