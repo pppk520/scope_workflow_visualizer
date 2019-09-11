@@ -611,7 +611,6 @@ if __name__ == '__main__':
 
     import json
 
-    proj_name = 'UCM'
     exclude_keys = []
 #    target_node_names = ['5.FinalCapping.script', 'MPIPrepare.script', '6.MPIProcessing0.script']
 #    target_node_names = ['MPIPrepare.script']
@@ -622,7 +621,8 @@ if __name__ == '__main__':
 #    target_node_names = ['BidForPosition.script']
 
     wfp = WorkflowParser()
-    obj = wfp.parse_folder(r'D:\workspace\AdInsights\private\Backend\{}'.format(proj_name), exclude_keys=exclude_keys)
+#    obj = wfp.parse_folder(r'D:\tmp\tt_all_2019-09-09\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Opportunities_Scope', exclude_keys=exclude_keys)
+    obj = wfp.parse_folder(r'D:\tmp\tt_all_2019-09-09\retail\amd64\Backend\DWC\DwcService\WorkflowGroups\ADC_Common_Scope', exclude_keys=exclude_keys)
 
-    wfp.print_params(obj, 'MPIPrepare.script')
+    wfp.print_params(obj, 'AuctionProcessing.script')
 #    wfp.to_workflow_dep_graph(obj, 'd:/tmp/event_dep_{}_[{}]'.format(proj_name, '-'.join(target_node_names)), target_node_names=target_node_names)

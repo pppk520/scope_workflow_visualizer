@@ -57,6 +57,11 @@ class Select(object):
     func_chain_sp = ident_dot + '(' + delimitedList(func_param_sp, delim=',') + ')'
     func_chain_sp_chain = delimitedList(func_chain_sp, delim='.')
 
+    # Math.Round(
+    #                (AuctionLostToCampaignBudget_Raw - FilterReason_35_Raw) * (BudgetWinRate ?? @DefaultNativeWinRate) +
+    #                FilterReason_35_Raw * (BudgetSmoothingWinRate ?? @DefaultNativeBudgetSmoothingWinRate)) AS AuctionLostToCampaignBudget
+    func_as = ident_dot + '(' + Regex('(.*?)AS', re.DOTALL | re.MULTILINE)
+
     # IF(L.PositionNum < R.PositionNum, 0, 1) AS AboveCnt
     # IF(DailyBudgetUSD == null || MPISpend/100.0 <= DailyBudgetUSD, 1.0, DailyBudgetUSD/(MPISpend/100.0)) AS BudgetFactor
     #if_stmt = Group(IF + '(' + (ternary_condition_binop | ternary_condition_func) + ',' + value_str + ',' + value_str + ')')
@@ -115,7 +120,7 @@ class Select(object):
     one_column_anything = Word(printables + ' ', excludeChars=',\n')
 
     one_column_la_from = Regex(r'(.*?)(?=FROM)')
-    one_column_as = Regex(r'(.*?)AS ') + ident  # aggresive regex for very complex column
+    one_column_as = (Regex(r'(.*?)AS ') | func_as) + ident  # aggresive regex for very complex column
     one_column_as_multiline = Regex(r'(.*?)AS', re.MULTILINE | re.DOTALL) + ident  # aggresive regex for very complex column, multiline version
 
     column_name_list = Group(delimitedList(one_column_la_from | one_column_as | one_column | one_column_as_multiline | one_column_anything))('column_name_list')
@@ -182,8 +187,10 @@ class Select(object):
         pass
 
     def debug(self):
-        print(self.func_chain_sp_chain.parseString('''
-            Landscape.GetBidLandscape(LatestBidUSCent ?? -1, new LandscapePointSelectionConfig()).CompressCurve(LatestBidUSCent ?? -1, new CurveCompressionConfig())
+        print(self.func_as.parseString('''
+            Math.Round(
+               (AuctionLostToCampaignBudget_Raw - FilterReason_35_Raw) * (BudgetWinRate ?? @DefaultNativeWinRate) +
+               FilterReason_35_Raw * (BudgetSmoothingWinRate ?? @DefaultNativeBudgetSmoothingWinRate)) AS
         '''))
 
 
@@ -279,29 +286,30 @@ class Select(object):
 
 if __name__ == '__main__':
     obj = Select()
-    #obj.debug()
+    obj.debug()
 
     print(obj.parse('''
-        SELECT AccountId,
-               OrderId,
-               SuggKW,
-               SuggMatchTypeId,
-               BMMKeyword,
-               Score,
-               SuggBid,
-               CampaignId,
-               Impressions,
-               Clicks,
-               TotalCost,
-               AveragePosition,
-               FinalSuggKW,
-               Events,
-               SRPV,
-               distance,
-               MarketPlaceRevenueGain,
-               IsNewAdGroup
-        FROM Suggestions_WithoutAdGroup
-        WHERE Theme == "Keyword Like" OR Theme == "
+Listing_AuctionLostToCampaignBudget_Native =
+    SELECT DateKey,
+           HourNum,
+           L.ListingId,
+           MatchTypeId,
+           RelationshipId,
+           DistributionChannelId,
+           MediumId,
+           DeviceTypeId,
+           FraudQualityBand,
+           NetworkId,
+           AuctionLostToCampaignBudget_Raw,
+           FilterReason_35_Raw,
+           Math.Round(
+               (AuctionLostToCampaignBudget_Raw - FilterReason_35_Raw) * (BudgetWinRate ?? @DefaultNativeWinRate) +
+               FilterReason_35_Raw * (BudgetSmoothingWinRate ?? @DefaultNativeBudgetSmoothingWinRate)) AS AuctionLostToCampaignBudget,
+           BudgetWinRate AS DailyListingWinRate
+    FROM Listing_FiltrationFunnel_Native AS L
+         LEFT OUTER JOIN
+             ListingWinRate_Native AS R
+         ON L.ListingId == R.ListingId;
 '''))
 
 

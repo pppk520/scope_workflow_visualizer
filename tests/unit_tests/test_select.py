@@ -1080,4 +1080,25 @@ KWCandidatesWithLocationTarget =
         self.assertTrue(result['assign_var'] is None)
         self.assertCountEqual(result['sources'], ['campaignDailyPerf_Of_Last15days', 'campaignDailyBudget_Of_Last15days'])
 
+    def test_column_complex_func_as(self):
+        s = '''
+        Listing_AuctionLostToCampaignBudget_Native =
+            SELECT DateKey,
+                   HourNum,
+                   L.ListingId,
+                   FilterReason_35_Raw,
+                   Math.Round(
+                       (AuctionLostToCampaignBudget_Raw - FilterReason_35_Raw) * (BudgetWinRate ?? @DefaultNativeWinRate) +
+                       FilterReason_35_Raw * (BudgetSmoothingWinRate ?? @DefaultNativeBudgetSmoothingWinRate)) AS AuctionLostToCampaignBudget,
+                   BudgetWinRate AS DailyListingWinRate
+            FROM Listing_FiltrationFunnel_Native AS L
+                 LEFT OUTER JOIN
+                     ListingWinRate_Native AS R
+                 ON L.ListingId == R.ListingId;
+        '''
+
+        result = Select().parse(s)
+
+        self.assertTrue(result['assign_var'] == 'Listing_AuctionLostToCampaignBudget_Native')
+        self.assertCountEqual(result['sources'], ['Listing_FiltrationFunnel_Native', 'ListingWinRate_Native'])
 
